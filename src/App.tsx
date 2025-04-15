@@ -1,11 +1,17 @@
-import './App.css';
+
+
+import './App.css'
+import Contact from './component/Contact'
 
 function App() {
-    return (
-        <>
-            <div>hello</div>
-        </>
-    );
+ 
+
+  return (
+    <>
+     <Contact/>
+    </>
+  )
+
 }
 
 export default App;
