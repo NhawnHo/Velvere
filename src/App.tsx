@@ -1,12 +1,16 @@
 import './App.css';
-// import Header from './component/Header';
-import NewBagsSection from './component/NewBagsSection';
+// import Contact from './component/Contact'
+import Product from './component/Product';
+import User from './component/User';
+// import NewBagsSection from './component/NewBagsSection';
 
 function App() {
     return (
         <>
-        {/* <Header /> */}
-        <NewBagsSection />
+            {/* <Contact/> */}
+            {/* <NewBagsSection /> */}
+            <Product />
+            <User />
         </>
     );
 }
