@@ -1,4 +1,5 @@
 
+
 import './App.css'
 import Contact from './component/Contact'
 
@@ -10,6 +11,7 @@ function App() {
      <Contact/>
     </>
   )
+
 }
 
-export default App
+export default App;
