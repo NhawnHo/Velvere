@@ -1,21 +1,20 @@
-
-
-import './App.css'
-import Contact from './component/Contact'
+import './App.css';
+import Header from './component/Header';
+// import Contact from './component/Contact'
 // import Product from './component/Product';
 // import User from './component/User';
+import NewBagsSection from './component/NewBagsSection';
 
 function App() {
- 
-
-  return (
-    <>
-      <Contact/>
-      {/* <Product />
-      <User/> */}
-    </>
-  )
-
+    return (
+        <>
+            {/* <Contact/> */}
+            <Header />
+            <NewBagsSection />
+            {/* <Product />
+            <User /> */}
+        </>
+    );
 }
 
 export default App;
