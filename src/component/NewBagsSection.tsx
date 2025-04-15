@@ -1,19 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-// import { Button } from '@/components/ui/button'; // Giả sử bạn có component Button này
-// import { cn } from '@/lib/utils'; // Giả sử bạn có tiện ích này
 
-// interface Bag {
-//     name: string;
-//     shopLink: string;
-// }
-
-// Giả định triển khai đơn giản của các hàm bị thiếu
 const cn = (...classes: string[]) => classes.filter(Boolean).join(' ');
-// const Button: React.FC<any> = ({ children, className, ...props }) => (
-//     <button className={className} {...props}>
-//         {children}
-//     </button>
-// );
 
 const NewBagsSection: React.FC = () => {
     const [isScrolled, setIsScrolled] = useState(false);
@@ -21,11 +8,7 @@ const NewBagsSection: React.FC = () => {
 
     useEffect(() => {
         const handleScroll = () => {
-            if (window.scrollY > 100) {
-                setIsScrolled(true);
-            } else {
-                setIsScrolled(false);
-            }
+            setIsScrolled(window.scrollY > 40);
         };
 
         window.addEventListener('scroll', handleScroll);
@@ -34,50 +17,49 @@ const NewBagsSection: React.FC = () => {
         };
     }, []);
 
-    const rectangleWidth = 500;
-    const rectangleHeight = 600;
+    const rectangleWidth = 480;
+    const rectangleHeight = 740;
+
+    const commonStyle = {
+        width: isScrolled ? `${rectangleWidth}px` : '0px',
+        height: isScrolled ? `${rectangleHeight}px` : 'auto',
+        transition: 'width 1.5s ease-in-out, height 1.5s ease-in-out',
+    };
 
     return (
-        <div className="flex flex-col">
+        <div className="flex flex-col items-center">
             <div
-                className="flex  gap-2 transition-all duration-1000 h-[1000px]"
+                className="flex justify-center items-start transition-[align-items] duration-1500 h-[1500px]"
                 style={{
                     alignItems: isScrolled ? 'center' : 'normal',
                 }}
             >
-                {/* Hình ảnh bên trái */}
+                {/* Left Image */}
                 <div
                     className={cn(
-                        'w-200 md:w-1/3 flex transition-all duration-1000 relative ',
+                        'flex relative transition-opacity duration-1500',
                         isScrolled ? 'opacity-100' : 'opacity-0',
                     )}
+                    style={commonStyle}
                 >
                     <img
                         src="https://res.cloudinary.com/dvsg1fr4g/image/upload/v1744715921/snapedit_1744715875579_eobfhm.png"
                         alt="Left Bag"
-                        className="object-cover w-full max-h-[80vh] transition-opacity duration-50"
-                        style={{
-                            width: isScrolled ? `${rectangleWidth}px` : '0vw',
-                            height: isScrolled
-                                ? `${rectangleHeight}px`
-                                : 'auto',
-                            transition: 'width 1s, height 1s',
-                        }}
+                        className="object-cover w-full h-full"
                     />
                 </div>
 
-                {/* Video ở giữa */}
+                {/* Video */}
                 <div
                     className={cn(
-                        'w-200 md:w-1/3 relative flex  transition-all duration-3000',
-                        isScrolled
-                            ? 'items-center justify-center'
-                            : 'items-start justify-center md:w-100 w-full',
+                        'flex relative justify-center items-center transition-all duration-2000 ease-in-out',
+                        isScrolled ? 'opacity-100' : 'opacity-100',
                     )}
                     style={{
-                        width: isScrolled ? `${rectangleWidth}px ` : '1100vw ',
-                        height: isScrolled ? `${rectangleHeight}px` : 'auto',
-                        transition: 'width 1s, height 1s',
+                        width: isScrolled ? `${rectangleWidth}px` : '99vw',
+                        height: isScrolled ? `${rectangleHeight}px` : '100vh',
+                        transition:
+                            'width 1.8s ease-in-out, height 1.8s ease-in-out',
                     }}
                 >
                     <video
@@ -87,39 +69,27 @@ const NewBagsSection: React.FC = () => {
                         muted
                         loop
                         playsInline
-                        className="object-cover w-full max-h-[80vh] transition-all duration-3000"
-                        style={{
-                            width: isScrolled ? `${rectangleWidth}px` : '100vw',
-                            height: isScrolled
-                                ? `${rectangleHeight}px`
-                                : 'auto',
-                            transition: 'width 1.5s, height 1.5s', // Thêm transition riêng cho width và height
-                        }}
+                        className="object-cover w-full h-full"
                     />
                 </div>
 
-                {/* Hình ảnh bên phải */}
+                {/* Right Image */}
                 <div
                     className={cn(
-                        'w-full md:w-1/3 flex justify-start transition-all duration-1000',
+                        'flex relative transition-opacity duration-1500 ease-in-out',
                         isScrolled ? 'opacity-100' : 'opacity-0',
                     )}
+                    style={commonStyle}
                 >
                     <img
                         src="https://res.cloudinary.com/dvsg1fr4g/image/upload/v1744716689/snapedit_1744716644486_dmzqtb.png"
                         alt="Right Bag"
-                        className="object-cover w-200 max-h-[80vh] transition-all duration-2000"
-                        style={{
-                            width: isScrolled ? `${rectangleWidth}px` : '200vw',
-                            height: isScrolled
-                                ? `${rectangleHeight}px`
-                                : 'auto',
-                            transition: 'width 1s, height 1s', // Thêm transition riêng cho width và height
-                        }}
+                        className="object-cover w-full h-full"
                     />
                 </div>
             </div>
-            {/* Nội dung giả để tạo khoảng trống cuộn */}
+
+            {/* Scroll Content */}
             <div className="py-20 bg-gray-100 text-gray-800 text-center">
                 <h2 className="text-3xl font-bold mb-4">
                     Cuộn xuống để xem hiệu ứng
