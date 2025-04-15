@@ -38,79 +38,107 @@ const Contact: React.FC = () => {
     };
 
     return (
-        <div className="font-sans bg-gray-50">
+        <div className=" bg-gray-50">
             <div className="text-center mb-8 fixed top-0 left-0 right-0 z-10">
                 <img
                     src={
-                        'https://media.gucci.com/content/HeroShortMedium_768x230/1739286017/HeroShortMedium_Gucci-SS25-Feb25-Gucci-SS25-Shot3-225-SAFE_001_Default.jpg'
+                        'https://res.cloudinary.com/duongofji/image/upload/v1744732669/bgContact_h4cnbq.jpg'
                     }
                     alt="Contact Us"
-                    className="mx-auto w-full h-auto object-cover rounded-lg shadow-lg"
+                    className="mx-auto w-full h-auto object-cover brightness-50 rounded-lg shadow-lg"
                 />
             </div>
 
-            <div className="relative h-screen mt-[500px] z-20 bg-white">
-                <h1 className="text-center text-7xl text-gray-900 mb-4 absolute top-[-150px] left-1/2 -translate-x-1/2 text-white">
+            <div className="relative h-screen mt-[600px] z-20 bg-white items-center justify-items-center ">
+                <h1 className="text-center font-semibold text-5xl mb-4 absolute top-[-150px] left-1/2 -translate-x-1/2 text-white">
                     CONTACT US
                 </h1>
-
-                <span className="absolute top-[-8px] left-1/2 -translate-x-1/2 bg-red-500">
-                    Logo
-                </span>
-
-                <p className="text-center text-3xl text-gray-700 mt-2 mb-6">
-                    Nếu bạn có bất kỳ câu hỏi nào về sản phẩm quần áo của chúng
-                    tôi, vui lòng liên hệ qua thông tin dưới đây:
+                <p className="text-center py-8 text-gray-500">
+                    Trung tâm dịch vụ khách hàng Dior làm việc từ Thứ Hai đến
+                    Chủ Nhật <br /> từ 10 giờ sáng đến 9 giờ tối (giờ ICT).{' '}
+                    <br />
+                    Các cố vấn khách hàng của chúng tôi sẽ rất vui lòng hỗ trợ
+                    bạn và cung cấp lời khuyên cá nhân. <br />
+                    Để được hỗ trợ về nước hoa và làm đẹp, vui lòng nhấp vào đây
+                    .
                 </p>
 
-                <form
-                    className="max-w-4xl mx-auto mt-5 bg-white p-8 rounded-lg shadow-md"
-                    onSubmit={handleSubmit}
-                >
-                    <div className="mb-6">
-                        <input
-                            type="text"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            placeholder="Họ và tên"
-                            className="w-full p-4 text-lg border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                    <div className="mb-6">
-                        <input
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            placeholder="Email"
-                            className="w-full p-4 text-lg border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                    <div className="mb-6">
-                        <textarea
-                            name="message"
-                            value={formData.message}
-                            onChange={handleChange}
-                            placeholder="Nội dung"
-                            rows={5}
-                            className="w-full p-4 text-lg border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        ></textarea>
-                    </div>
-                    <button
-                        type="submit"
-                        className="w-full px-5 py-3 text-lg bg-blue-600 text-white rounded-md hover:bg-blue-700 ou"
-                        style={{ backgroundColor: '#B6C99B' }}
-                    >
-                        Gửi
-                    </button>
-                </form>
+                <div className="grid grid-cols-2  w-full max-w-7xl mt-10 ">
+                    <div className="col-span-1 items-center pr-10">
+                        <p className="text-lg font-semibold">
+                            Viết cho chúng tôi
+                        </p>
+                        <form className=" bg-white " onSubmit={handleSubmit}>
+                            <div className="relative w-full">
+                                <input
+                                    type="text"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    required
+                                    className="mt-5 w-full py-2 text-lg border-0 border-b border-b-gray-300 focus:outline-none focus:border-b-gray-500"
+                                    placeholder="Họ tên"
+                                />
+                            </div>
 
-                {status === 'success' && (
-                    <div className="max-w-4xl mx-auto mt-4 text-center text-green-600">
-                        Gửi thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất.
+                            <div className="">
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    placeholder="Email"
+                                    className=" mt-7 w-full py-2 text-lg border-0 border-b border-b-gray-300 focus:outline-none focus:border-b-gray-500"
+                                />
+                            </div>
+                            <div className="mb-6">
+                                <textarea
+                                    name="message"
+                                    value={formData.message}
+                                    onChange={handleChange}
+                                    placeholder="Nội dung"
+                                    rows={5}
+                                    className=" mt-7 w-full py-2 text-lg border-0 border-b border-b-gray-300 focus:outline-none focus:border-b-gray-500"
+                                ></textarea>
+                            </div>
+                            <button
+                                type="submit"
+                                className="w-full px-5 py-3 mb-5 text-lg bg-blue-600 text-white rounded-md hover:bg-blue-700 ou"
+                                style={{ backgroundColor: '#B6C99B' }}
+                            >
+                                Gửi
+                            </button>
+                        </form>
+                        <p className="h-10">
+                            {status === 'success' && (
+                                <div className="max-w-4xl mx-auto pt 3 text-center text-green-600">
+                                    Gửi thành công! Chúng tôi sẽ liên hệ với bạn
+                                    sớm nhất.
+                                </div>
+                            )}
+                        </p>
                     </div>
-                )}
+                    <div className="pl-10">
+                        <div>
+                            <p className="text-lg font-medium">
+                                Gọi cho chúng tôi
+                            </p>
+                            <p className="text-gray-500 mt-3">
+                                Các cố vấn khách hàng của chúng tôi rất vui lòng
+                                hỗ trợ bạn. <br />
+                                Bạn có thể liên hệ với chúng tôi theo số +852
+                                800 969 886 . <br />
+                                Dịch vụ có sẵn từ Thứ Hai đến Chủ Nhật từ 10 giờ
+                                sáng đến 9 giờ tối (ICT)
+                            </p>
+              </div>
+              <div>
+                <p>SDT</p>
+                <p>dịa chir</p>
+                <p>Mail</p>
+              </div>
+                    </div>
+                </div>
 
                 <div className="max-w-4xl mx-auto text-center mt-10 bg-white p-6 rounded-lg shadow-md">
                     <div className="mb-4 text-lg">
