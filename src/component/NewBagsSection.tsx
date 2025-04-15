@@ -8,7 +8,7 @@ const NewBagsSection: React.FC = () => {
 
     useEffect(() => {
         const handleScroll = () => {
-            setIsScrolled(window.scrollY > 40);
+            setIsScrolled(window.scrollY > 100);
         };
 
         window.addEventListener('scroll', handleScroll);
@@ -29,7 +29,7 @@ const NewBagsSection: React.FC = () => {
     return (
         <div className="flex flex-col items-center">
             <div
-                className="flex justify-center items-start transition-[align-items] duration-1500 h-[1500px]"
+                className="flex justify-center items-start transition-[align-items] duration-1500 h-[800px]"
                 style={{
                     alignItems: isScrolled ? 'center' : 'normal',
                 }}
