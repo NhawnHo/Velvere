@@ -17,19 +17,28 @@ const NewBagsSection: React.FC = () => {
         };
     }, []);
 
-    const rectangleWidth = 480;
-    const rectangleHeight = 740;
+    const getRectangleSize = () => {
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+
+        const rectangleWidth = screenWidth * 0.28; // Adjust as needed
+        const rectangleHeight = screenHeight * 0.86; // Adjust as needed
+
+        return { width: rectangleWidth, height: rectangleHeight };
+    };
+
+    const rectangleSize = getRectangleSize();
 
     const commonStyle = {
-        width: isScrolled ? `${rectangleWidth}px` : '0px',
-        height: isScrolled ? `${rectangleHeight}px` : 'auto',
+        width: isScrolled ? `${rectangleSize.width}px` : '0px',
+        height: isScrolled ? `${rectangleSize.height}px` : 'auto',
         transition: 'width 1.5s ease-in-out, height 1.5s ease-in-out',
     };
 
     return (
         <div className="flex flex-col items-center">
             <div
-                className="flex justify-center items-start transition-[align-items] duration-1500 h-[800px]"
+                className="flex justify-center items-start transition-[align-items] duration-1500"
                 style={{
                     alignItems: isScrolled ? 'center' : 'normal',
                 }}
@@ -56,8 +65,10 @@ const NewBagsSection: React.FC = () => {
                         isScrolled ? 'opacity-100' : 'opacity-100',
                     )}
                     style={{
-                        width: isScrolled ? `${rectangleWidth}px` : '99vw',
-                        height: isScrolled ? `${rectangleHeight}px` : '100vh',
+                        width: isScrolled ? `${rectangleSize.width}px` : '99vw',
+                        height: isScrolled
+                            ? `${rectangleSize.height}px`
+                            : '100vh',
                         transition:
                             'width 1.8s ease-in-out, height 1.8s ease-in-out',
                     }}
@@ -90,17 +101,18 @@ const NewBagsSection: React.FC = () => {
             </div>
 
             {/* Scroll Content */}
-            <div className="py-20 bg-gray-100 text-gray-800 text-center">
-                <h2 className="text-3xl font-bold mb-4">
-                    Cuộn xuống để xem hiệu ứng
+            <div className="py-5 text-center">
+                <h2 className="text-2xl font-serif w-156 text-slate-600 tracking-[.1em]">
+                    Enter a realm of starlight, where she reigns as the supreme
+                    star, gracefully enchanting with every sway.
                 </h2>
-                <p className="text-lg">
-                    Đây là nội dung bổ sung để tạo hiệu ứng cuộn trang.
-                </p>
-                <p className="text-lg">
-                    Bạn có thể thêm bất kỳ nội dung nào ở đây, ví dụ như hình
-                    ảnh, văn bản, hoặc các thành phần khác.
-                </p>
+            </div>
+
+            <div className="w-full h-auto flex justify-center items-center mt-40">
+                <img
+                    src="https://res.cloudinary.com/dvsg1fr4g/image/upload/v1744738279/Betterimage.ai_1744738215096_xdyp9z.jpg"
+                    alt=""
+                />
             </div>
         </div>
     );

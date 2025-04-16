@@ -10,4 +10,4 @@ const userSchema = new mongoose.Schema({
     address: String,
 });
 
-export default mongoose.model('User', userSchema, 'Users');
+export default mongoose.model('User', userSchema, 'Users'); // nếu ko để tên collection thì mongo sẽ tự tạo một collection mới tên users
