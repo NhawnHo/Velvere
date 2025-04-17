@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom'; // ⬅️ THÊM DÒNG NÀY
 
 interface Size {
     size: string;
@@ -33,9 +34,10 @@ function Product() {
         <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {products.length > 0 ? (
                 products.map((product) => (
-                    <div
+                    <Link // ⬅️ THAY <div> thành <Link>
+                        to={`/product/${product._id}`} // ⬅️ Chuyển hướng
                         key={product.product_id}
-                        className="border p-4 rounded shadow"
+                        className="border p-4 rounded shadow hover:shadow-lg transition duration-300 block"
                     >
                         <h1 className="text-xl font-bold">
                             {product.product_name}
@@ -63,7 +65,7 @@ function Product() {
                                 ))}
                             </ul>
                         </div>
-                    </div>
+                    </Link>
                 ))
             ) : (
                 <p>Đang tải sản phẩm...</p>
