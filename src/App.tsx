@@ -8,8 +8,8 @@ import Product from './component/Product';
 import User from './component/User';
 import ProductDetail from './pages/ProductDetail';
 import Footer from './component/Footer';
+import Signup from './login/Signup';
 
-// import Signup from './login/Signup';
 // import User from './component/User';
 // import NewBagsSection from './component/NewBagsSection';
 
@@ -27,7 +27,8 @@ function App() {
                 <Route path="/user" element={<User />} />
                 <Route path="/" element={<Product />} />
                 <Route path="/product/:id" element={<ProductDetail/>} />
-             </Routes>
+      </Routes>
+      <Signup/>
 
             <Footer />
       </Router>
