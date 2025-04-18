@@ -5,6 +5,7 @@ import Header from './component/Header';
 import Footer from './component/Footer';
 import Product from './component/Product';
 import ProductDetail from './pages/ProductDetail';
+// import Signup from './login/Signup';
 // import User from './component/User';
 // import NewBagsSection from './component/NewBagsSection';
 
@@ -21,7 +22,8 @@ function App() {
                     <Route path="/product/:id" element={<ProductDetail/>} />
                 </Routes>
             </Router>
-            {/* <User /> */}
+        {/* <User /> */}
+        {/* <Signup/> */}
             <Footer />
         </>
     );
