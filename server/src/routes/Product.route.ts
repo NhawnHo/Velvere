@@ -1,8 +1,15 @@
 import express from 'express';
-import { getAllProducts } from '../controllers/Product.controller';
+import {
+    getAllProducts,
+    getProductById,
+} from '../controllers/Product.controller';
+
+
 
 const router = express.Router();
 
-router.get('/', getAllProducts); // sử dụng controller đã tách
+router.get('/', getAllProducts);
+router.get('/:id',getProductById); // ✅ Thêm dòng này để xử lý lấy 1 sản phẩm theo ID
 
 export default router;
+

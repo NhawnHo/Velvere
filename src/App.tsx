@@ -6,18 +6,25 @@ import NewBagsSection from './component/NewBagsSection';
 import Contact from './component/Contact';
 import Product from './component/Product';
 import User from './component/User';
+import ProductDetail from './pages/ProductDetail';
+import Footer from './component/Footer';
 
 function App() {
     return (
-        <Router>
+        <>
             <Header />
             <Routes>
                 <Route path="/" element={<NewBagsSection />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/product" element={<Product />} />
                 <Route path="/user" element={<User />} />
-            </Routes>
-        </Router>
+                <Route path="/" element={<Product />} />
+                <Route path="/product/:id" element={<ProductDetail/>} />
+             </Routes>
+            <Footer />
+      </>
+       
+
     );
 }
 

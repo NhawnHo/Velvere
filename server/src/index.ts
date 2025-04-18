@@ -22,6 +22,7 @@ mongoose
 app.use('/api/products', productRoutes);
 app.use('/api/users', userRoutes);
 
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`✅ Server running at http://104.28.237.73/32:${PORT}`);
