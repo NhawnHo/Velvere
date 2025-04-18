@@ -38,19 +38,19 @@ const Contact: React.FC = () => {
     };
 
     return (
-        <div className="font-sans bg-gray-50">
+        <div className="font-sans bg-gray-50 ">
             <div className="text-center mb-8 fixed top-0 left-0 right-0 z-10">
                 <img
                     src={
                         'https://media.gucci.com/content/HeroShortMedium_768x230/1739286017/HeroShortMedium_Gucci-SS25-Feb25-Gucci-SS25-Shot3-225-SAFE_001_Default.jpg'
                     }
                     alt="Contact Us"
-                    className="mx-auto w-full h-auto object-cover rounded-lg shadow-lg"
+                    className="mx-auto w-full h-auto object-cover rounded-lg shadow-lg contact-us-container" // 👈 Thêm  contact-us-container chỗ này nè
                 />
             </div>
 
             <div className="relative h-screen mt-[500px] z-20 bg-white">
-                <h1 className="text-center text-7xl text-gray-900 mb-4 absolute top-[-150px] left-1/2 -translate-x-1/2 text-white">
+                <h1 className="text-center text-7xl mb-4 absolute top-[-150px] left-1/2 -translate-x-1/2 text-white">
                     CONTACT US
                 </h1>
 

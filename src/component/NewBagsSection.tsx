@@ -8,7 +8,7 @@ const NewBagsSection: React.FC = () => {
 
     useEffect(() => {
         const handleScroll = () => {
-            setIsScrolled(window.scrollY > 100);
+            setIsScrolled(window.scrollY > 200); 
         };
 
         window.addEventListener('scroll', handleScroll);
@@ -17,30 +17,39 @@ const NewBagsSection: React.FC = () => {
         };
     }, []);
 
-    const rectangleWidth = 480;
-    const rectangleHeight = 740;
+    const getRectangleSize = () => {
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+
+        const rectangleWidth = screenWidth * 0.28;
+        const rectangleHeight = screenHeight * 0.86;
+
+        return { width: rectangleWidth, height: rectangleHeight };
+    };
+
+    const rectangleSize = getRectangleSize();
 
     const commonStyle = {
-        width: isScrolled ? `${rectangleWidth}px` : '0px',
-        height: isScrolled ? `${rectangleHeight}px` : 'auto',
-        transition: 'width 1.5s ease-in-out, height 1.5s ease-in-out',
+        width: isScrolled ? `${rectangleSize.width}px` : '0px',
+        height: isScrolled ? `${rectangleSize.height}px` : 'auto',
+      transition: 'width 1.5s ease-in-out, height 1.5s ease-in-out',
     };
 
     return (
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center ">
             <div
-                className="flex justify-center items-start transition-[align-items] duration-1500 h-[800px]"
+                className="flex justify-center items-start transition-[align-items] duration-1500"
                 style={{
                     alignItems: isScrolled ? 'center' : 'normal',
                 }}
             >
                 {/* Left Image */}
                 <div
-                    className={cn(
-                        'flex relative transition-opacity duration-1500',
-                        isScrolled ? 'opacity-100' : 'opacity-0',
-                    )}
-                    style={commonStyle}
+            className={cn(
+              'flex relative transition-opacity duration-1500',
+              isScrolled ? 'opacity-100' : 'opacity-0',
+            )}
+            style={ commonStyle }
                 >
                     <img
                         src="https://res.cloudinary.com/dvsg1fr4g/image/upload/v1744715921/snapedit_1744715875579_eobfhm.png"
@@ -56,10 +65,14 @@ const NewBagsSection: React.FC = () => {
                         isScrolled ? 'opacity-100' : 'opacity-100',
                     )}
                     style={{
-                        width: isScrolled ? `${rectangleWidth}px` : '99vw',
-                        height: isScrolled ? `${rectangleHeight}px` : '100vh',
+                        width: isScrolled
+                            ? `${rectangleSize.width}px`
+                            : ' 99vw',
+                        height: isScrolled
+                            ? `${rectangleSize.height}px`
+                            : '100vh',
                         transition:
-                            'width 1.8s ease-in-out, height 1.8s ease-in-out',
+                        'width 1.5s ease-in-out, height 1.5s ease-in-out',
                     }}
                 >
                     <video
@@ -90,17 +103,24 @@ const NewBagsSection: React.FC = () => {
             </div>
 
             {/* Scroll Content */}
-            <div className="py-20 bg-gray-100 text-gray-800 text-center">
-                <h2 className="text-3xl font-bold mb-4">
-                    Cuộn xuống để xem hiệu ứng
+            <div className="mt-[4vw] text-center">
+                <h2 className="text-[1.5vw] font-serif w-[40vw] text-slate-600 tracking-[.1em]">
+                    Enter a realm of starlight, where she reigns as the supreme
+                    star, gracefully enchanting with every sway.
                 </h2>
-                <p className="text-lg">
-                    Đây là nội dung bổ sung để tạo hiệu ứng cuộn trang.
-                </p>
-                <p className="text-lg">
-                    Bạn có thể thêm bất kỳ nội dung nào ở đây, ví dụ như hình
-                    ảnh, văn bản, hoặc các thành phần khác.
-                </p>
+            </div>
+
+            <div className="w-full h-auto flex justify-center items-center mt-[10vw]">
+                <img
+                    src="https://res.cloudinary.com/dvsg1fr4g/image/upload/v1744783167/Betterimage.ai_1744782971571_kp9shu.jpg"
+                    alt=""
+                />
+            </div>
+            <div className="w-full h-auto flex justify-center items-center mt-[10vw]">
+                <img
+                    src="https://res.cloudinary.com/dvsg1fr4g/image/upload/v1744738279/Betterimage.ai_1744738215096_xdyp9z.jpg"
+                    alt=""
+                />
             </div>
         </div>
     );
