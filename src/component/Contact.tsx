@@ -45,7 +45,7 @@ const Contact: React.FC = () => {
                         'https://res.cloudinary.com/duongofji/image/upload/v1744732669/bgContact_h4cnbq.jpg'
                     }
                     alt="Contact Us"
-                    className="mx-auto w-full h-auto object-cover brightness-50 "
+                    className="mx-auto w-full h-auto object-cover brightness-50 contact-us-container "
                 />
             </div>
 

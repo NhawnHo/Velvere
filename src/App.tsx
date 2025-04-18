@@ -10,8 +10,10 @@ import ProductDetail from './pages/ProductDetail';
 import Footer from './component/Footer';
 
 function App() {
-    return (
-        <>
+  return (
+      
+   
+        <Router>
             <Header />
             <Routes>
                 <Route path="/" element={<NewBagsSection />} />
@@ -22,7 +24,7 @@ function App() {
                 <Route path="/product/:id" element={<ProductDetail/>} />
              </Routes>
             <Footer />
-      </>
+      </Router>
        
 
     );
