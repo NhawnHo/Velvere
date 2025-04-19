@@ -1,19 +1,25 @@
 import mongoose from 'mongoose';
 
+const variantSchema = new mongoose.Schema(
+    {
+        size: { type: String, required: true },
+        color: { type: String, required: true },
+        stock: { type: Number, required: true },
+    },
+    { _id: false },
+);
+
 const productSchema = new mongoose.Schema({
-    product_id: Number,
-    product_name: String,
-    description: String,
-    category_id: String,
-    sex: String,
+    product_id: { type: Number, required: true },
+    product_name: { type: String, required: true },
+    description: { type: String },
+    category_id: { type: String },
+    sex: { type: String },
     images: [String],
-    sizes: [
-        {
-            size: String,
-            price: Number,
-            stock: Number,
-        },
-    ],
+    price: { type: Number, required: true },
+    xuatXu: { type: String },
+    chatLieu: { type: String },
+    variants: [variantSchema],
 });
 
-export default mongoose.model('Product', productSchema, 'Products'); // dùng tên collection là 'Products'
+export default mongoose.model('Product', productSchema, 'Products'); // Collection tên 'Products'

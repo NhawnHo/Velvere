@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-interface Size {
+interface Variant {
     size: string;
-    price: number;
+    color: string;
     stock: number;
 }
 
@@ -15,13 +15,17 @@ interface Product {
     category_id: string;
     sex: string;
     images: string[];
-    sizes: Size[];
+    price: number;
+    xuatXu: string;
+    chatLieu: string;
+    variants: Variant[];
 }
 
 function ProductDetail() {
     const { id } = useParams();
     const [product, setProduct] = useState<Product | null>(null);
     const [selectedSize, setSelectedSize] = useState<string>('');
+    const [selectedColor, setSelectedColor] = useState<string>('');
     const [quantity, setQuantity] = useState(1);
 
     useEffect(() => {
@@ -33,15 +37,33 @@ function ProductDetail() {
 
     if (!product) return <p>Loading...</p>;
 
+    // Lấy danh sách size và color duy nhất từ variants
+    const uniqueSizes = Array.from(
+        new Set(product.variants.map((v) => v.size)),
+    );
+    const uniqueColors = Array.from(
+        new Set(product.variants.map((v) => v.color)),
+    );
+
     return (
-        <div className="flex flex-col md:flex-row gap-10 p-6">
+        <div className="flex flex-col md:flex-row gap-10 p-6 mt-10">
             {/* Hình ảnh sản phẩm */}
             <div className="flex-1">
                 <img
                     src={product.images[0]}
                     alt={product.product_name}
-                    className="w-full max-w-md object-cover"
+                    className="w-full max-w-md object-cover rounded"
                 />
+                <div className="flex gap-2 mt-4">
+                    {product.images.slice(1).map((img, idx) => (
+                        <img
+                            key={idx}
+                            src={img}
+                            alt={`thumbnail-${idx}`}
+                            className="w-20 h-20 object-cover rounded border"
+                        />
+                    ))}
+                </div>
             </div>
 
             {/* Thông tin sản phẩm */}
@@ -53,37 +75,62 @@ function ProductDetail() {
                     #{product.product_id}
                 </p>
 
-                {/* Giá sản phẩm */}
-                <p className="text-2xl font-bold text-gray-800 mb-6">
-                    {product.sizes[0]?.price.toLocaleString()}₫
+                {/* Giá */}
+                <p className="text-2xl font-bold text-gray-800 mb-4">
+                    {product.price.toLocaleString()}₫
                 </p>
 
-                {/* Size */}
+                {/* Thông tin thêm */}
+                <p className="text-sm text-gray-600 mb-2">
+                    Chất liệu: {product.chatLieu}
+                </p>
+                <p className="text-sm text-gray-600 mb-6">
+                    Xuất xứ: {product.xuatXu}
+                </p>
+
+                {/* Chọn SIZE */}
                 <div className="mb-6">
-                    <p className="font-semibold mb-2">SIZE :</p>
+                    <p className="font-semibold mb-2">Kích cỡ:</p>
                     <div className="flex gap-2 flex-wrap">
-                        {product.sizes.map((s, idx) => (
+                        {uniqueSizes.map((size, idx) => (
                             <button
                                 key={idx}
-                                onClick={() => setSelectedSize(s.size)}
+                                onClick={() => setSelectedSize(size)}
                                 className={`w-10 h-10 border rounded-full text-sm ${
-                                    selectedSize === s.size
+                                    selectedSize === size
                                         ? 'bg-black text-white'
                                         : 'hover:bg-gray-100'
                                 }`}
                             >
-                                {s.size}
+                                {size}
                             </button>
                         ))}
                     </div>
-                    <p className="text-xs mt-2 text-gray-500 italic">
-                        Hướng dẫn chọn size
-                    </p>
+                </div>
+
+                {/* Chọn MÀU */}
+                <div className="mb-6">
+                    <p className="font-semibold mb-2">Màu sắc:</p>
+                    <div className="flex gap-2 flex-wrap">
+                        {uniqueColors.map((color, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => setSelectedColor(color)}
+                                className={`px-4 py-2 border rounded-full text-sm ${
+                                    selectedColor === color
+                                        ? 'bg-black text-white'
+                                        : 'hover:bg-gray-100'
+                                }`}
+                            >
+                                {color}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
                 {/* Số lượng */}
                 <div className="mb-6">
-                    <p className="font-semibold mb-2">Số lượng</p>
+                    <p className="font-semibold mb-2">Số lượng:</p>
                     <div className="flex items-center gap-2 border w-fit px-3 py-1 rounded">
                         <button
                             onClick={() =>

@@ -25,10 +25,10 @@ function App() {
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/product" element={<Product />} />
                 <Route path="/user" element={<User />} />
-                <Route path="/" element={<Product />} />
                 <Route path="/product/:id" element={<ProductDetail/>} />
       </Routes>
-      <Signup/>
+      <Signup />
+      <Product/>
 
             <Footer />
       </Router>

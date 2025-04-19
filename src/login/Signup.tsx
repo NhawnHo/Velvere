@@ -139,7 +139,7 @@ function Signup() {
 
                         <div className="flex items-center justify-between mt-6">
                             <button
-                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                                className="font-light uppercas text-lg border w-full py-2 mt-3 hover:bg-black hover:text-white transition duration-300"
                                 type="submit"
                             >
                                 Sign Up

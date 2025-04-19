@@ -54,7 +54,7 @@ const Header: React.FC = () => {
             <div className="relative h-[4.5vw] flex flex-wrap bg-gray-100">
                 {/* Header */}
                 <div
-                    className={`fixed top-0 w-full h-[6vw] z-40 flex items-center justify-between px-[3vw] transition-colors duration-1000
+                    className={`fixed top-0 w-full h-[6vw] z-40 flex items-center justify-between px-[3vw] transition-colors duration-1000 
                     ${
                         isHomePage && !scrolled
                             ? 'bg-transparent'
@@ -68,20 +68,22 @@ const Header: React.FC = () => {
                     </div>
 
                     <div
-                        className={`flex items-end gap-x-10 transition-opacity duration-500
+                        className={`flex justify-center items-end gap-x-10 transition-opacity  duration-500 
                         ${
                             isHomePage && !scrolled
                                 ? 'opacity-0 pointer-events-none'
                                 : 'opacity-100'
                         }`}
                     >
-                        <button>
-                            <img
-                                src={shoppingBag}
-                                alt="Bag"
-                                className="w-[2vw] h-[2vw] max-w-[22px] max-h-[22px]"
-                            />
-                        </button>
+                        <div>
+                            <button>
+                                <img
+                                    src={shoppingBag}
+                                    alt="Bag"
+                                    className="w-[2vw] h-[2vw] max-w-[22px] max-h-[22px]"
+                                />
+                            </button>
+                        </div>
 
                         <div className="relative" ref={userMenuRef}>
                             <button
@@ -126,21 +128,25 @@ const Header: React.FC = () => {
                         </div>
 
                         {/* Nút mở thanh tìm kiếm */}
-                        <button onClick={() => setShowSearchPanel(true)}>
-                            <img
-                                src={search}
-                                alt="Search"
-                                className="w-[2vw] h-[2vw] max-w-[22px] max-h-[22px]"
-                            />
-                        </button>
+                        <div>
+                            <button onClick={() => setShowSearchPanel(true)}>
+                                <img
+                                    src={search}
+                                    alt="Search"
+                                    className="w-[2vw] h-[2vw] max-w-[22px] max-h-[22px]"
+                                />
+                            </button>
+                        </div>
 
-                        <button>
-                            <img
-                                src={menu}
-                                alt="Menu"
-                                className="w-[2vw] h-[2vw] max-w-[22px] max-h-[22px]"
-                            />
-                        </button>
+                        <div>
+                            <button>
+                                <img
+                                    src={menu}
+                                    alt="Menu"
+                                    className="w-[2vw] h-[2vw] max-w-[22px] max-h-[22px]"
+                                />
+                            </button>
+                        </div>
                     </div>
                 </div>
 
