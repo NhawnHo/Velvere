@@ -34,7 +34,7 @@ function Product() {
     }, []);
 
     return (
-        <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-[15vw] items-center">
+        <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 px-[15vw] items-center mt-[3vw]">
             {products.length > 0 ? (
                 products.map((product) => {
                     const totalStock = product.variants.reduce(
@@ -46,7 +46,7 @@ function Product() {
                         <Link
                             to={`/product/${product._id}`}
                             key={product.product_id}
-                            className="border p-10 rounded shadow hover:shadow-lg transition duration-300  block"
+                            className=" p-10 hover:shadow-2xl transition duration-300  block"
                         >
                             <h1 className="text-xl font-bold">
                                 {product.product_name}

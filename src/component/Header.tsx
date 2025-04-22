@@ -10,11 +10,12 @@ const Header: React.FC = () => {
     const [scrolled, setScrolled] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [showSearchPanel, setShowSearchPanel] = useState(false);
+    const [showSideMenu, setShowSideMenu] = useState(false);
+    const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
+    const userMenuRef = useRef<HTMLDivElement>(null);
     const location = useLocation();
     const isHomePage = location.pathname === '/';
-    const userMenuRef = useRef<HTMLDivElement>(null);
 
-    // Ẩn dropdown user menu nếu click ra ngoài
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (
@@ -29,7 +30,6 @@ const Header: React.FC = () => {
             document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Hiệu ứng scroll trên trang chủ
     useEffect(() => {
         if (!isHomePage) return;
         const onScroll = () => setScrolled(window.scrollY > 10);
@@ -37,29 +37,28 @@ const Header: React.FC = () => {
         return () => window.removeEventListener('scroll', onScroll);
     }, [isHomePage]);
 
-    // Khóa scroll khi mở search panel
     useEffect(() => {
-        if (showSearchPanel) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = 'auto';
-        }
+        document.body.style.overflow =
+            showSearchPanel || showSideMenu ? 'hidden' : 'auto';
         return () => {
             document.body.style.overflow = 'auto';
         };
-    }, [showSearchPanel]);
+    }, [showSearchPanel, showSideMenu]);
+
+    const toggleMenu = (menu: string) => {
+        setExpandedMenu((prev) => (prev === menu ? null : menu));
+    };
 
     return (
         <>
             <div className="relative h-[4.5vw] flex flex-wrap bg-gray-100">
-                {/* Header */}
                 <div
                     className={`fixed top-0 w-full h-[6vw] z-40 flex items-center justify-between px-[3vw] transition-colors duration-1000 
-                    ${
-                        isHomePage && !scrolled
-                            ? 'bg-transparent'
-                            : 'bg-black backdrop-blur-md shadow-md'
-                    }`}
+                        ${
+                            isHomePage && !scrolled
+                                ? 'bg-transparent'
+                                : 'bg-black backdrop-blur-md shadow-md'
+                        }`}
                 >
                     <div className="flex items-center">
                         <Link to="/contact" className="ml-[3vw]">
@@ -68,31 +67,32 @@ const Header: React.FC = () => {
                     </div>
 
                     <div
-                        className={`flex justify-center items-end gap-x-10 transition-opacity  duration-500 
+                        className={`flex justify-center items-end gap-x-10 transition-opacity duration-500 
                         ${
                             isHomePage && !scrolled
                                 ? 'opacity-0 pointer-events-none'
                                 : 'opacity-100'
                         }`}
                     >
-                        <div>
-                            <button>
-                                <img
-                                    src={shoppingBag}
-                                    alt="Bag"
-                                    className="w-[2vw] h-[2vw] max-w-[22px] max-h-[22px]"
-                                />
-                            </button>
-                        </div>
+                        <button>
+                            <img
+                                src={shoppingBag}
+                                alt="Bag"
+                                className="w-[2vw] h-[2vw] max-w-[22px] max-h-[22px]"
+                            />
+                        </button>
 
-                        <div className="relative" ref={userMenuRef}>
+                        <div
+                            className="relative -mb-1.5"
+                            ref={userMenuRef}
+                        >
                             <button
                                 onClick={() => setShowUserMenu(!showUserMenu)}
                             >
                                 <img
                                     src={userIcon}
                                     alt="User"
-                                    className="w-[2vw] h-[2vw] max-w-[22px] max-h-[22px]"
+                                    className="w-[2vw] h-[2vw] max-w-[22px] max-h-[22px] "
                                 />
                             </button>
                             {showUserMenu && (
@@ -101,15 +101,23 @@ const Header: React.FC = () => {
                                         <li>
                                             <Link
                                                 to="/signin"
-                                                className="block px-4 py-2 hover:bg-gray-100"
+                                                className="block w-full px-4 py-2 hover:bg-gray-100"
                                             >
                                                 SIGN IN
                                             </Link>
                                         </li>
                                         <li>
                                             <Link
+                                                to="/signup"
+                                                className="block w-full px-4 py-2 hover:bg-gray-100"
+                                            >
+                                                SIGN UP
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <Link
                                                 to="/orders"
-                                                className="block px-4 py-2 hover:bg-gray-100"
+                                                className="block w-full px-4 py-2 hover:bg-gray-100"
                                             >
                                                 MY ORDERS
                                             </Link>
@@ -117,7 +125,7 @@ const Header: React.FC = () => {
                                         <li>
                                             <Link
                                                 to="/account-settings"
-                                                className="block px-4 py-2 hover:bg-gray-100"
+                                                className="block w-full px-4 py-2 hover:bg-gray-100"
                                             >
                                                 ACCOUNT SETTINGS
                                             </Link>
@@ -127,30 +135,24 @@ const Header: React.FC = () => {
                             )}
                         </div>
 
-                        {/* Nút mở thanh tìm kiếm */}
-                        <div>
-                            <button onClick={() => setShowSearchPanel(true)}>
-                                <img
-                                    src={search}
-                                    alt="Search"
-                                    className="w-[2vw] h-[2vw] max-w-[22px] max-h-[22px]"
-                                />
-                            </button>
-                        </div>
+                        <button onClick={() => setShowSearchPanel(true)}>
+                            <img
+                                src={search}
+                                alt="Search"
+                                className="w-[2vw] h-[2vw] max-w-[22px] max-h-[22px]"
+                            />
+                        </button>
 
-                        <div>
-                            <button>
-                                <img
-                                    src={menu}
-                                    alt="Menu"
-                                    className="w-[2vw] h-[2vw] max-w-[22px] max-h-[22px]"
-                                />
-                            </button>
-                        </div>
+                        <button onClick={() => setShowSideMenu(true)}>
+                            <img
+                                src={menu}
+                                alt="Menu"
+                                className="w-[2vw] h-[2vw] max-w-[22px] max-h-[22px]"
+                            />
+                        </button>
                     </div>
                 </div>
 
-                {/* Book now */}
                 {isHomePage && (
                     <a
                         href="#"
@@ -161,24 +163,23 @@ const Header: React.FC = () => {
                     </a>
                 )}
 
-                {/* Logo */}
                 <h1
                     className={`fixed left-1/2 transform -translate-x-1/2 z-50 font-serif uppercase transition-all duration-800 ease-in-out
-                    ${
-                        isHomePage && !scrolled
-                            ? 'top-1/4 -translate-y-1/2 text-[12vw] tracking-[0.2em]'
-                            : 'top-5 text-[2.5vw] tracking-normal'
-                    } text-white`}
+                        ${
+                            isHomePage && !scrolled
+                                ? 'top-1/4 -translate-y-1/2 text-[12vw] tracking-[0.2em]'
+                                : 'top-5 text-[2.5vw] tracking-normal'
+                        }
+                        text-white`}
                 >
                     VÉLVERE
                 </h1>
             </div>
 
-            {/* Search panel + overlay */}
+            {/* Search Panel */}
             <AnimatePresence>
                 {showSearchPanel && (
                     <>
-                        {/* Mờ nền + chặn tương tác */}
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 0.5 }}
@@ -187,8 +188,6 @@ const Header: React.FC = () => {
                             className="fixed top-0 left-0 w-full h-full bg-black/40 backdrop-blur-sm z-40"
                             onClick={() => setShowSearchPanel(false)}
                         />
-
-                        {/* Search panel */}
                         <motion.div
                             initial={{ x: '100%' }}
                             animate={{ x: 0 }}
@@ -201,12 +200,11 @@ const Header: React.FC = () => {
                                     onClick={() => setShowSearchPanel(false)}
                                     className="text-gray-700 hover:text-black"
                                 >
-                                    <i className="fa-solid fa-xmark mr-2"></i>
+                                    <i className="fa-solid fa-xmark mr-2"></i>{' '}
                                     Close
                                 </button>
                                 <i className="fa-solid fa-magnifying-glass text-gray-500" />
                             </div>
-
                             <div className="p-6 flex flex-col gap-4">
                                 <div className="flex items-center border-b pb-2">
                                     <i className="fa-solid fa-magnifying-glass mr-3 text-gray-500"></i>
@@ -217,7 +215,6 @@ const Header: React.FC = () => {
                                     />
                                     <i className="fa-solid fa-arrow-right text-gray-400" />
                                 </div>
-
                                 <div>
                                     <p className="text-sm font-semibold text-gray-600 mb-2">
                                         Suggestions
@@ -232,6 +229,206 @@ const Header: React.FC = () => {
                                     </ul>
                                 </div>
                             </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
+
+            {/* Side Menu */}
+            <AnimatePresence>
+                {showSideMenu && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 0.5 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="fixed top-0 left-0 w-full h-full bg-black/40 z-40"
+                            onClick={() => setShowSideMenu(false)}
+                        />
+                        <motion.div
+                            initial={{ x: '100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '100%' }}
+                            transition={{ duration: 0.3 }}
+                            className="fixed top-0 right-0 h-full w-[80vw] sm:w-[60vw] md:w-[40vw] bg-white z-50 shadow-lg"
+                        >
+                            <div className="p-4 border-b flex justify-between items-center">
+                                <h2 className="text-lg font-semibold">Menu</h2>
+                                <button onClick={() => setShowSideMenu(false)}>
+                                    <i className="fa-solid fa-xmark text-lg text-gray-600"></i>
+                                </button>
+                            </div>
+                            <ul className="flex flex-col">
+                                <li>
+                                    <Link
+                                        to="/products"
+                                        onClick={() => setShowSideMenu(false)}
+                                        className="block w-full px-6 py-3 hover:bg-gray-100"
+                                    >
+                                        Product
+                                    </Link>
+                                </li>
+                                <li>
+                                    <button
+                                        onClick={() => toggleMenu('men')}
+                                        className="w-full px-6 py-3 text-left hover:bg-gray-100 flex justify-between items-center"
+                                    >
+                                        Thời trang Nam
+                                        <i
+                                            className={`fa-solid ${
+                                                expandedMenu === 'men'
+                                                    ? 'fa-chevron-up'
+                                                    : 'fa-chevron-down'
+                                            }`}
+                                        />
+                                    </button>
+                                    {expandedMenu === 'men' && (
+                                        <ul className="pl-8 text-sm text-gray-700">
+                                            <li>
+                                                <Link
+                                                    to="/men/ao"
+                                                    onClick={() =>
+                                                        setShowSideMenu(false)
+                                                    }
+                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                >
+                                                    Áo
+                                                </Link>
+                                            </li>
+                                            <li>
+                                                <Link
+                                                    to="/men/quan"
+                                                    onClick={() =>
+                                                        setShowSideMenu(false)
+                                                    }
+                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                >
+                                                    Quần
+                                                </Link>
+                                            </li>
+                                            <li>
+                                                <Link
+                                                    to="/men/mu"
+                                                    onClick={() =>
+                                                        setShowSideMenu(false)
+                                                    }
+                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                >
+                                                    Mũ
+                                                </Link>
+                                            </li>
+                                            <li>
+                                                <Link
+                                                    to="/men/khan"
+                                                    onClick={() =>
+                                                        setShowSideMenu(false)
+                                                    }
+                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                >
+                                                    Khăn
+                                                </Link>
+                                            </li>
+                                            <li>
+                                                <Link
+                                                    to="/men/thatlung"
+                                                    onClick={() =>
+                                                        setShowSideMenu(false)
+                                                    }
+                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                >
+                                                    Thắt lưng
+                                                </Link>
+                                            </li>
+                                        </ul>
+                                    )}
+                                </li>
+                                <li>
+                                    <button
+                                        onClick={() => toggleMenu('women')}
+                                        className="w-full px-6 py-3 text-left hover:bg-gray-100 flex justify-between items-center"
+                                    >
+                                        Thời trang Nữ
+                                        <i
+                                            className={`fa-solid ${
+                                                expandedMenu === 'women'
+                                                    ? 'fa-chevron-up'
+                                                    : 'fa-chevron-down'
+                                            }`}
+                                        />
+                                    </button>
+                                    {expandedMenu === 'women' && (
+                                        <ul className="pl-8 text-sm text-gray-700">
+                                            <li>
+                                                <Link
+                                                    to="/women/ao"
+                                                    onClick={() =>
+                                                        setShowSideMenu(false)
+                                                    }
+                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                >
+                                                    Áo
+                                                </Link>
+                                            </li>
+                                            <li>
+                                                <Link
+                                                    to="/women/quan"
+                                                    onClick={() =>
+                                                        setShowSideMenu(false)
+                                                    }
+                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                >
+                                                    Quần
+                                                </Link>
+                                            </li>
+                                            <li>
+                                                <Link
+                                                    to="/women/mu"
+                                                    onClick={() =>
+                                                        setShowSideMenu(false)
+                                                    }
+                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                >
+                                                    Mũ
+                                                </Link>
+                                            </li>
+                                            <li>
+                                                <Link
+                                                    to="/women/khan"
+                                                    onClick={() =>
+                                                        setShowSideMenu(false)
+                                                    }
+                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                >
+                                                    Khăn
+                                                </Link>
+                                            </li>
+                                            <li>
+                                                <Link
+                                                    to="/women/thatlung"
+                                                    onClick={() =>
+                                                        setShowSideMenu(false)
+                                                    }
+                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                >
+                                                    Thắt lưng
+                                                </Link>
+                                            </li>
+                                            <li>
+                                                <Link
+                                                    to="/women/dam"
+                                                    onClick={() =>
+                                                        setShowSideMenu(false)
+                                                    }
+                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                >
+                                                    Đầm
+                                                </Link>
+                                            </li>
+                                        </ul>
+                                    )}
+                                </li>
+                            </ul>
                         </motion.div>
                     </>
                 )}

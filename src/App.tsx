@@ -10,30 +10,22 @@ import ProductDetail from './pages/ProductDetail';
 import Footer from './component/Footer';
 import Signup from './login/Signup';
 
-// import User from './component/User';
-// import NewBagsSection from './component/NewBagsSection';
-
 function App() {
-  return (
-      
-   
+    return (
         <Router>
             <Header />
 
             <Routes>
                 <Route path="/" element={<NewBagsSection />} />
                 <Route path="/contact" element={<Contact />} />
-                <Route path="/product" element={<Product />} />
+                <Route path="/products" element={<Product />} />
                 <Route path="/user" element={<User />} />
-                <Route path="/product/:id" element={<ProductDetail/>} />
-      </Routes>
-      <Signup />
-      <Product/>
+                <Route path="/product/:id" element={<ProductDetail />} />
+                <Route path="/signup" element={<Signup />} />
+            </Routes>
 
             <Footer />
-      </Router>
-       
-
+        </Router>
     );
 }
 

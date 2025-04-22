@@ -117,7 +117,7 @@ function Signup() {
     );
 
     return (
-        <div>
+        <div className='mt-[5vw]'>
             <p className="text-5xl uppercase font-serif text-center">Sign Up</p>
             <div className="mx-[34vw]">
                 <div className="max-w-[30vw]">
