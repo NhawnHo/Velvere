@@ -2,7 +2,7 @@ import './App.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import Header from './component/Header';
-import NewBagsSection from './component/NewBagsSection';
+import Home from './pages/Home';
 import Contact from './component/Contact';
 import Product from './component/Product';
 import User from './component/User';
@@ -16,7 +16,7 @@ function App() {
             <Header />
 
             <Routes>
-                <Route path="/" element={<NewBagsSection />} />
+                <Route path="/" element={<Home />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/products" element={<Product />} />
                 <Route path="/user" element={<User />} />

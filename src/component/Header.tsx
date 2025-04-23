@@ -30,12 +30,23 @@ const Header: React.FC = () => {
             document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    useEffect(() => {
-        if (!isHomePage) return;
-        const onScroll = () => setScrolled(window.scrollY > 10);
-        window.addEventListener('scroll', onScroll);
-        return () => window.removeEventListener('scroll', onScroll);
-    }, [isHomePage]);
+   useEffect(() => {
+       const isAllowedPage =
+           location.pathname === '/';
+
+       if (!isAllowedPage) return;
+
+       const onScroll = () => setScrolled(window.scrollY > 10);
+
+       // 👇 Check ngay khi vào trang
+       onScroll();
+
+       // 👇 Gắn listener
+       window.addEventListener('scroll', onScroll);
+
+       return () => window.removeEventListener('scroll', onScroll);
+   }, [location.pathname]);
+
 
     useEffect(() => {
         document.body.style.overflow =
@@ -82,10 +93,7 @@ const Header: React.FC = () => {
                             />
                         </button>
 
-                        <div
-                            className="relative -mb-1.5"
-                            ref={userMenuRef}
-                        >
+                        <div className="relative -mb-1.5" ref={userMenuRef}>
                             <button
                                 onClick={() => setShowUserMenu(!showUserMenu)}
                             >
@@ -260,6 +268,18 @@ const Header: React.FC = () => {
                                 </button>
                             </div>
                             <ul className="flex flex-col">
+                                <li>
+                                    <Link
+                                        to="/"
+                                        onClick={() => {
+                                            setShowSideMenu(false);
+                                            window.scrollTo(0, 0); // ← Scroll lên đầu
+                                        }}
+                                        className="block w-full px-6 py-3 hover:bg-gray-100"
+                                    >
+                                        HOME
+                                    </Link>
+                                </li>
                                 <li>
                                     <Link
                                         to="/products"
