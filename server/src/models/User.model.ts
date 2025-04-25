@@ -1,13 +1,42 @@
 import mongoose from 'mongoose';
 
-const userSchema = new mongoose.Schema({
-    user_id: Number,
-    user_name: String,
-    username: String,
-    password: String,
-    email: String,
-    phone: String,
-    address: String,
-});
+const userSchema = new mongoose.Schema(
+    {
+        user_id: {
+            type: Number,
+            required: true,
+            unique: true,
+        },
 
-export default mongoose.model('User', userSchema, 'Users'); // nếu ko để tên collection thì mongo sẽ tự tạo một collection mới tên users
+        name: {
+            type: String,
+            required: true,
+        },
+        password: {
+            type: String,
+            required: true,
+        },
+        birthDate: {
+            type: Date,
+            required: true,
+        },
+        email: {
+            type: String,
+            required: true,
+        },
+        phone: {
+            type: String,
+            required: true,
+            unique: true,
+        },
+        address: {
+            type: String,
+            required: true,
+        },
+    },
+    {
+        timestamps: true, // Tự động tạo createdAt và updatedAt
+    },
+);
+
+export default mongoose.model('User', userSchema, 'Users');

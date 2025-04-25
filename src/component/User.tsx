@@ -3,8 +3,7 @@ import { useEffect, useState } from 'react';
 interface UserType {
     _id: string;
     user_id: number;
-    user_name: string;
-    username: string;
+    name: string;
     password: string;
     email: string;
     phone: string;
@@ -30,6 +29,7 @@ function User() {
                         <th className="border px-4 py-2">ID</th>
                         <th className="border px-4 py-2">Họ tên</th>
                         <th className="border px-4 py-2">Username</th>
+                        <th className="border px-4 py-2">Passsword</th>
                         <th className="border px-4 py-2">Email</th>
                         <th className="border px-4 py-2">SĐT</th>
                         <th className="border px-4 py-2">Địa chỉ</th>
@@ -41,12 +41,9 @@ function User() {
                             <td className="border px-4 py-2 text-center">
                                 {user.user_id}
                             </td>
-                            <td className="border px-4 py-2">
-                                {user.user_name}
-                            </td>
-                            <td className="border px-4 py-2">
-                                {user.username}
-                            </td>
+                            <td className="border px-4 py-2">{user.name}</td>
+                            <td className="border px-4 py-2">{user.phone}</td>
+                            <td className="border px-4 py-2">{user.password}</td>
                             <td className="border px-4 py-2">{user.email}</td>
                             <td className="border px-4 py-2">{user.phone}</td>
                             <td className="border px-4 py-2">{user.address}</td>

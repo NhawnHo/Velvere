@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import MessageDialog from '../component/MessageDialog';
+import Input from '../component/Input';
 
 function Signup() {
     const [formData, setFormData] = useState({
@@ -12,112 +14,178 @@ function Signup() {
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [dialog, setDialog] = useState({
+        isOpen: false,
+        title: '',
+        description: '',
+        type: '' as 'success' | 'error' | '',
+    });
+
+    // Định nghĩa mảng cấu hình cho các input
+    const inputFields = [
+        { name: 'name', type: 'text', label: 'Full name' },
+        { name: 'mail', type: 'email', label: 'Email' },
+        { name: 'phone', type: 'text', label: 'Số điện thoại' },
+        { name: 'birth', type: 'date', label: 'Ngày sinh' },
+        { name: 'address', type: 'text', label: 'Địa chỉ' },
+        { name: 'password', type: 'password', label: 'Mật khẩu' },
+        {
+            name: 'confirmPassword',
+            type: 'password',
+            label: 'Xác nhận mật khẩu',
+        },
+    ];
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
-        setErrors({ ...errors, [e.target.name]: '' }); // Clear lỗi khi nhập
+        setErrors({ ...errors, [e.target.name]: '' });
     };
 
-    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        const newErrors: Record<string, string> = { ...errors };
-
+    const validateField = (name: string, value: string) => {
+        let error = '';
         switch (name) {
             case 'name':
-                if (!value.trim()) newErrors.name = 'Vui lòng nhập họ tên';
+                if (!value.trim()) error = 'Vui lòng nhập họ tên';
                 break;
             case 'mail':
                 if (!value.trim()) {
-                    newErrors.mail = 'Vui lòng nhập email';
+                    error = 'Vui lòng nhập email';
                 } else if (!/\S+@\S+\.\S+/.test(value)) {
-                    newErrors.mail = 'Email không hợp lệ';
+                    error = 'Email không hợp lệ';
                 }
                 break;
             case 'phone':
                 if (!value.trim()) {
-                    newErrors.phone = 'Vui lòng nhập số điện thoại';
+                    error = 'Vui lòng nhập số điện thoại';
                 } else if (!/^\d{10,11}$/.test(value)) {
-                    newErrors.phone = 'Số điện thoại không hợp lệ';
+                    error = 'Số điện thoại không hợp lệ';
                 }
                 break;
             case 'birth':
-                if (!value.trim()) newErrors.birth = 'Vui lòng chọn ngày sinh';
+                if (!value.trim()) error = 'Vui lòng chọn ngày sinh';
                 break;
             case 'address':
-                if (!value.trim()) newErrors.address = 'Vui lòng nhập địa chỉ';
+                if (!value.trim()) error = 'Vui lòng nhập địa chỉ';
                 break;
             case 'password':
                 if (!value) {
-                    newErrors.password = 'Vui lòng nhập mật khẩu';
+                    error = 'Vui lòng nhập mật khẩu';
                 } else if (value.length < 6) {
-                    newErrors.password = 'Mật khẩu tối thiểu 6 ký tự';
+                    error = 'Mật khẩu tối thiểu 6 ký tự';
                 }
                 break;
             case 'confirmPassword':
                 if (value !== formData.password) {
-                    newErrors.confirmPassword = 'Mật khẩu không khớp';
+                    error = 'Mật khẩu không khớp';
                 }
                 break;
         }
+        return error;
+    };
 
-        setErrors(newErrors);
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        const error = validateField(name, value);
+        setErrors((prev) => ({ ...prev, [name]: error }));
     };
 
     const validate = () => {
-        const simulatedEvent = {
-            target: { name: '', value: '' },
-        } as React.FocusEvent<HTMLInputElement>;
-        Object.keys(formData).forEach((key) => {
-            simulatedEvent.target.name = key;
-            simulatedEvent.target.value =
-                formData[key as keyof typeof formData];
-            handleBlur(simulatedEvent);
+        const newErrors: Record<string, string> = {};
+        Object.entries(formData).forEach(([key, value]) => {
+            const error = validateField(key, value);
+            if (error) newErrors[key] = error;
         });
-
-        return Object.keys(errors).length === 0;
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleCloseDialog = () => {
+        setDialog({ isOpen: false, title: '', description: '', type: '' });
+    };
+
+    useEffect(() => {
+        let timer: NodeJS.Timeout;
+        if (dialog.isOpen) {
+            timer = setTimeout(() => {
+                handleCloseDialog();
+            }, 3000);
+        }
+
+        return () => {
+            clearTimeout(timer);
+        };
+    }, [dialog.isOpen]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (validate()) {
-            console.log('Dữ liệu hợp lệ:', formData);
-            // Gửi form
+        if (!validate()) return;
+
+        const payload = {
+            name: formData.name,
+            email: formData.mail,
+            phone: formData.phone,
+            birthDate: formData.birth,
+            address: formData.address,
+            password: formData.password,
+        };
+
+        try {
+            const res = await fetch('http://localhost:3000/api/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (res.ok) {
+                setDialog({
+                    isOpen: true,
+                    title: 'Đăng ký thành công!',
+                    description: 'Tài khoản của bạn đã được tạo thành công.',
+                    type: 'success',
+                });
+                setFormData({
+                    name: '',
+                    mail: '',
+                    phone: '',
+                    birth: '',
+                    address: '',
+                    password: '',
+                    confirmPassword: '',
+                });
+                setErrors({});
+            } else {
+                const error = await res.json();
+                // Sử dụng error.message từ backend làm tiêu đề, thêm mô tả mặc định hoặc chi tiết nếu có
+                setDialog({
+                    isOpen: true,
+                    title: `${
+                        error.message || 'Đã xảy ra lỗi không xác định.'
+                    }`,
+                    // Kiểm tra nếu backend có trả về chi tiết lỗi (ví dụ: trong mảng 'detail')
+                    description: Array.isArray(error.detail)
+                        ? error.detail.join(', ')
+                        : typeof error.detail === 'string'
+                        ? error.detail
+                        : 'Vui lòng kiểm tra lại thông tin.',
+                    type: 'error',
+                });
+            }
+        } catch (err: unknown) {
+            console.error('Lỗi gửi yêu cầu:', err);
+            setDialog({
+                isOpen: true,
+                title: 'Lỗi kết nối',
+                description:
+                    'Không thể kết nối đến máy chủ. Vui lòng thử lại sau.',
+                type: 'error',
+            });
         }
     };
 
-    const renderInput = (
-        name: string,
-        type: string,
-        label: string,
-        placeholder = ' ',
-    ) => (
-        <div className="relative w-full mt-6">
-            <input
-                type={type}
-                name={name}
-                value={formData[name as keyof typeof formData]}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                required
-                className="peer w-full border-0 border-b border-gray-300 bg-transparent pt-6 pb-2 text-sm focus:outline-none focus:border-gray-500"
-                placeholder={placeholder}
-            />
-            <label
-                htmlFor={name}
-                className="absolute left-0 top-1 text-sm text-gray-500 transition-all duration-200 
-                peer-placeholder-shown:top-5 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 
-                peer-focus:top-1 peer-focus:text-sm peer-focus:text-gray-400"
-            >
-                {label}
-            </label>
-            {errors[name] && (
-                <p className="text-sm text-red-500 mt-1">{errors[name]}</p>
-            )}
-        </div>
-    );
-
     return (
-        <div className='mt-[5vw]'>
+        <div className="mt-[5vw]">
             <p className="text-5xl uppercase font-serif text-center">Sign Up</p>
             <div className="mx-[34vw]">
                 <div className="max-w-[30vw]">
@@ -125,21 +193,26 @@ function Signup() {
                         onSubmit={handleSubmit}
                         className="bg-white rounded px-8 pt-6 pb-8 w-full"
                     >
-                        {renderInput('name', 'text', 'Full name')}
-                        {renderInput('mail', 'email', 'Email')}
-                        {renderInput('phone', 'text', 'Số điện thoại')}
-                        {renderInput('birth', 'date', 'Ngày sinh')}
-                        {renderInput('address', 'text', 'Địa chỉ')}
-                        {renderInput('password', 'password', 'Mật khẩu')}
-                        {renderInput(
-                            'confirmPassword',
-                            'password',
-                            'Xác nhận mật khẩu',
-                        )}
+                        {inputFields.map((field) => (
+                            <Input
+                                key={field.name}               // Key rất quan trọng khi render list
+                                name={field.name}
+                                type={field.type}
+                                label={field.label}
+                                value={
+                                    formData[
+                                        field.name as keyof typeof formData
+                                    ]
+                                } // Lấy value từ formData
+                                onChange={handleChange}       // Sử dụng cùng hàm handler
+                                onBlur={handleBlur}           // Sử dụng cùng hàm handler
+                                error={errors[field.name]}    // Lấy lỗi từ errors
+                            />
+                        ))}
 
                         <div className="flex items-center justify-between mt-6">
                             <button
-                                className="font-light uppercas text-lg border w-full py-2 mt-3 hover:bg-black hover:text-white transition duration-300"
+                                className="font-light uppercase text-lg border w-full py-2 mt-3 hover:bg-black hover:text-white transition duration-300"
                                 type="submit"
                             >
                                 Sign Up
@@ -148,6 +221,16 @@ function Signup() {
                     </form>
                 </div>
             </div>
+
+            {/* Dialog thông báo */}
+
+            <MessageDialog
+                isOpen={dialog.isOpen}
+                title={dialog.title}
+                description={dialog.description}
+                type={dialog.type}
+                onClose={handleCloseDialog} // Truyền hàm đóng dialog xuống
+            />
         </div>
     );
 }
