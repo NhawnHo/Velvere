@@ -48,6 +48,14 @@ function Product() {
                             key={product.product_id}
                             className=" p-10 hover:shadow-2xl transition duration-300  block"
                         >
+                            <div className="flex gap-2 mt-4">
+                                <img
+                                    key={product.images[0]}
+                                    src={product.images[0]}
+                                    alt={`product-${product.product_id}`}
+                                    className="w-86 h-100 object-cover rounded border"
+                                />
+                            </div>
                             <h1 className="text-xl font-bold">
                                 {product.product_name}
                             </h1>
@@ -60,15 +68,6 @@ function Product() {
                             </p>
                             <div className="mt-2 font-semibold text-red-500">
                                 Giá: {product.price.toLocaleString()}đ
-                            </div>
-
-                            <div className="flex gap-2 mt-4">
-                                <img
-                                    key={product.images[0]}
-                                    src={product.images[0]}
-                                    alt={`product-${product.product_id}`}
-                                    className="w-86 h-100 object-cover rounded border"
-                                />
                             </div>
 
                             <div className="mt-4">

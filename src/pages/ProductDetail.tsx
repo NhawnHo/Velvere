@@ -48,19 +48,19 @@ function ProductDetail() {
     return (
         <div className="flex flex-col md:flex-row gap-10 p-6 mt-10">
             {/* Hình ảnh sản phẩm */}
-            <div className="flex-1">
+            <div className="flex p-2 border-r border-gray-200">
                 <img
                     src={product.images[0]}
                     alt={product.product_name}
-                    className="w-full max-w-md object-cover rounded"
+                    className="w-[40vw] max-w-2xl object-cover rounded"
                 />
-                <div className="flex gap-2 mt-4">
+                <div className="flex gap-2">
                     {product.images.slice(1).map((img, idx) => (
                         <img
                             key={idx}
                             src={img}
                             alt={`thumbnail-${idx}`}
-                            className="w-20 h-20 object-cover rounded border"
+                            className="w-20 h-20 object-cover rounded ml-2"
                         />
                     ))}
                 </div>
@@ -68,15 +68,12 @@ function ProductDetail() {
 
             {/* Thông tin sản phẩm */}
             <div className="flex-1">
-                <h1 className="text-2xl font-semibold uppercase mb-1">
+                <h1 className="text-5xl font-semibold uppercase mb-1">
                     {product.product_name}
                 </h1>
-                <p className="text-sm text-gray-500 mb-4">
-                    #{product.product_id}
-                </p>
 
                 {/* Giá */}
-                <p className="text-2xl font-bold text-gray-800 mb-4">
+                <p className="text-2xl font-extralight text-gray-800 mb-4">
                     {product.price.toLocaleString()}₫
                 </p>
 
@@ -99,7 +96,7 @@ function ProductDetail() {
                                 className={`w-10 h-10 border rounded-full text-sm ${
                                     selectedSize === size
                                         ? 'bg-black text-white'
-                                        : 'hover:bg-gray-100'
+                                        : 'hover:bg-black hover:text-white'
                                 }`}
                             >
                                 {size}
@@ -119,7 +116,7 @@ function ProductDetail() {
                                 className={`px-4 py-2 border rounded-full text-sm ${
                                     selectedColor === color
                                         ? 'bg-black text-white'
-                                        : 'hover:bg-gray-100'
+                                        : 'hover:bg-black hover:text-white'
                                 }`}
                             >
                                 {color}
@@ -152,13 +149,15 @@ function ProductDetail() {
 
                 {/* Nút hành động */}
                 <div className="flex gap-4">
-                    <button className="px-6 py-3 border border-black rounded-full hover:bg-gray-100">
+                    <button className="px-6 py-3 border border-black rounded-full hover:bg-black hover:text-white">
                         THÊM VÀO GIỎ
                     </button>
-                    <button className="px-6 py-3 bg-black text-white rounded-full hover:bg-gray-800">
+                    <button className="px-6 py-3 bg-black text-white rounded-full hover:bg-white hover:text-black hover:border">
                         MUA NGAY
                     </button>
                 </div>
+                <p className="font-semibold mt-5 mb-2">Mô tả: </p>
+                <p> {product.description}</p>
             </div>
         </div>
     );
