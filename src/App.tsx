@@ -10,22 +10,26 @@ import ProductDetail from './pages/ProductDetail';
 import Footer from './component/Footer';
 import Signup from './login/Signup';
 import Signin from './login/Signin';
+import ScrollToTop from './component/ScrollToTop';
+import ProductPage from './pages/ProductPage';
 
 function App() {
     return (
         <Router>
+            <ScrollToTop />
             <Header />
-
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/contact" element={<Contact />} />
-                <Route path="/products" element={<Product />} />
-                <Route path="/user" element={<User />} />
-                <Route path="/product/:id" element={<ProductDetail />} />
+                {/* <Route path="/products" element={<Product />} /> */}
+                {/* <Route path="/user" element={<User />} /> */}
+                {/* <Route path="/product/:id" element={<ProductDetail />} /> */}
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/signin" element={<Signin />} />
+                {/* <Route path="/ProductPage" element={<ProductPage />} /> */}
             </Routes>
-            <User />
+        <ProductPage />
+        {/* <User /> */}
             <Footer />
         </Router>
     );

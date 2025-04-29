@@ -66,7 +66,7 @@ const Home: React.FC = () => {
                     style={{
                         width: isScrolled
                             ? `${rectangleSize.width}px`
-                            : ' 99vw',
+                            : ' 99.2vw',
                         height: isScrolled
                             ? `${rectangleSize.height}px`
                             : '100vh',

@@ -49,12 +49,15 @@ const Header: React.FC = () => {
             document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    useEffect(() => {
-        if (!isHomePage) return;
-        const onScroll = () => setScrolled(window.scrollY > 10);
-        window.addEventListener('scroll', onScroll);
-        return () => window.removeEventListener('scroll', onScroll);
-    }, [isHomePage]);
+   useEffect(() => {
+       if (!isHomePage) return;
+       const onScroll = () => setScrolled(window.scrollY > 10);
+       window.addEventListener('scroll', onScroll);
+
+       onScroll(); // 👉 gọi ngay lần đầu để set chính xác trạng thái scrolled
+
+       return () => window.removeEventListener('scroll', onScroll);
+   }, [isHomePage]);
 
     useEffect(() => {
         document.body.style.overflow =
@@ -80,7 +83,7 @@ const Header: React.FC = () => {
                         }`}
                 >
                     <div className="flex items-center">
-                        <Link to="/contact" className="ml-[3vw]">
+                        <Link to="/contact" className="ml-[1vw]">
                             <i className="fa-solid fa-phone text-gray-100 hover:text-gray-400 transition" />
                         </Link>
                     </div>
@@ -95,7 +98,10 @@ const Header: React.FC = () => {
                             }
                             text-white`}
                     >
-                        VÉLVERE
+                        <Link to="/">
+                            {/* Consider using Link from react-router-dom if this is an internal link */}
+                            VÉLVERE
+                        </Link>
                     </h1>
 
                     <div
@@ -106,26 +112,31 @@ const Header: React.FC = () => {
                                 : 'opacity-100'
                         }`}
                     >
-                        <button aria-label="Shopping bag">
-                            {' '}
-                            {/* Added aria-label */}
-                            <img
+                        <div>
+                            <button aria-label="Shopping bag">
+                                {' '}
+                                {/* Added aria-label */}
+                                <i className="fa-solid fa-bag-shopping text-gray-100 hover:text-gray-400 transition cursor-pointer" />
+                                {/* <img
                                 src={shoppingBag}
                                 alt="Bag"
                                 className="w-[2vw] h-[2vw] max-w-[22px] max-h-[22px]"
-                            />
-                        </button>
-                        <div className="relative -mb-1.5" ref={userMenuRef}>
+                            /> */}
+                            </button>
+                        </div>
+                        <div className="relative" ref={userMenuRef}>
                             <button
                                 onClick={() => setShowUserMenu(!showUserMenu)}
                                 className="user-icon-button" // Added class for potential handleClickOutside improvement
                                 aria-label="User account menu" // Added aria-label
                             >
-                                <img
+                                <i className="fa-solid fa-user text-gray-100 hover:text-gray-400 transition cursor-pointer" />
+
+                                {/* <img
                                     src={userIcon}
                                     alt="User"
                                     className="w-[2vw] h-[2vw] max-w-[22px] max-h-[22px] "
-                                />
+                                /> */}
                             </button>
                             {showUserMenu && (
                                 <UserDropdownMenu
@@ -141,11 +152,12 @@ const Header: React.FC = () => {
                         >
                             {' '}
                             {/* Added aria-label */}
-                            <img
+                            <i className="fa-solid fa-magnifying-glass text-gray-100 hover:text-gray-400 transition cursor-pointer"></i>
+                            {/* <img
                                 src={search}
                                 alt="Search"
                                 className="w-[2vw] h-[2vw] max-w-[22px] max-h-[22px]"
-                            />
+                            /> */}
                         </button>
 
                         <button
@@ -154,11 +166,12 @@ const Header: React.FC = () => {
                         >
                             {' '}
                             {/* Added aria-label */}
-                            <img
+                            <i className="fa-solid fa-bars text-gray-100 hover:text-gray-400 transition cursor-pointer"></i>
+                            {/* <img
                                 src={menu}
                                 alt="Menu"
                                 className="w-[2vw] h-[2vw] max-w-[22px] max-h-[22px]"
-                            />
+                            /> */}
                         </button>
                     </div>
                 </div>
@@ -167,7 +180,7 @@ const Header: React.FC = () => {
                     <a
                         href="#"
                         // Consider using Link from react-router-dom if this is an internal link
-                        className="top-0 w-full z-50 flex justify-center items-center h-16 text-gray-700 tracking-widest group relative hover:text-black transition-colors duration-300"
+                        className="top-0 w-full z-40 flex justify-center items-center h-16 text-gray-700 tracking-widest group relative hover:text-black transition-colors duration-300"
                     >
                         Book an appointment now {/* Consider i18n */}
                         <span className="absolute bottom-3 left-1/2 transform -translate-x-1/2 w-0 h-[1px] bg-gray-700 transition-all duration-500 group-hover:w-1/6" />
