@@ -305,7 +305,7 @@ const Header: React.FC = () => {
                                     {' '}
                                     {/* Added ARIA role */}
                                     <Link
-                                        to="/products"
+                                        to="/productPage"
                                         onClick={() => setShowSideMenu(false)}
                                         className="block w-full px-6 py-3 hover:bg-gray-100"
                                         role="menuitem" // Added ARIA role

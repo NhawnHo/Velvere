@@ -54,7 +54,7 @@ function ProductDetail() {
                     alt={product.product_name}
                     className="w-[40vw] max-w-2xl object-cover rounded"
                 />
-                <div className="flex gap-2">
+                <div className="flex flex-col gap-2">
                     {product.images.slice(1).map((img, idx) => (
                         <img
                             key={idx}

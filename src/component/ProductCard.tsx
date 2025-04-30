@@ -1,22 +1,31 @@
-'use client';
-
 import { useState } from 'react';
+import { Link } from 'react-router-dom'; // Import Link
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, CardFooter } from '../my-card/components/ui/card';
 
-interface ProductProps {
+
+interface ProductCardProps {
+    _id: string;
+    product_name: string;
+    description: string;
+    category_id: string;
+    sex: string;
+    variants: {
+        size: string;
+        color: string;
+        stock: number;
+    }[];
     images: string[];
-    title: string;
-    price: string;
-    isNew?: boolean;
+    price: number;
 }
 
 export default function ProductCard({
-    images = ['/placeholder.svg?height=600&width=500'],
-    title = 'Fitted Jacket',
-    price = '125.000.000 đ',
-    isNew = true,
-}: ProductProps) {
+    _id,
+    product_name,
+    images,
+    price,
+    isNew = false,
+}: ProductCardProps) {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     const nextImage = () => {
@@ -29,46 +38,71 @@ export default function ProductCard({
         );
     };
 
+    // Định dạng giá tiền
+    const formattedPrice = new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND',
+    }).format(price);
+
     return (
-        <Card className="w-full max-w-md mx-auto overflow-hidden border-0 rounded-xl">
-            <div className="relative">
-                {isNew && (
-                    <div className="absolute top-4 left-4 text-gray-500 text-sm">
-                        New
+        <Link
+            to={`/product/${_id}`} // Sử dụng product_id để tạo đường dẫn
+            
+        >
+            <Card className="w-full max-w-md items-center mx-auto overflow-hidden border-0 rounded-xl hover:shadow-lg transition-shadow duration-300 ease-in-out">
+                <div className="relative">
+                    {isNew && (
+                        <div className="absolute top-4 left-4 text-gray-500 text-sm">
+                            New
+                        </div>
+                    )}
+
+                    <div className="relative h-[600px] w-full">
+                        <img
+                            src={
+                                images[currentImageIndex] || '/placeholder.svg'
+                            }
+                            alt={product_name}
+                            className="w-full h-full object-cover"
+                        />
+                        {images.length > 1 && (
+                            <>
+                                <button
+                                    onClick={(e) => {
+                                        e.preventDefault(); // Ngăn chặn điều hướng khi nhấp vào nút
+                                        e.stopPropagation(); // Ngăn chặn sự kiện lan truyền
+                                        prevImage();
+                                    }}
+                                    className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-gray-700"
+                                    aria-label="Previous image"
+                                >
+                                    <ChevronLeft size={24} />
+                                </button>
+                                <button
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        nextImage();
+                                    }}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-gray-700"
+                                    aria-label="Next image"
+                                >
+                                    <ChevronRight size={24} />
+                                </button>
+                            </>
+                        )}
                     </div>
-                )}
-
-                <div className="relative h-[600px] w-full">
-                    <img
-                        src={images[currentImageIndex] || '/placeholder.svg'}
-                        alt={title}
-                        className="w-full h-full object-cover"
-                    />
-
-                    <button
-                        onClick={prevImage}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-gray-700"
-                        aria-label="Previous image"
-                    >
-                        <ChevronLeft size={24} />
-                    </button>
-
-                    <button
-                        onClick={nextImage}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-gray-700"
-                        aria-label="Next image"
-                    >
-                        <ChevronRight size={24} />
-                    </button>
                 </div>
 
-              
-            </div>
-
-            <CardFooter className="flex flex-col items-center pt-4 pb-6">
-                <h3 className="text-lg font-medium text-center">{title}</h3>
-                <p className="text-sm text-gray-600 mt-1">{price}</p>
-            </CardFooter>
-        </Card>
+                <CardFooter className="flex flex-col items-center pt-4 pb-6">
+                    <h3 className="text-lg font-stretch-50% text-center">
+                        {product_name}
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                        {formattedPrice}
+                    </p>
+                </CardFooter>
+            </Card>
+        </Link>
     );
 }

@@ -21,14 +21,14 @@ function App() {
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/contact" element={<Contact />} />
-                {/* <Route path="/products" element={<Product />} /> */}
-                {/* <Route path="/user" element={<User />} /> */}
-                {/* <Route path="/product/:id" element={<ProductDetail />} /> */}
+                <Route path="/products" element={<Product />} />
+                <Route path="/user" element={<User />} />
+                <Route path="/product/:id" element={<ProductDetail />} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/signin" element={<Signin />} />
-                {/* <Route path="/ProductPage" element={<ProductPage />} /> */}
+                <Route path="/productPage" element={<ProductPage />} />
             </Routes>
-        <ProductPage />
+        {/* <ProductPage /> */}
         {/* <User /> */}
             <Footer />
         </Router>
