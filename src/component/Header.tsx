@@ -82,18 +82,10 @@ const Header: React.FC = () => {
             const products: Product[] = await response.json();
 
             // Lọc sản phẩm dựa trên query
-            const filteredProducts = products.filter(
-                (product) =>
-                    product.product_name
-                        .toLowerCase()
-                        .includes(query.toLowerCase()) ||
-                    product.description
-                        .toLowerCase()
-                        .includes(query.toLowerCase()) ||
-                    product.chatLieu
-                        .toLowerCase()
-                        .includes(query.toLowerCase()) ||
-                    product.xuatXu.toLowerCase().includes(query.toLowerCase()),
+            const filteredProducts = products.filter((product) =>
+                product.product_name
+                    .toLowerCase()
+                    .includes(query.toLowerCase()),
             );
 
             setSearchResults(filteredProducts);
