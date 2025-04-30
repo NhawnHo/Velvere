@@ -5,7 +5,8 @@ import userIcon from '../assets/user.png';
 import shoppingBag from '../assets/shopping-bag.png';
 import search from '../assets/search.png';
 import menu from '../assets/menu.png';
-import UserDropdownMenu, { User } from './UserDropdownMenu'; // Import User type
+import UserDropdownMenu, { User } from './UserDropdownMenu';
+import { useCart } from '../context/CartContext';
 
 const Header: React.FC = () => {
     const [scrolled, setScrolled] = useState(false);
@@ -16,6 +17,7 @@ const Header: React.FC = () => {
     const userMenuRef = useRef<HTMLDivElement>(null);
     const location = useLocation();
     const isHomePage = location.pathname === '/';
+    const { totalItems } = useCart();
 
     // Thêm state user ở đây
     const [user, setUser] = useState<User | null>(null);
@@ -124,7 +126,7 @@ const Header: React.FC = () => {
                             /> */}
                             </button>
                         </div>
-                        <div className="relative" ref={userMenuRef}>
+                        <div className="relative -mb-1.5" ref={userMenuRef}>
                             <button
                                 onClick={() => setShowUserMenu(!showUserMenu)}
                                 className="user-icon-button" // Added class for potential handleClickOutside improvement

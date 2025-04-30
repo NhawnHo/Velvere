@@ -7,14 +7,17 @@ import Contact from './component/Contact';
 import Product from './component/Product';
 import User from './component/User';
 import ProductDetail from './pages/ProductDetail';
+import Cart from './pages/Cart';
 import Footer from './component/Footer';
 import Signup from './login/Signup';
 import Signin from './login/Signin';
 import ScrollToTop from './component/ScrollToTop';
 import ProductPage from './pages/ProductPage';
+import { CartProvider } from './context/CartContext';
 
 function App() {
-    return (
+  return (
+       <CartProvider>
         <Router>
             <ScrollToTop />
             <Header />
@@ -26,13 +29,13 @@ function App() {
                 <Route path="/product/:id" element={<ProductDetail />} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/signin" element={<Signin />} />
+                <Route path="/cart" element={<Cart />} />
                 <Route path="/productPage" element={<ProductPage />} />
             </Routes>
         {/* <ProductPage /> */}
         {/* <User /> */}
             <Footer />
-        </Router>
-    );
-}
-
+      </Router>
+      </CartProvider>
+  );
 export default App;
