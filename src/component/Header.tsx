@@ -230,7 +230,7 @@ const Header: React.FC = () => {
                             /> */}
                             </button>
                         </div>
-                        <div className="relative -mb-1.5" ref={userMenuRef}>
+                        <div className="relative " ref={userMenuRef}>
                             <button
                                 onClick={() => setShowUserMenu(!showUserMenu)}
                                 className="user-icon-button"
