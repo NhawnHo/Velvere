@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import ShowMoreText from 'react-show-more-text';
-import { useParams, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import MessageDialog from '../component/MessageDialog';
 
 

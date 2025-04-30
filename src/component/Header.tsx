@@ -1,12 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import userIcon from '../assets/user.png';
-import shoppingBag from '../assets/shopping-bag.png';
-import search from '../assets/search.png';
-import menu from '../assets/menu.png';
-import UserDropdownMenu, { User } from './UserDropdownMenu';
 import { useCart } from '../context/CartContext';
+import UserDropdownMenu from './UserDropdownMenu';
 
 const Header: React.FC = () => {
     const [scrolled, setScrolled] = useState(false);
