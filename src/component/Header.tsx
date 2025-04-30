@@ -5,7 +5,8 @@ import userIcon from '../assets/user.png';
 import shoppingBag from '../assets/shopping-bag.png';
 import search from '../assets/search.png';
 import menu from '../assets/menu.png';
-import UserDropdownMenu, { User } from './UserDropdownMenu'; // Import User type
+import UserDropdownMenu, { User } from './UserDropdownMenu';
+import { useCart } from '../context/CartContext';
 
 const Header: React.FC = () => {
     const [scrolled, setScrolled] = useState(false);
@@ -16,6 +17,7 @@ const Header: React.FC = () => {
     const userMenuRef = useRef<HTMLDivElement>(null);
     const location = useLocation();
     const isHomePage = location.pathname === '/';
+    const { totalItems } = useCart();
 
     // Thêm state user ở đây
     const [user, setUser] = useState<User | null>(null);
@@ -106,15 +108,18 @@ const Header: React.FC = () => {
                                 : 'opacity-100'
                         }`}
                     >
-                        <button aria-label="Shopping bag">
-                            {' '}
-                            {/* Added aria-label */}
+                        <Link to="/cart" className="relative">
                             <img
                                 src={shoppingBag}
                                 alt="Bag"
                                 className="w-[2vw] h-[2vw] max-w-[22px] max-h-[22px]"
                             />
-                        </button>
+                            {totalItems > 0 && (
+                                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                                    {totalItems > 99 ? '99+' : totalItems}
+                                </span>
+                            )}
+                        </Link>
                         <div className="relative -mb-1.5" ref={userMenuRef}>
                             <button
                                 onClick={() => setShowUserMenu(!showUserMenu)}

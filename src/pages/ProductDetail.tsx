@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
+import MessageDialog from '../component/MessageDialog';
 
 interface Variant {
     size: string;
@@ -23,10 +25,18 @@ interface Product {
 
 function ProductDetail() {
     const { id } = useParams();
+    const navigate = useNavigate(); // Thêm hook useNavigate để chuyển hướng
+    const { addToCart } = useCart();
     const [product, setProduct] = useState<Product | null>(null);
     const [selectedSize, setSelectedSize] = useState<string>('');
     const [selectedColor, setSelectedColor] = useState<string>('');
     const [quantity, setQuantity] = useState(1);
+    const [dialog, setDialog] = useState({
+        isOpen: false,
+        title: '',
+        description: '',
+        type: '' as 'success' | 'error' | '',
+    });
 
     useEffect(() => {
         fetch(`http://localhost:3000/api/products/${id}`)
@@ -44,6 +54,106 @@ function ProductDetail() {
     const uniqueColors = Array.from(
         new Set(product.variants.map((v) => v.color)),
     );
+
+    // Kiểm tra xem sản phẩm có tồn kho không với size và color đã chọn
+    const selectedVariant = product.variants.find(
+        (v) => v.size === selectedSize && v.color === selectedColor,
+    );
+
+    const isAvailableInStock = selectedVariant && selectedVariant.stock > 0;
+
+    // Xử lý thêm vào giỏ hàng
+    const handleAddToCart = () => {
+        // Kiểm tra xem đã chọn size và color hay chưa
+        if (!selectedSize || !selectedColor) {
+            setDialog({
+                isOpen: true,
+                title: 'Chưa chọn đủ thông tin',
+                description:
+                    'Vui lòng chọn size và màu sắc trước khi thêm vào giỏ hàng.',
+                type: 'error',
+            });
+            return;
+        }
+
+        // Kiểm tra tồn kho
+        if (!isAvailableInStock) {
+            setDialog({
+                isOpen: true,
+                title: 'Sản phẩm hết hàng',
+                description:
+                    'Rất tiếc, sản phẩm với size và màu sắc đã chọn hiện đã hết hàng.',
+                type: 'error',
+            });
+            return;
+        }
+
+        // Thêm sản phẩm vào giỏ hàng
+        addToCart({
+            _id: product._id,
+            product_id: product.product_id,
+            product_name: product.product_name,
+            image: product.images[0],
+            price: product.price,
+            quantity: quantity,
+            size: selectedSize,
+            color: selectedColor,
+        });
+
+        // Hiển thị thông báo thành công
+        setDialog({
+            isOpen: true,
+            title: 'Thêm vào giỏ hàng thành công',
+            description: 'Sản phẩm đã được thêm vào giỏ hàng của bạn.',
+            type: 'success',
+        });
+    };
+
+    // Xử lý mua ngay
+    const handleBuyNow = () => {
+        // Kiểm tra xem đã chọn size và color hay chưa
+        if (!selectedSize || !selectedColor) {
+            setDialog({
+                isOpen: true,
+                title: 'Chưa chọn đủ thông tin',
+                description:
+                    'Vui lòng chọn size và màu sắc trước khi mua ngay.',
+                type: 'error',
+            });
+            return;
+        }
+
+        // Kiểm tra tồn kho
+        if (!isAvailableInStock) {
+            setDialog({
+                isOpen: true,
+                title: 'Sản phẩm hết hàng',
+                description:
+                    'Rất tiếc, sản phẩm với size và màu sắc đã chọn hiện đã hết hàng.',
+                type: 'error',
+            });
+            return;
+        }
+
+        // Thêm sản phẩm vào giỏ hàng
+        addToCart({
+            _id: product._id,
+            product_id: product.product_id,
+            product_name: product.product_name,
+            image: product.images[0],
+            price: product.price,
+            quantity: quantity,
+            size: selectedSize,
+            color: selectedColor,
+        });
+
+        // Chuyển hướng đến trang giỏ hàng
+        navigate('/cart');
+    };
+
+    const handleCloseDialog = () => {
+        setDialog({ isOpen: false, title: '', description: '', type: '' });
+    };
 
     return (
         <div className="flex flex-col md:flex-row gap-10 p-6 mt-10">
@@ -147,18 +257,49 @@ function ProductDetail() {
                     </div>
                 </div>
 
+                {/* Hiển thị tình trạng kho hàng */}
+                {selectedSize && selectedColor && selectedVariant && (
+                    <div className="mb-4">
+                        <p
+                            className={`text-sm ${
+                                selectedVariant.stock > 0
+                                    ? 'text-green-600'
+                                    : 'text-red-600'
+                            }`}
+                        >
+                            {selectedVariant.stock > 0
+                                ? `Còn hàng (${selectedVariant.stock} sản phẩm)`
+                                : 'Hết hàng'}
+                        </p>
+                    </div>
+                )}
+
                 {/* Nút hành động */}
                 <div className="flex gap-4">
-                    <button className="px-6 py-3 border border-black rounded-full hover:bg-black hover:text-white">
+                    <button
+                        onClick={handleAddToCart}
+                        className="px-6 py-3 border border-black rounded-full hover:bg-black hover:text-white"
+                    >
                         THÊM VÀO GIỎ
                     </button>
-                    <button className="px-6 py-3 bg-black text-white rounded-full hover:bg-white hover:text-black hover:border">
+                    <button
+                        onClick={handleBuyNow}
+                        className="px-6 py-3 bg-black text-white rounded-full hover:bg-white hover:text-black hover:border hover:border-black transition"
+                    >
                         MUA NGAY
                     </button>
                 </div>
                 <p className="font-semibold mt-5 mb-2">Mô tả: </p>
                 <p> {product.description}</p>
             </div>
+
+            <MessageDialog
+                isOpen={dialog.isOpen}
+                title={dialog.title}
+                description={dialog.description}
+                type={dialog.type}
+                onClose={handleCloseDialog}
+            />
         </div>
     );
 }
