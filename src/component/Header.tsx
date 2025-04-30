@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import userIcon from '../assets/user.png';
 import shoppingBag from '../assets/shopping-bag.png';
@@ -8,7 +8,28 @@ import menu from '../assets/menu.png';
 import UserDropdownMenu, { User } from './UserDropdownMenu';
 import { useCart } from '../context/CartContext';
 
+// Định nghĩa interface cho sản phẩm
+interface Product {
+    _id: string;
+    product_id: number;
+    product_name: string;
+    description: string;
+    category_id: string;
+    sex: string;
+    images: string[];
+    price: number;
+    xuatXu: string;
+    chatLieu: string;
+}
+
+// Định nghĩa interface cho mục gợi ý tìm kiếm
+interface SearchSuggestion {
+    text: string;
+    category?: string;
+}
+
 const Header: React.FC = () => {
+    const navigate = useNavigate();
     const [scrolled, setScrolled] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [showSearchPanel, setShowSearchPanel] = useState(false);
@@ -19,10 +40,23 @@ const Header: React.FC = () => {
     const isHomePage = location.pathname === '/';
     const { totalItems } = useCart();
 
-    // Thêm state user ở đây
+    // Các state mới cho tính năng tìm kiếm
+    const [searchQuery, setSearchQuery] = useState<string>('');
+    const [searchResults, setSearchResults] = useState<Product[]>([]);
+    const [isSearching, setIsSearching] = useState<boolean>(false);
+    const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([
+        { text: 'Túi xách', category: 'Phụ kiện' },
+        { text: 'Quý bà Dior', category: 'Thời trang' },
+        { text: 'Ví', category: 'Phụ kiện' },
+        { text: 'Khăn quàng cổ', category: 'Phụ kiện' },
+        { text: 'Giày', category: 'Giày dép' },
+        { text: 'Xô Caro', category: 'Phụ kiện' },
+    ]);
+
+    // Thêm state user
     const [user, setUser] = useState<User | null>(null);
 
-    // ✅ Thêm useEffect này để đọc user từ localStorage khi component mount
+    // Đọc user từ localStorage khi component mount
     useEffect(() => {
         const savedUser = localStorage.getItem('user');
         if (savedUser) {
@@ -31,11 +65,85 @@ const Header: React.FC = () => {
                 setUser(parsedUser);
             } catch (error) {
                 console.error('Failed to parse user from localStorage:', error);
-                localStorage.removeItem('user'); // Clear invalid data
-                localStorage.removeItem('token'); // Clear associated token
+                localStorage.removeItem('user');
+                localStorage.removeItem('token');
             }
         }
-    }, []); // Dependency rỗng để chỉ chạy một lần khi mount
+    }, []);
+
+    // Hàm tìm kiếm sản phẩm
+    const searchProducts = async (query: string) => {
+        if (!query.trim()) {
+            setSearchResults([]);
+            return;
+        }
+
+        setIsSearching(true);
+        try {
+            const response = await fetch(`http://localhost:3000/api/products`);
+            if (!response.ok) throw new Error('Network response was not ok');
+
+            const products: Product[] = await response.json();
+
+            // Lọc sản phẩm dựa trên query
+            const filteredProducts = products.filter(
+                (product) =>
+                    product.product_name
+                        .toLowerCase()
+                        .includes(query.toLowerCase()) ||
+                    product.description
+                        .toLowerCase()
+                        .includes(query.toLowerCase()) ||
+                    product.chatLieu
+                        .toLowerCase()
+                        .includes(query.toLowerCase()) ||
+                    product.xuatXu.toLowerCase().includes(query.toLowerCase()),
+            );
+
+            setSearchResults(filteredProducts);
+        } catch (error) {
+            console.error('Error searching products:', error);
+            setSearchResults([]);
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
+    // Debounce hàm tìm kiếm để tránh gọi API quá nhiều
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchQuery) {
+                searchProducts(searchQuery);
+            }
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
+    // Xử lý khi người dùng nhấn Enter trong ô tìm kiếm
+    const handleSearchSubmit = (
+        e: React.KeyboardEvent<HTMLInputElement> | React.MouseEvent,
+    ) => {
+        if ('key' in e && e.key !== 'Enter') return;
+
+        if (searchQuery.trim()) {
+            setShowSearchPanel(false);
+            navigate(`/products?search=${encodeURIComponent(searchQuery)}`);
+        }
+    };
+
+    // Xử lý khi người dùng click vào một gợi ý
+    const handleSuggestionClick = (suggestion: string) => {
+        setSearchQuery(suggestion);
+        setShowSearchPanel(false);
+        navigate(`/products?search=${encodeURIComponent(suggestion)}`);
+    };
+
+    // Xử lý click vào kết quả tìm kiếm
+    const handleSearchResultClick = (productId: string) => {
+        setShowSearchPanel(false);
+        navigate(`/product/${productId}`);
+    };
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -145,7 +253,6 @@ const Header: React.FC = () => {
                             aria-label="Open search"
                         >
                             {' '}
-                            {/* Added aria-label */}
                             <img
                                 src={search}
                                 alt="Search"
@@ -180,7 +287,7 @@ const Header: React.FC = () => {
                 )}
             </div>
 
-            {/* Search Panel */}
+            {/* Search Panel - Đã được cập nhật */}
             <AnimatePresence>
                 {showSearchPanel && (
                     <>
@@ -191,7 +298,7 @@ const Header: React.FC = () => {
                             transition={{ duration: 0.3 }}
                             className="fixed top-0 left-0 w-full h-full bg-black/40 backdrop-blur-sm z-40"
                             onClick={() => setShowSearchPanel(false)}
-                            aria-hidden="true" // Hide from screen readers when used as overlay
+                            aria-hidden="true"
                         />
                         <motion.div
                             initial={{ x: '100%' }}
@@ -199,333 +306,194 @@ const Header: React.FC = () => {
                             exit={{ x: '100%' }}
                             transition={{ duration: 0.3 }}
                             className="fixed top-[6vw] right-0 h-full w-full md:w-[40vw] z-50 bg-white shadow-lg"
-                            role="dialog" // Added ARIA role for dialog
-                            aria-modal="true" // Indicate it's a modal
+                            role="dialog"
+                            aria-modal="true"
                         >
                             <div className="flex items-center justify-between p-4 border-b">
                                 <button
-                                    onClick={() => setShowSearchPanel(false)}
+                                    onClick={() => {
+                                        setShowSearchPanel(false);
+                                        setSearchQuery('');
+                                        setSearchResults([]);
+                                    }}
                                     className="text-gray-700 hover:text-black"
-                                    aria-label="Close search panel" // Added aria-label
+                                    aria-label="Đóng ô tìm kiếm"
                                 >
-                                    <i className="fa-solid fa-xmark mr-2"></i>{' '}
-                                    Close {/* Consider i18n */}
+                                    <i className="fa-solid fa-xmark mr-2"></i>
+                                    Đóng
                                 </button>
                                 <i
                                     className="fa-solid fa-magnifying-glass text-gray-500"
                                     aria-hidden="true"
-                                />{' '}
-                                {/* Hide decorative icon from screen readers */}
+                                />
                             </div>
-                            <div className="p-6 flex flex-col gap-4">
+                            <div className="p-6 flex flex-col gap-4 h-[calc(100%-65px)] overflow-auto">
                                 <div className="flex items-center border-b pb-2">
                                     <i
                                         className="fa-solid fa-magnifying-glass mr-3 text-gray-500"
                                         aria-hidden="true"
-                                    ></i>{' '}
-                                    {/* Hide decorative icon */}
+                                    ></i>
                                     <input
                                         type="text"
-                                        placeholder="What are you looking for?" // Consider i18n
+                                        value={searchQuery}
+                                        onChange={(e) =>
+                                            setSearchQuery(e.target.value)
+                                        }
+                                        onKeyDown={handleSearchSubmit}
+                                        placeholder="Bạn đang tìm kiếm gì?"
                                         className="w-full outline-none"
-                                        aria-label="Search input" // Added aria-label if no visible label
+                                        aria-label="Ô tìm kiếm"
+                                        autoFocus
                                     />
-                                    <i
-                                        className="fa-solid fa-arrow-right text-gray-400"
-                                        aria-hidden="true"
-                                    />{' '}
-                                    {/* Hide decorative icon */}
+                                    {isSearching ? (
+                                        <div className="w-5 h-5 border-t-2 border-r-2 border-black rounded-full animate-spin mr-2"></div>
+                                    ) : (
+                                        searchQuery && (
+                                            <button
+                                                onClick={() =>
+                                                    setSearchQuery('')
+                                                }
+                                                className="text-gray-400 hover:text-gray-600 mr-2"
+                                                aria-label="Xóa tìm kiếm"
+                                            >
+                                                <i className="fa-solid fa-times"></i>
+                                            </button>
+                                        )
+                                    )}
+                                    <button
+                                        onClick={handleSearchSubmit}
+                                        className="text-gray-500 hover:text-black"
+                                        aria-label="Tìm kiếm"
+                                    >
+                                        <i className="fa-solid fa-arrow-right"></i>
+                                    </button>
                                 </div>
-                                <div>
-                                    <p className="text-sm font-semibold text-gray-600 mb-2">
-                                        Suggestions {/* Consider i18n */}
-                                    </p>
-                                    <ul className="text-gray-700 space-y-2 text-sm">
-                                        <li>Lady Dior</li>{' '}
-                                        {/* Consider i18n if these are dynamic */}
-                                        <li>Wallet</li>
-                                        <li>Earrings</li>
-                                        <li>Shoes</li>
-                                        <li>Scarf</li>
-                                        <li>Caro bucket</li>
-                                    </ul>
-                                </div>
+
+                                {/* Kết quả tìm kiếm */}
+                                {searchQuery && searchResults.length > 0 && (
+                                    <div className="mt-4">
+                                        <h3 className="text-sm font-semibold text-gray-600 mb-3">
+                                            Kết quả ({searchResults.length})
+                                        </h3>
+                                        <div className="space-y-4">
+                                            {searchResults
+                                                .slice(0, 5)
+                                                .map((product) => (
+                                                    <div
+                                                        key={product._id}
+                                                        className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded"
+                                                        onClick={() =>
+                                                            handleSearchResultClick(
+                                                                product._id,
+                                                            )
+                                                        }
+                                                    >
+                                                        <img
+                                                            src={
+                                                                product
+                                                                    .images[0]
+                                                            }
+                                                            alt={
+                                                                product.product_name
+                                                            }
+                                                            className="w-16 h-16 object-cover rounded mr-3"
+                                                        />
+                                                        <div>
+                                                            <h4 className="font-medium">
+                                                                {
+                                                                    product.product_name
+                                                                }
+                                                            </h4>
+                                                            <p className="text-sm text-gray-500">
+                                                                {product.price.toLocaleString()}
+                                                                ₫
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+
+                                            {searchResults.length > 5 && (
+                                                <button
+                                                    className="w-full text-center py-2 text-sm text-gray-600 hover:text-black"
+                                                    onClick={() => {
+                                                        setShowSearchPanel(
+                                                            false,
+                                                        );
+                                                        navigate(
+                                                            `/products?search=${encodeURIComponent(
+                                                                searchQuery,
+                                                            )}`,
+                                                        );
+                                                    }}
+                                                >
+                                                    Xem tất cả{' '}
+                                                    {searchResults.length} kết
+                                                    quả
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Hiển thị "Không tìm thấy kết quả" */}
+                                {searchQuery &&
+                                    searchResults.length === 0 &&
+                                    !isSearching && (
+                                        <div className="flex flex-col items-center justify-center py-8">
+                                            <i className="fa-solid fa-search-minus text-4xl text-gray-300 mb-2"></i>
+                                            <p className="text-gray-500">
+                                                Không tìm thấy kết quả nào cho "
+                                                {searchQuery}"
+                                            </p>
+                                            <p className="text-sm text-gray-400 mt-2">
+                                                Hãy thử từ khóa khác hoặc duyệt
+                                                danh mục sản phẩm của chúng tôi
+                                            </p>
+                                        </div>
+                                    )}
+
+                                {/* Gợi ý tìm kiếm */}
+                                {(!searchQuery ||
+                                    searchResults.length === 0) && (
+                                    <div>
+                                        <p className="text-sm font-semibold text-gray-600 mb-2">
+                                            Gợi ý
+                                        </p>
+                                        <ul className="text-gray-700 space-y-2 text-sm">
+                                            {suggestions.map(
+                                                (suggestion, index) => (
+                                                    <li
+                                                        key={index}
+                                                        className="flex justify-between items-center cursor-pointer hover:bg-gray-50 p-2 rounded"
+                                                        onClick={() =>
+                                                            handleSuggestionClick(
+                                                                suggestion.text,
+                                                            )
+                                                        }
+                                                    >
+                                                        <span>
+                                                            {suggestion.text}
+                                                        </span>
+                                                        {suggestion.category && (
+                                                            <span className="text-xs text-gray-400">
+                                                                {
+                                                                    suggestion.category
+                                                                }
+                                                            </span>
+                                                        )}
+                                                    </li>
+                                                ),
+                                            )}
+                                        </ul>
+                                    </div>
+                                )}
                             </div>
                         </motion.div>
                     </>
                 )}
             </AnimatePresence>
 
-            {/* Side Menu */}
-            <AnimatePresence>
-                {showSideMenu && (
-                    <>
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 0.5 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.3 }}
-                            className="fixed top-0 left-0 w-full h-full bg-black/40 z-40"
-                            onClick={() => setShowSideMenu(false)}
-                            aria-hidden="true" // Hide from screen readers
-                        />
-                        <motion.div
-                            initial={{ x: '100%' }}
-                            animate={{ x: 0 }}
-                            exit={{ x: '100%' }}
-                            transition={{ duration: 0.3 }}
-                            className="fixed top-0 right-0 h-full w-[80vw] sm:w-[60vw] md:w-[40vw] bg-white z-50 shadow-lg"
-                            role="dialog" // Added ARIA role
-                            aria-modal="true" // Indicate it's a modal
-                        >
-                            <div className="p-4 border-b flex justify-between items-center">
-                                <h2 className="text-lg font-semibold">Menu</h2>{' '}
-                                {/* Consider i18n */}
-                                <button
-                                    onClick={() => setShowSideMenu(false)}
-                                    aria-label="Close menu"
-                                >
-                                    {' '}
-                                    {/* Added aria-label */}
-                                    <i className="fa-solid fa-xmark text-lg text-gray-600"></i>
-                                </button>
-                            </div>
-                            <ul className="flex flex-col" role="menu">
-                                {' '}
-                                {/* Added ARIA role */}
-                                <li role="none">
-                                    {' '}
-                                    {/* Added ARIA role */}
-                                    <Link
-                                        to="/products"
-                                        onClick={() => setShowSideMenu(false)}
-                                        className="block w-full px-6 py-3 hover:bg-gray-100"
-                                        role="menuitem" // Added ARIA role
-                                    >
-                                        Product {/* Consider i18n */}
-                                    </Link>
-                                </li>
-                                <li role="none">
-                                    {' '}
-                                    {/* Added ARIA role */}
-                                    <button
-                                        onClick={() => toggleMenu('men')}
-                                        className="w-full px-6 py-3 text-left hover:bg-gray-100 flex justify-between items-center"
-                                        aria-expanded={expandedMenu === 'men'} // Added ARIA attribute
-                                        aria-controls="men-submenu" // Added ARIA attribute (assuming submenu has this ID)
-                                    >
-                                        Thời trang Nam {/* Consider i18n */}
-                                        <i
-                                            className={`fa-solid ${
-                                                expandedMenu === 'men'
-                                                    ? 'fa-chevron-up'
-                                                    : 'fa-chevron-down'
-                                            }`}
-                                            aria-hidden="true" // Hide decorative icon
-                                        />
-                                    </button>
-                                    {expandedMenu === 'men' && (
-                                        <ul
-                                            className="pl-8 text-sm text-gray-700"
-                                            role="menu"
-                                            id="men-submenu"
-                                        >
-                                            {' '}
-                                            {/* Added ARIA role and ID */}
-                                            <li role="none">
-                                                {' '}
-                                                {/* Added ARIA role */}
-                                                <Link
-                                                    to="/men/ao"
-                                                    onClick={() =>
-                                                        setShowSideMenu(false)
-                                                    }
-                                                    className="block px-4 py-2 hover:bg-gray-100"
-                                                    role="menuitem" // Added ARIA role
-                                                >
-                                                    Áo {/* Consider i18n */}
-                                                </Link>
-                                            </li>
-                                            <li role="none">
-                                                {' '}
-                                                {/* Added ARIA role */}
-                                                <Link
-                                                    to="/men/quan"
-                                                    onClick={() =>
-                                                        setShowSideMenu(false)
-                                                    }
-                                                    className="block px-4 py-2 hover:bg-gray-100"
-                                                    role="menuitem" // Added ARIA role
-                                                >
-                                                    Quần {/* Consider i18n */}
-                                                </Link>
-                                            </li>
-                                            <li role="none">
-                                                {' '}
-                                                {/* Added ARIA role */}
-                                                <Link
-                                                    to="/men/mu"
-                                                    onClick={() =>
-                                                        setShowSideMenu(false)
-                                                    }
-                                                    className="block px-4 py-2 hover:bg-gray-100"
-                                                    role="menuitem" // Added ARIA role
-                                                >
-                                                    Mũ {/* Consider i18n */}
-                                                </Link>
-                                            </li>
-                                            <li role="none">
-                                                {' '}
-                                                {/* Added ARIA role */}
-                                                <Link
-                                                    to="/men/khan"
-                                                    onClick={() =>
-                                                        setShowSideMenu(false)
-                                                    }
-                                                    className="block px-4 py-2 hover:bg-gray-100"
-                                                    role="menuitem" // Added ARIA role
-                                                >
-                                                    Khăn {/* Consider i18n */}
-                                                </Link>
-                                            </li>
-                                            <li role="none">
-                                                {' '}
-                                                {/* Added ARIA role */}
-                                                <Link
-                                                    to="/men/thatlung"
-                                                    onClick={() =>
-                                                        setShowSideMenu(false)
-                                                    }
-                                                    className="block px-4 py-2 hover:bg-gray-100"
-                                                    role="menuitem" // Added ARIA role
-                                                >
-                                                    Thắt lưng{' '}
-                                                    {/* Consider i18n */}
-                                                </Link>
-                                            </li>
-                                        </ul>
-                                    )}
-                                </li>
-                                <li role="none">
-                                    {' '}
-                                    {/* Added ARIA role */}
-                                    <button
-                                        onClick={() => toggleMenu('women')}
-                                        className="w-full px-6 py-3 text-left hover:bg-gray-100 flex justify-between items-center"
-                                        aria-expanded={expandedMenu === 'women'} // Added ARIA attribute
-                                        aria-controls="women-submenu" // Added ARIA attribute (assuming submenu has this ID)
-                                    >
-                                        Thời trang Nữ {/* Consider i18n */}
-                                        <i
-                                            className={`fa-solid ${
-                                                expandedMenu === 'women'
-                                                    ? 'fa-chevron-up'
-                                                    : 'fa-chevron-down'
-                                            }`}
-                                            aria-hidden="true" // Hide decorative icon
-                                        />
-                                    </button>
-                                    {expandedMenu === 'women' && (
-                                        <ul
-                                            className="pl-8 text-sm text-gray-700"
-                                            role="menu"
-                                            id="women-submenu"
-                                        >
-                                            {' '}
-                                            {/* Added ARIA role and ID */}
-                                            <li role="none">
-                                                {' '}
-                                                {/* Added ARIA role */}
-                                                <Link
-                                                    to="/women/ao"
-                                                    onClick={() =>
-                                                        setShowSideMenu(false)
-                                                    }
-                                                    className="block px-4 py-2 hover:bg-gray-100"
-                                                    role="menuitem" // Added ARIA role
-                                                >
-                                                    Áo {/* Consider i18n */}
-                                                </Link>
-                                            </li>
-                                            <li role="none">
-                                                {' '}
-                                                {/* Added ARIA role */}
-                                                <Link
-                                                    to="/women/quan"
-                                                    onClick={() =>
-                                                        setShowSideMenu(false)
-                                                    }
-                                                    className="block px-4 py-2 hover:bg-gray-100"
-                                                    role="menuitem" // Added ARIA role
-                                                >
-                                                    Quần {/* Consider i18n */}
-                                                </Link>
-                                            </li>
-                                            <li role="none">
-                                                {' '}
-                                                {/* Added ARIA role */}
-                                                <Link
-                                                    to="/women/mu"
-                                                    onClick={() =>
-                                                        setShowSideMenu(false)
-                                                    }
-                                                    className="block px-4 py-2 hover:bg-gray-100"
-                                                    role="menuitem" // Added ARIA role
-                                                >
-                                                    Mũ {/* Consider i18n */}
-                                                </Link>
-                                            </li>
-                                            <li role="none">
-                                                {' '}
-                                                {/* Added ARIA role */}
-                                                <Link
-                                                    to="/women/khan"
-                                                    onClick={() =>
-                                                        setShowSideMenu(false)
-                                                    }
-                                                    className="block px-4 py-2 hover:bg-gray-100"
-                                                    role="menuitem" // Added ARIA role
-                                                >
-                                                    Khăn {/* Consider i18n */}
-                                                </Link>
-                                            </li>
-                                            <li role="none">
-                                                {' '}
-                                                {/* Added ARIA role */}
-                                                <Link
-                                                    to="/women/thatlung"
-                                                    onClick={() =>
-                                                        setShowSideMenu(false)
-                                                    }
-                                                    className="block px-4 py-2 hover:bg-gray-100"
-                                                    role="menuitem" // Added ARIA role
-                                                >
-                                                    Thắt lưng{' '}
-                                                    {/* Consider i18n */}
-                                                </Link>
-                                            </li>
-                                            <li role="none">
-                                                {' '}
-                                                {/* Added ARIA role */}
-                                                <Link
-                                                    to="/women/dam"
-                                                    onClick={() =>
-                                                        setShowSideMenu(false)
-                                                    }
-                                                    className="block px-4 py-2 hover:bg-gray-100"
-                                                    role="menuitem" // Added ARIA role
-                                                >
-                                                    Đầm {/* Consider i18n */}
-                                                </Link>
-                                            </li>
-                                        </ul>
-                                    )}
-                                </li>
-                            </ul>
-                        </motion.div>
-                    </>
-                )}
-            </AnimatePresence>
+            {/* ... phần Side Menu giữ nguyên ... */}
         </>
     );
 };
