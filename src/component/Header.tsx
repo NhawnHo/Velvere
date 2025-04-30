@@ -210,19 +210,15 @@ const Header: React.FC = () => {
                                 : 'opacity-100'
                         }`}
                     >
-                        <div>
-                            <button aria-label="Shopping bag">
-                                {' '}
-                                {/* Added aria-label */}
-                                <i className="fa-solid fa-bag-shopping text-gray-100 hover:text-gray-400 transition cursor-pointer" />
-                                {/* <img
-                                src={shoppingBag}
-                                alt="Bag"
-                                className="w-[2vw] h-[2vw] max-w-[22px] max-h-[22px]"
-                            /> */}
-                            </button>
-                        </div>
-                        <div className="relative " ref={userMenuRef}>
+                        <Link to="/cart" className="relative">
+                            <i className="fa-solid fa-bag-shopping text-gray-100 hover:text-gray-400 transition cursor-pointer" />
+                            {totalItems > 0 && (
+                                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                                    {totalItems > 99 ? '99+' : totalItems}
+                                </span>
+                            )}
+                        </Link>
+                        <div className="relative" ref={userMenuRef}>
                             <button
                                 onClick={() => setShowUserMenu(!showUserMenu)}
                                 className="user-icon-button"

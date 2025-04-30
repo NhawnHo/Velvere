@@ -111,7 +111,7 @@ function Cart() {
         return (
             <div className="container mx-auto my-20 py-8 px-4 text-center">
                 <div className="flex flex-col items-center justify-center">
-                    <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-black mb-4"></div>
+                    <div className="animate-spin rounded-full h-16 w-16 border-t-1 border-b-1 border-gray-400 mb-4"></div>
                     <h2 className="text-xl font-semibold mb-2">
                         Đang xử lý thanh toán...
                     </h2>
@@ -194,7 +194,7 @@ function Cart() {
                         </button>
                         <Link
                             to="/orders"
-                            className="px-6 py-3 border border-black rounded-full hover:bg-black hover:text-white transition text-center"
+                            className="px-6 py-3 border border-gray-400 rounded-full hover:bg-black hover:text-white transition text-center"
                         >
                             Xem đơn hàng
                         </Link>
@@ -211,12 +211,12 @@ function Cart() {
                 <h1 className="text-3xl font-semibold uppercase mb-6">
                     Giỏ hàng của bạn
                 </h1>
-                <div className="border rounded-lg p-16 mb-8">
+                <div className="border border-gray-400 rounded-lg p-16 mb-8">
                     <p className="text-gray-500 mb-6">
                         Giỏ hàng của bạn hiện đang trống.
                     </p>
                     <Link
-                        to="/products"
+                        to="/productPage"
                         className="inline-block px-6 py-3 bg-black text-white rounded-full hover:bg-gray-800"
                     >
                         Tiếp tục mua sắm
@@ -235,7 +235,7 @@ function Cart() {
             <div className="flex flex-col lg:flex-row gap-8">
                 {/* Danh sách sản phẩm */}
                 <div className="lg:w-2/3">
-                    <div className="border rounded-lg overflow-hidden">
+                    <div className="border border-gray-400 rounded-lg overflow-hidden">
                         <table className="min-w-full">
                             <thead className="bg-gray-50">
                                 <tr>
@@ -257,7 +257,7 @@ function Cart() {
                                 {cartItems.map((item) => (
                                     <tr
                                         key={`${item._id}-${item.size}-${item.color}`}
-                                        className="border-t"
+                                        className="border-t border-gray-400"
                                     >
                                         <td className="py-4 px-4">
                                             <div className="flex items-center">
@@ -346,7 +346,7 @@ function Cart() {
 
                     <div className="flex justify-between mt-6">
                         <Link
-                            to="/products"
+                            to="/productPage"
                             className="px-6 py-2 border border-black rounded-full hover:bg-black hover:text-white transition"
                         >
                             Tiếp tục mua sắm
