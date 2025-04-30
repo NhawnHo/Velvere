@@ -231,8 +231,8 @@ const Header: React.FC = () => {
                         <div className="relative -mb-1.5" ref={userMenuRef}>
                             <button
                                 onClick={() => setShowUserMenu(!showUserMenu)}
-                                className="user-icon-button" // Added class for potential handleClickOutside improvement
-                                aria-label="User account menu" // Added aria-label
+                                className="user-icon-button"
+                                aria-label="User account menu"
                             >
                                 <img
                                     src={userIcon}
@@ -242,8 +242,8 @@ const Header: React.FC = () => {
                             </button>
                             {showUserMenu && (
                                 <UserDropdownMenu
-                                    user={user} // ✅ Truyền state user
-                                    setUser={setUser} // ✅ Truyền hàm setUser
+                                    user={user}
+                                    setUser={setUser}
                                 />
                             )}
                         </div>
@@ -252,7 +252,6 @@ const Header: React.FC = () => {
                             onClick={() => setShowSearchPanel(true)}
                             aria-label="Open search"
                         >
-                            {' '}
                             <img
                                 src={search}
                                 alt="Search"
@@ -264,8 +263,6 @@ const Header: React.FC = () => {
                             onClick={() => setShowSideMenu(true)}
                             aria-label="Open menu"
                         >
-                            {' '}
-                            {/* Added aria-label */}
                             <img
                                 src={menu}
                                 alt="Menu"
@@ -278,10 +275,9 @@ const Header: React.FC = () => {
                 {isHomePage && (
                     <a
                         href="#"
-                        // Consider using Link from react-router-dom if this is an internal link
                         className="top-0 w-full z-50 flex justify-center items-center h-16 text-gray-700 tracking-widest group relative hover:text-black transition-colors duration-300"
                     >
-                        Book an appointment now {/* Consider i18n */}
+                        Book an appointment now
                         <span className="absolute bottom-3 left-1/2 transform -translate-x-1/2 w-0 h-[1px] bg-gray-700 transition-all duration-500 group-hover:w-1/6" />
                     </a>
                 )}
@@ -493,7 +489,237 @@ const Header: React.FC = () => {
                 )}
             </AnimatePresence>
 
-            {/* ... phần Side Menu giữ nguyên ... */}
+            {/* Side Menu */}
+            <AnimatePresence>
+                {showSideMenu && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 0.5 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="fixed top-0 left-0 w-full h-full bg-black/40 z-40"
+                            onClick={() => setShowSideMenu(false)}
+                            aria-hidden="true"
+                        />
+                        <motion.div
+                            initial={{ x: '100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '100%' }}
+                            transition={{ duration: 0.3 }}
+                            className="fixed top-0 right-0 h-full w-[80vw] sm:w-[60vw] md:w-[40vw] bg-white z-50 shadow-lg"
+                            role="dialog"
+                            aria-modal="true"
+                        >
+                            <div className="p-4 border-b flex justify-between items-center">
+                                <h2 className="text-lg font-semibold">Menu</h2>
+                                <button
+                                    onClick={() => setShowSideMenu(false)}
+                                    aria-label="Close menu"
+                                >
+                                    <i className="fa-solid fa-xmark text-lg text-gray-600"></i>
+                                </button>
+                            </div>
+                            <ul className="flex flex-col" role="menu">
+                                <li role="none">
+                                    <Link
+                                        to="/products"
+                                        onClick={() => setShowSideMenu(false)}
+                                        className="block w-full px-6 py-3 hover:bg-gray-100"
+                                        role="menuitem"
+                                    >
+                                        Sản phẩm
+                                    </Link>
+                                </li>
+                                <li role="none">
+                                    <button
+                                        onClick={() => toggleMenu('men')}
+                                        className="w-full px-6 py-3 text-left hover:bg-gray-100 flex justify-between items-center"
+                                        aria-expanded={expandedMenu === 'men'}
+                                        aria-controls="men-submenu"
+                                    >
+                                        Thời trang Nam
+                                        <i
+                                            className={`fa-solid ${
+                                                expandedMenu === 'men'
+                                                    ? 'fa-chevron-up'
+                                                    : 'fa-chevron-down'
+                                            }`}
+                                            aria-hidden="true"
+                                        />
+                                    </button>
+                                    {expandedMenu === 'men' && (
+                                        <ul
+                                            className="pl-8 text-sm text-gray-700"
+                                            role="menu"
+                                            id="men-submenu"
+                                        >
+                                            <li role="none">
+                                                <Link
+                                                    to="/men/ao"
+                                                    onClick={() =>
+                                                        setShowSideMenu(false)
+                                                    }
+                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                    role="menuitem"
+                                                >
+                                                    Áo
+                                                </Link>
+                                            </li>
+                                            <li role="none">
+                                                <Link
+                                                    to="/men/quan"
+                                                    onClick={() =>
+                                                        setShowSideMenu(false)
+                                                    }
+                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                    role="menuitem"
+                                                >
+                                                    Quần
+                                                </Link>
+                                            </li>
+                                            <li role="none">
+                                                <Link
+                                                    to="/men/mu"
+                                                    onClick={() =>
+                                                        setShowSideMenu(false)
+                                                    }
+                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                    role="menuitem"
+                                                >
+                                                    Mũ
+                                                </Link>
+                                            </li>
+                                            <li role="none">
+                                                <Link
+                                                    to="/men/khan"
+                                                    onClick={() =>
+                                                        setShowSideMenu(false)
+                                                    }
+                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                    role="menuitem"
+                                                >
+                                                    Khăn
+                                                </Link>
+                                            </li>
+                                            <li role="none">
+                                                <Link
+                                                    to="/men/thatlung"
+                                                    onClick={() =>
+                                                        setShowSideMenu(false)
+                                                    }
+                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                    role="menuitem"
+                                                >
+                                                    Thắt lưng
+                                                </Link>
+                                            </li>
+                                        </ul>
+                                    )}
+                                </li>
+                                <li role="none">
+                                    <button
+                                        onClick={() => toggleMenu('women')}
+                                        className="w-full px-6 py-3 text-left hover:bg-gray-100 flex justify-between items-center"
+                                        aria-expanded={expandedMenu === 'women'}
+                                        aria-controls="women-submenu"
+                                    >
+                                        Thời trang Nữ
+                                        <i
+                                            className={`fa-solid ${
+                                                expandedMenu === 'women'
+                                                    ? 'fa-chevron-up'
+                                                    : 'fa-chevron-down'
+                                            }`}
+                                            aria-hidden="true"
+                                        />
+                                    </button>
+                                    {expandedMenu === 'women' && (
+                                        <ul
+                                            className="pl-8 text-sm text-gray-700"
+                                            role="menu"
+                                            id="women-submenu"
+                                        >
+                                            <li role="none">
+                                                <Link
+                                                    to="/women/ao"
+                                                    onClick={() =>
+                                                        setShowSideMenu(false)
+                                                    }
+                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                    role="menuitem"
+                                                >
+                                                    Áo
+                                                </Link>
+                                            </li>
+                                            <li role="none">
+                                                <Link
+                                                    to="/women/quan"
+                                                    onClick={() =>
+                                                        setShowSideMenu(false)
+                                                    }
+                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                    role="menuitem"
+                                                >
+                                                    Quần
+                                                </Link>
+                                            </li>
+                                            <li role="none">
+                                                <Link
+                                                    to="/women/mu"
+                                                    onClick={() =>
+                                                        setShowSideMenu(false)
+                                                    }
+                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                    role="menuitem"
+                                                >
+                                                    Mũ
+                                                </Link>
+                                            </li>
+                                            <li role="none">
+                                                <Link
+                                                    to="/women/khan"
+                                                    onClick={() =>
+                                                        setShowSideMenu(false)
+                                                    }
+                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                    role="menuitem"
+                                                >
+                                                    Khăn
+                                                </Link>
+                                            </li>
+                                            <li role="none">
+                                                <Link
+                                                    to="/women/thatlung"
+                                                    onClick={() =>
+                                                        setShowSideMenu(false)
+                                                    }
+                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                    role="menuitem"
+                                                >
+                                                    Thắt lưng
+                                                </Link>
+                                            </li>
+                                            <li role="none">
+                                                <Link
+                                                    to="/women/dam"
+                                                    onClick={() =>
+                                                        setShowSideMenu(false)
+                                                    }
+                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                    role="menuitem"
+                                                >
+                                                    Đầm
+                                                </Link>
+                                            </li>
+                                        </ul>
+                                    )}
+                                </li>
+                            </ul>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
         </>
     );
 };
