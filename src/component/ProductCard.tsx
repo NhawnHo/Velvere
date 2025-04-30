@@ -23,8 +23,7 @@ export default function ProductCard({
     _id,
     product_name,
     images,
-    price,
-    isNew = false,
+    price
 }: ProductCardProps) {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -51,13 +50,9 @@ export default function ProductCard({
         >
             <Card className="w-full max-w-md items-center mx-auto overflow-hidden border-0 rounded-xl hover:shadow-lg transition-shadow duration-300 ease-in-out">
                 <div className="relative">
-                    {isNew && (
-                        <div className="absolute top-4 left-4 text-gray-500 text-sm">
-                            New
-                        </div>
-                    )}
+                    
 
-                    <div className="relative h-[600px] w-full">
+                    <div className="relative h-[400px] w-[365px] ">
                         <img
                             src={
                                 images[currentImageIndex] || '/placeholder.svg'

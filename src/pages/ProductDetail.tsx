@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import ShowMoreText from 'react-show-more-text';
 
 interface Variant {
     size: string;
@@ -27,11 +28,15 @@ function ProductDetail() {
     const [selectedSize, setSelectedSize] = useState<string>('');
     const [selectedColor, setSelectedColor] = useState<string>('');
     const [quantity, setQuantity] = useState(1);
+    const [mainImage, setMainImage] = useState<string>('');
 
     useEffect(() => {
         fetch(`http://localhost:3000/api/products/${id}`)
             .then((res) => res.json())
-            .then((data) => setProduct(data))
+            .then((data) => {
+                setProduct(data);
+                setMainImage(data.images[0]); // Thiết lập hình ảnh chính ban đầu
+            })
             .catch((err) => console.error('Error fetching product:', err));
     }, [id]);
 
@@ -43,24 +48,27 @@ function ProductDetail() {
     );
     const uniqueColors = Array.from(
         new Set(product.variants.map((v) => v.color)),
-    );
+  );
 
     return (
         <div className="flex flex-col md:flex-row gap-10 p-6 mt-10">
             {/* Hình ảnh sản phẩm */}
             <div className="flex p-2 border-r border-gray-200">
                 <img
-                    src={product.images[0]}
+                    src={mainImage}
                     alt={product.product_name}
-                    className="w-[40vw] max-w-2xl object-cover rounded"
+                    className="w-[40vw] h-[600px] max-w-2xl object-cover"
                 />
                 <div className="flex flex-col gap-2">
-                    {product.images.slice(1).map((img, idx) => (
+                    {product.images.map((img, idx) => (
                         <img
                             key={idx}
                             src={img}
                             alt={`thumbnail-${idx}`}
-                            className="w-20 h-20 object-cover rounded ml-2"
+                            className={`w-20 h-20 rounded ml-2 cursor-pointer ${
+                                mainImage === img ? 'ring-1 ring-gray-400' : ''
+                            }`}
+                            onClick={() => setMainImage(img)}
                         />
                     ))}
                 </div>
@@ -68,7 +76,7 @@ function ProductDetail() {
 
             {/* Thông tin sản phẩm */}
             <div className="flex-1">
-                <h1 className="text-5xl font-semibold uppercase mb-1">
+                <h1 className="text-3xl font-semibold uppercase mb-1">
                     {product.product_name}
                 </h1>
 
@@ -156,8 +164,22 @@ function ProductDetail() {
                         MUA NGAY
                     </button>
                 </div>
-                <p className="font-semibold mt-5 mb-2">Mô tả: </p>
-                <p> {product.description}</p>
+
+                {/* Mô tả sản phẩm */}
+                <div>
+                    <p className="font-semibold mt-5 mb-2">Mô tả: </p>
+                    <ShowMoreText
+                        lines={3}
+                        more="Xem thêm"
+                        less="Thu gọn"
+                        anchorClass="text-gray-500 cursor-pointer"
+                        expanded={false}
+                        className="text-justify"
+                        truncatedEndingComponent="..."
+                    >
+                        {product.description}
+                    </ShowMoreText>
+                </div>
             </div>
         </div>
     );
