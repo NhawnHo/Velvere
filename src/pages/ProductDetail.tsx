@@ -4,6 +4,8 @@ import ShowMoreText from 'react-show-more-text';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import MessageDialog from '../component/MessageDialog';
+import ProductCard from '../component/ProductCard';
+import RelatedProducts from '../component/RelatedProducts';
 
 
 
@@ -63,6 +65,7 @@ function ProductDetail() {
     const uniqueColors = Array.from(
         new Set(product.variants.map((v) => v.color)),
   );
+
   
     // Kiểm tra xem sản phẩm có tồn kho không với size và color đã chọn
     const selectedVariant = product.variants.find(
@@ -102,7 +105,7 @@ function ProductDetail() {
             _id: product._id,
             product_id: product.product_id,
             product_name: product.product_name,
-            image: product.images[0],
+            image: imageToUse,
             price: product.price,
             quantity: quantity,
             size: selectedSize,
@@ -162,170 +165,209 @@ function ProductDetail() {
 
     const handleCloseDialog = () => {
         setDialog({ isOpen: false, title: '', description: '', type: '' });
-    };
+  };
+  const isVideo = (url: string) => {
+      return /\.(mp4|webm|ogg)$/i.test(url);
+  };
+    const imageToUse = isVideo(product.images[0])
+        ? product.images[1]
+        : product.images[0];
+
 
     return (
-        <div className="flex flex-col md:flex-row gap-10 p-6 mt-10">
-            {/* Hình ảnh sản phẩm */}
-            <div className="flex p-2 border-r border-gray-200">
-                <img
-                    src={mainImage}
-                    alt={product.product_name}
-                    className="w-[40vw] h-[600px] max-w-2xl object-cover"
-                />
-                <div className="flex flex-col gap-2">
-                    {product.images.map((img, idx) => (
-                        <img
-                            key={idx}
-                            src={img}
-                            alt={`thumbnail-${idx}`}
-                            className={`w-20 h-20 rounded ml-2 cursor-pointer ${
-                                mainImage === img ? 'ring-1 ring-gray-400' : ''
-                            }`}
-                            onClick={() => setMainImage(img)}
+        <div className="flex flex-col items-center">
+            <div className="flex flex-col md:flex-row gap-10 p-6 mt-10">
+                {/* Hình ảnh sản phẩm */}
+                <div className="flex p-2 border-r border-gray-200">
+                    {isVideo(mainImage) ? (
+                        <video
+                            src={mainImage}
+                            autoPlay
+                            muted
+                            loop
+                            className="w-[40vw] h-[700px] rounded max-w-2xl object-cover"
                         />
-                    ))}
-                </div>
-            </div>
-
-            {/* Thông tin sản phẩm */}
-            <div className="flex-1">
-                <h1 className="text-3xl font-semibold uppercase mb-1">
-                    {product.product_name}
-                </h1>
-
-                {/* Giá */}
-                <p className="text-2xl font-extralight text-gray-800 mb-4">
-                    {product.price.toLocaleString()}₫
-                </p>
-
-                {/* Thông tin thêm */}
-                <p className="text-sm text-gray-600 mb-2">
-                    Chất liệu: {product.chatLieu}
-                </p>
-                <p className="text-sm text-gray-600 mb-6">
-                    Xuất xứ: {product.xuatXu}
-                </p>
-
-                {/* Chọn SIZE */}
-                <div className="mb-6">
-                    <p className="font-semibold mb-2">Kích cỡ:</p>
-                    <div className="flex gap-2 flex-wrap">
-                        {uniqueSizes.map((size, idx) => (
-                            <button
+                    ) : (
+                        <img
+                            src={mainImage}
+                            alt={product.product_name}
+                            className="w-[40vw] h-[700px] rounded max-w-2xl object-cover"
+                        />
+                    )}
+                    {/* Thumbnails */}
+                    <div className="flex flex-col gap-2">
+                        {product.images.map((media, idx) => (
+                            <div
                                 key={idx}
-                                onClick={() => setSelectedSize(size)}
-                                className={`w-10 h-10 border rounded-full text-sm ${
-                                    selectedSize === size
-                                        ? 'bg-black text-white'
-                                        : 'hover:bg-black hover:text-white'
+                                className={`w-20 h-20 rounded ml-2 cursor-pointer ${
+                                    mainImage === media
+                                        ? 'ring-1 ring-gray-400'
+                                        : ''
                                 }`}
+                                onClick={() => setMainImage(media)}
                             >
-                                {size}
-                            </button>
+                                {isVideo(media) ? (
+                                    <video
+                                        src={media}
+                                        className="w-full h-full object-cover rounded"
+                                    />
+                                ) : (
+                                    <img
+                                        src={media}
+                                        alt={`thumbnail-${idx}`}
+                                        className="w-full h-full object-cover rounded"
+                                    />
+                                )}
+                            </div>
                         ))}
                     </div>
                 </div>
 
-                {/* Chọn MÀU */}
-                <div className="mb-6">
-                    <p className="font-semibold mb-2">Màu sắc:</p>
-                    <div className="flex gap-2 flex-wrap">
-                        {uniqueColors.map((color, idx) => (
+                {/* Thông tin sản phẩm */}
+                <div className="flex-1">
+                    <h1 className="text-3xl font-semibold uppercase mb-1">
+                        {product.product_name}
+                    </h1>
+
+                    {/* Giá */}
+                    <p className="text-2xl font-extralight text-gray-800 mb-4">
+                        {product.price.toLocaleString()}₫
+                    </p>
+
+                    {/* Thông tin thêm */}
+                    <p className="text-sm text-gray-600 mb-2">
+                        Chất liệu: {product.chatLieu}
+                    </p>
+                    <p className="text-sm text-gray-600 mb-6">
+                        Xuất xứ: {product.xuatXu}
+                    </p>
+
+                    {/* Chọn SIZE */}
+                    <div className="mb-6">
+                        <p className="font-semibold mb-2">Kích cỡ:</p>
+                        <div className="flex gap-2 flex-wrap">
+                            {uniqueSizes.map((size, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => setSelectedSize(size)}
+                                    className={`w-10 h-10 border rounded-full text-sm ${
+                                        selectedSize === size
+                                            ? 'bg-black text-white'
+                                            : 'hover:bg-black hover:text-white'
+                                    }`}
+                                >
+                                    {size}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Chọn MÀU */}
+                    <div className="mb-6">
+                        <p className="font-semibold mb-2">Màu sắc:</p>
+                        <div className="flex gap-2 flex-wrap">
+                            {uniqueColors.map((color, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => setSelectedColor(color)}
+                                    className={`px-4 py-2 border rounded-full text-sm ${
+                                        selectedColor === color
+                                            ? 'bg-black text-white'
+                                            : 'hover:bg-black hover:text-white'
+                                    }`}
+                                >
+                                    {color}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Số lượng */}
+                    <div className="mb-6">
+                        <p className="font-semibold mb-2">Số lượng:</p>
+                        <div className="flex items-center gap-2 border w-fit px-3 py-1 rounded">
                             <button
-                                key={idx}
-                                onClick={() => setSelectedColor(color)}
-                                className={`px-4 py-2 border rounded-full text-sm ${
-                                    selectedColor === color
-                                        ? 'bg-black text-white'
-                                        : 'hover:bg-black hover:text-white'
+                                onClick={() =>
+                                    setQuantity(Math.max(1, quantity - 1))
+                                }
+                                className="px-2"
+                            >
+                                -
+                            </button>
+                            <span className="px-2">{quantity}</span>
+                            <button
+                                onClick={() => setQuantity(quantity + 1)}
+                                className="px-2"
+                            >
+                                +
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Hiển thị tình trạng kho hàng */}
+                    {selectedSize && selectedColor && selectedVariant && (
+                        <div className="mb-4">
+                            <p
+                                className={`text-sm ${
+                                    selectedVariant.stock > 0
+                                        ? 'text-green-600'
+                                        : 'text-red-600'
                                 }`}
                             >
-                                {color}
-                            </button>
-                        ))}
-                    </div>
-                </div>
+                                {selectedVariant.stock > 0
+                                    ? `Còn hàng (${selectedVariant.stock} sản phẩm)`
+                                    : 'Hết hàng'}
+                            </p>
+                        </div>
+                    )}
 
-                {/* Số lượng */}
-                <div className="mb-6">
-                    <p className="font-semibold mb-2">Số lượng:</p>
-                    <div className="flex items-center gap-2 border w-fit px-3 py-1 rounded">
+                    {/* Nút hành động */}
+                    <div className="flex gap-4">
                         <button
-                            onClick={() =>
-                                setQuantity(Math.max(1, quantity - 1))
-                            }
-                            className="px-2"
+                            onClick={handleAddToCart}
+                            className="px-6 py-3 border border-black rounded-full hover:bg-black hover:text-white"
                         >
-                            -
+                            THÊM VÀO GIỎ
                         </button>
-                        <span className="px-2">{quantity}</span>
                         <button
-                            onClick={() => setQuantity(quantity + 1)}
-                            className="px-2"
+                            onClick={handleBuyNow}
+                            className="px-6 py-3 bg-black text-white rounded-full hover:bg-white hover:text-black hover:border hover:border-black transition"
                         >
-                            +
+                            MUA NGAY
                         </button>
                     </div>
-                </div>
 
-                {/* Hiển thị tình trạng kho hàng */}
-                {selectedSize && selectedColor && selectedVariant && (
-                    <div className="mb-4">
-                        <p
-                            className={`text-sm ${
-                                selectedVariant.stock > 0
-                                    ? 'text-green-600'
-                                    : 'text-red-600'
-                            }`}
+                    {/* Mô tả sản phẩm */}
+                    <div>
+                        <p className="font-semibold mt-5 mb-2">Mô tả: </p>
+                        <ShowMoreText
+                            lines={3}
+                            more="Xem thêm"
+                            less="Thu gọn"
+                            anchorClass="text-gray-500 cursor-pointer"
+                            expanded={false}
+                            className="text-justify"
+                            truncatedEndingComponent="..."
                         >
-                            {selectedVariant.stock > 0
-                                ? `Còn hàng (${selectedVariant.stock} sản phẩm)`
-                                : 'Hết hàng'}
-                        </p>
+                            {product.description}
+                        </ShowMoreText>
                     </div>
-                )}
-
-                {/* Nút hành động */}
-                <div className="flex gap-4">
-                    <button
-                        onClick={handleAddToCart}
-                        className="px-6 py-3 border border-black rounded-full hover:bg-black hover:text-white"
-                    >
-                        THÊM VÀO GIỎ
-                    </button>
-                    <button
-                        onClick={handleBuyNow}
-                        className="px-6 py-3 bg-black text-white rounded-full hover:bg-white hover:text-black hover:border hover:border-black transition"
-                    >
-                        MUA NGAY
-                    </button>
                 </div>
 
-                {/* Mô tả sản phẩm */}
-                <div>
-                    <p className="font-semibold mt-5 mb-2">Mô tả: </p>
-                    <ShowMoreText
-                        lines={3}
-                        more="Xem thêm"
-                        less="Thu gọn"
-                        anchorClass="text-gray-500 cursor-pointer"
-                        expanded={false}
-                        className="text-justify"
-                        truncatedEndingComponent="..."
-                    >
-                        {product.description}
-                    </ShowMoreText>
-                </div>
+                <MessageDialog
+                    isOpen={dialog.isOpen}
+                    title={dialog.title}
+                    description={dialog.description}
+                    type={dialog.type}
+                    onClose={handleCloseDialog}
+                />
             </div>
-
-            <MessageDialog
-                isOpen={dialog.isOpen}
-                title={dialog.title}
-                description={dialog.description}
-                type={dialog.type}
-                onClose={handleCloseDialog}
-            />
+        <div className="flex flex-row items-center w-full justify-center mt-10 mb-10">
+                <RelatedProducts
+                    currentProductId={product._id} // Truyền id của sản phẩm hiện tại
+                    categoryId={product.category_id}
+                />
+            </div>
         </div>
     );
 }

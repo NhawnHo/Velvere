@@ -42,24 +42,37 @@ export default function ProductCard({
         style: 'currency',
         currency: 'VND',
     }).format(price);
+  const isVideo = (url: string) => {
+      return /\.(mp4|webm|ogg)$/i.test(url);
+  };
+
 
     return (
         <Link
             to={`/product/${_id}`} // Sử dụng product_id để tạo đường dẫn
-            
         >
-            <Card className="w-full max-w-md items-center mx-auto overflow-hidden border-0 rounded-xl hover:shadow-lg transition-shadow duration-300 ease-in-out">
+            <Card className="w-full max-w-md items-center mx-auto overflow-hidden border-0 rounded-xl hover:shadow-lg transition-shadow duration-300 ease-in-out mb-5">
                 <div className="relative">
-                    
-
-                    <div className="relative h-[400px] w-[365px] ">
-                        <img
-                            src={
-                                images[currentImageIndex] || '/placeholder.svg'
-                            }
-                            alt={product_name}
-                            className="w-full h-full object-cover"
-                        />
+                    <div className="relative h-[450px] w-[400px] ">
+                        {isVideo(images[currentImageIndex]) ? (
+                            <video
+                  src={images[currentImageIndex]}
+                  autoPlay
+                  muted
+                  loop
+                              
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <img
+                                src={
+                                    images[currentImageIndex] ||
+                                    '/placeholder.svg'
+                                }
+                                alt={product_name}
+                                className="w-full h-full object-cover"
+                            />
+                        )}
                         {images.length > 1 && (
                             <>
                                 <button
