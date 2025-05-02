@@ -193,13 +193,14 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
                 // Có thể thêm các thông tin khác nếu cần, ví dụ: user_id, role, ...
                 user_id: user.user_id,
             },
+            
         };
 
         jwt.sign(
             payload,
             jwtSecret, // Sử dụng khóa bí mật
             { expiresIn: '1h' }, // Thời gian hết hạn của token (ví dụ: 1 giờ)
-            (err, token) => {
+            (err: Error | null, token: string | undefined) => {
                 if (err) throw err; // Xử lý lỗi khi tạo token
 
                 // Trả về token và thông tin user (tùy chọn)
