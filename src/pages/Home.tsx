@@ -1,14 +1,39 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 
 const cn = (...classes: string[]) => classes.filter(Boolean).join(' ');
 
 const Home: React.FC = () => {
     const [isScrolled, setIsScrolled] = useState(false);
+    const [isFirstImageVisible, setIsFirstImageVisible] = useState(false);
+    const [isSecondImageVisible, setIsSecondImageVisible] = useState(false);
+    const [isTextVisible, setIsTextVisible] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
+    const firstImageRef = useRef<HTMLDivElement>(null);
+    const secondImageRef = useRef<HTMLDivElement>(null);
+    const textRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 10);
+
+            // Check if first image is in viewport
+            if (firstImageRef.current) {
+                const rect = firstImageRef.current.getBoundingClientRect();
+                setIsFirstImageVisible(rect.top < window.innerHeight * 0.8);
+            }
+
+            // Check if second image is in viewport
+            if (secondImageRef.current) {
+                const rect = secondImageRef.current.getBoundingClientRect();
+                setIsSecondImageVisible(rect.top < window.innerHeight * 0.8);
+            }
+
+            // Check if text is in viewport
+            if (textRef.current) {
+                const rect = textRef.current.getBoundingClientRect();
+                setIsTextVisible(rect.top < window.innerHeight * 0.9);
+            }
         };
 
         window.addEventListener('scroll', handleScroll);
@@ -84,6 +109,18 @@ const Home: React.FC = () => {
                         playsInline
                         className="object-cover w-full h-full"
                     />
+                    {/* Mother's Day Gifts Title and Discover button overlay */}
+                    <div className="absolute flex flex-col items-center justify-center text-white">
+                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif mb-4">
+                            Mother's Day Gifts
+                        </h1>
+                        <Link
+                            to="/productPage"
+                            className="mt-4 inline-block text-center border-b border-white hover:border-opacity-70 transition-all duration-300 text-sm md:text-base tracking-wider"
+                        >
+                            Discover
+                        </Link>
+                    </div>
                 </div>
 
                 {/* Right Image */}
