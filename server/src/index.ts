@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 
 import productRoutes from './routes/Product.route';
 import userRoutes from './routes/User.route';
+import orderRoutes from './routes/Order.route';
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ mongoose
 // Route API theo tài nguyên
 app.use('/api/products', productRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/orders', orderRoutes);
 
 
 const PORT = process.env.PORT || 3000;

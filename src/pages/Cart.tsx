@@ -2,6 +2,7 @@ import { useCart } from '../context/CartContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import MessageDialog from '../component/MessageDialog';
+import axios from 'axios';
 
 function Cart() {
     const { cartItems, removeFromCart, updateQuantity, totalPrice, clearCart } =
@@ -42,13 +43,19 @@ function Cart() {
         return date.toLocaleDateString('vi-VN');
     };
 
+    // Tạo đối tượng Date từ chuỗi ngày định dạng vi-VN
+    const parseDateVN = (dateStr: string) => {
+        const parts = dateStr.split('/');
+        return new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+    };
+
     // Hàm xử lý khi đặt hàng
-    const handleCheckout = () => {
+    const handleCheckout = async () => {
         // Kiểm tra xem có người dùng đã đăng nhập không
-        const user = localStorage.getItem('user');
+        const userJSON = localStorage.getItem('user');
 
         // Nếu không có user, hiển thị thông báo yêu cầu đăng nhập
-        if (!user) {
+        if (!userJSON) {
             setDialog({
                 isOpen: true,
                 title: 'Vui lòng đăng nhập',
@@ -73,20 +80,46 @@ function Cart() {
         // Bắt đầu xử lý thanh toán
         setIsProcessing(true);
 
-        // Lưu tổng tiền hiện tại trước khi xóa giỏ hàng
-        const currentTotal = totalPrice;
-
-        // Giả lập quá trình xử lý thanh toán (khoảng 2 giây)
-        setTimeout(() => {
+        try {
+            // Parse thông tin user từ localStorage
+            const user = JSON.parse(userJSON);
+            
+            // Tạo thông tin đơn hàng
             const newOrderId = generateOrderId();
             const orderDate = new Date().toLocaleDateString('vi-VN');
             const estimatedDelivery = getEstimatedDelivery();
+            const currentTotal = totalPrice;
 
+            // Chuẩn bị dữ liệu đơn hàng để gửi lên server
+            const orderData = {
+                order_id: newOrderId,
+                user_id: user._id,
+                user_name: user.name,
+                phone: user.phone,
+                address: user.address,
+                items: cartItems.map(item => ({
+                    product_id: item._id,
+                    product_name: item.product_name,
+                    image: item.image,
+                    price: item.price,
+                    quantity: item.quantity,
+                    size: item.size,
+                    color: item.color
+                })),
+                totalAmount: currentTotal,
+                payment_method: 'COD',
+                estimatedDelivery: parseDateVN(estimatedDelivery)
+            };
+
+            // Gửi request để tạo đơn hàng
+            const response = await axios.post('http://localhost:3000/api/orders', orderData);
+
+            // Lưu thông tin đơn hàng vào state
             setOrderInfo({
                 orderId: newOrderId,
                 orderDate: orderDate,
                 estimatedDelivery: estimatedDelivery,
-                totalAmount: currentTotal, // Lưu tổng tiền vào state orderInfo
+                totalAmount: currentTotal,
             });
 
             setIsProcessing(false);
@@ -94,7 +127,16 @@ function Cart() {
 
             // Xóa giỏ hàng sau khi đặt hàng thành công
             clearCart();
-        }, 2000);
+        } catch (error) {
+            console.error('Lỗi khi tạo đơn hàng:', error);
+            setIsProcessing(false);
+            setDialog({
+                isOpen: true,
+                title: 'Lỗi thanh toán',
+                description: 'Có lỗi xảy ra trong quá trình thanh toán. Vui lòng thử lại.',
+                type: 'error',
+            });
+        }
     };
 
     const handleCloseDialog = () => {

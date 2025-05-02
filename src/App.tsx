@@ -8,6 +8,7 @@ import Product from './component/Product';
 import User from './component/User';
 import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/Cart';
+import Orders from './pages/Orders';
 import Footer from './component/Footer';
 import Signup from './login/Signup';
 import Signin from './login/Signin';
@@ -31,6 +32,7 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/signin" element={<Signin />} />
           <Route path="/cart" element={<Cart />} />
+          <Route path="/orders" element={<Orders />} />
           <Route path="/productPage" element={<ProductPage />} />
         </Routes>
         {/* <ProductPage /> */}
