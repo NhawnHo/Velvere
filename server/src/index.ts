@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import productRoutes from './routes/Product.route';
 import userRoutes from './routes/User.route';
 import orderRoutes from './routes/Order.route';
+import chatRoutes from './routes/Chat.route';
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ mongoose
 app.use('/api/products', productRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/chat', chatRoutes);
 
 
 const PORT = process.env.PORT || 3000;
