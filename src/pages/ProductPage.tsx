@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import ProductCard from '../component/ProductCard';
+import { useSearchParams } from 'react-router-dom';
 
 interface Product {
     _id: string;
@@ -19,7 +20,10 @@ interface Product {
 }
 
 export default function ProductPage() {
-    const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+    const [searchParams] = useSearchParams();
+    const sex = searchParams.get('sex');
+    const category = searchParams.get('category_id');
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -37,6 +41,31 @@ export default function ProductPage() {
 
         fetchProducts();
     }, []);
+   useEffect(() => {
+       const fetchProducts = async () => {
+           const res = await fetch('http://localhost:3000/api/products');
+           const data = await res.json();
+
+           let filtered = data;
+
+           if (sex) {
+               filtered = filtered.filter((p: Product) => p.sex === sex);
+           }
+           if (category) {
+               filtered = filtered.filter((p: Product) =>
+                   p.category_id
+                       ?.toLowerCase()
+                       .includes(category.toLowerCase()),
+               );
+           }
+
+
+
+           setProducts(filtered);
+       };
+
+       fetchProducts();
+   }, [sex, category]);
 
     return (
         <div>

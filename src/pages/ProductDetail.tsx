@@ -7,8 +7,6 @@ import MessageDialog from '../component/MessageDialog';
 import ProductCard from '../component/ProductCard';
 import RelatedProducts from '../component/RelatedProducts';
 
-
-
 interface Variant {
     size: string;
     color: string;
@@ -35,12 +33,12 @@ function ProductDetail() {
     const { addToCart } = useCart();
     const [product, setProduct] = useState<Product | null>(null);
     const [selectedSize, setSelectedSize] = useState<string>('');
-  const [selectedColor, setSelectedColor] = useState<string>('');
+    const [selectedColor, setSelectedColor] = useState<string>('');
     const [mainImage, setMainImage] = useState<string>('');
-   // Thay đổi giá trị mặc định của quantity thành 1
-  
-  const [quantity, setQuantity] = useState(1);
-   const [dialog, setDialog] = useState({
+    // Thay đổi giá trị mặc định của quantity thành 1
+
+    const [quantity, setQuantity] = useState(1);
+    const [dialog, setDialog] = useState({
         isOpen: false,
         title: '',
         description: '',
@@ -64,9 +62,8 @@ function ProductDetail() {
     );
     const uniqueColors = Array.from(
         new Set(product.variants.map((v) => v.color)),
-  );
+    );
 
-  
     // Kiểm tra xem sản phẩm có tồn kho không với size và color đã chọn
     const selectedVariant = product.variants.find(
         (v) => v.size === selectedSize && v.color === selectedColor,
@@ -165,14 +162,13 @@ function ProductDetail() {
 
     const handleCloseDialog = () => {
         setDialog({ isOpen: false, title: '', description: '', type: '' });
-  };
-  const isVideo = (url: string) => {
-      return /\.(mp4|webm|ogg)$/i.test(url);
-  };
+    };
+    const isVideo = (url: string) => {
+        return /\.(mp4|webm|ogg)$/i.test(url);
+    };
     const imageToUse = isVideo(product.images[0])
         ? product.images[1]
         : product.images[0];
-
 
     return (
         <div className="flex flex-col items-center">
@@ -362,7 +358,7 @@ function ProductDetail() {
                     onClose={handleCloseDialog}
                 />
             </div>
-        <div className="flex flex-row items-center w-full justify-center mt-10 mb-10">
+            <div className="flex flex-row items-center w-full justify-center mt-10 mb-10">
                 <RelatedProducts
                     currentProductId={product._id} // Truyền id của sản phẩm hiện tại
                     categoryId={product.category_id}
