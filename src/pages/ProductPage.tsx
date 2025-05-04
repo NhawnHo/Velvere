@@ -1,8 +1,8 @@
 // ProductPage.tsx
 
 import { useEffect, useState } from 'react';
-import ProductCard from '../component/ProductCard';
 import { useSearchParams } from 'react-router-dom';
+import ProductCard from '../component/ProductCard';
 
 interface Product {
     _id: string;
@@ -20,61 +20,46 @@ interface Product {
 }
 
 export default function ProductPage() {
-  const [products, setProducts] = useState<Product[]>([]);
+    const [products, setProducts] = useState<Product[]>([]);
     const [searchParams] = useSearchParams();
+
     const sex = searchParams.get('sex');
     const category = searchParams.get('category_id');
 
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const response = await fetch(
-                    'http://localhost:3000/api/products',
-                );
-                if (!response.ok) throw new Error('Failed to fetch products');
-                const data = await response.json();
-                setProducts(data);
-            } catch (err) {
-                console.error('Error fetching products:', err);
+                const res = await fetch('http://localhost:3000/api/products');
+                const data: Product[] = await res.json();
+
+                // Lọc sản phẩm theo giới tính và danh mục nếu có
+                const filtered = data.filter((product) => {
+                    const matchSex = sex ? product.sex === sex : true;
+                    const matchCategory = category
+                        ? product.category_id
+                              .toLowerCase()
+                              .includes(category.toLowerCase())
+                        : true;
+                    return matchSex && matchCategory;
+                });
+
+                setProducts(filtered);
+            } catch (error) {
+                console.error('Error fetching products:', error);
             }
         };
 
         fetchProducts();
-    }, []);
-   useEffect(() => {
-       const fetchProducts = async () => {
-           const res = await fetch('http://localhost:3000/api/products');
-           const data = await res.json();
-
-           let filtered = data;
-
-           if (sex) {
-               filtered = filtered.filter((p: Product) => p.sex === sex);
-           }
-           if (category) {
-               filtered = filtered.filter((p: Product) =>
-                   p.category_id
-                       ?.toLowerCase()
-                       .includes(category.toLowerCase()),
-               );
-           }
-
-
-
-           setProducts(filtered);
-       };
-
-       fetchProducts();
-   }, [sex, category]);
+    }, [sex, category]);
 
     return (
-        <div>
-            <h1 className="text-lg text-center mt-10 text-gray-700">
-                Tổng số lượng: {products.length}
-            </h1>
-            <div className="flex flex-row flex-wrap gap-5 justify-center">
-                {products.map((product, index) => (
-                    <ProductCard key={index} {...product} />
+        <div className="p-5">
+            <h2 className="text-center text-gray-600 mt-5">
+                Tổng sản phẩm: {products.length}
+            </h2>
+            <div className="flex flex-wrap gap-5 justify-center">
+                {products.map((product) => (
+                    <ProductCard key={product._id} {...product} />
                 ))}
             </div>
         </div>

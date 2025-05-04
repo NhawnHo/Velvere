@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import FashionCategories from '../component/FashionCategories';
 
 const cn = (...classes: string[]) => classes.filter(Boolean).join(' ');
 
@@ -159,25 +160,78 @@ const Home: React.FC = () => {
             </div>
 
             <div className="flex flex-row items-center mt-[2.5vw] gap-3 p-[1vw]">
-                <div>
+                {/* Men Fashion */}
+                <div
+                    className="relative group block overflow-hidden"
+                    style={{
+                        width: `${rectangleSize.width}px`,
+                        height: `${rectangleSize.height}px`,
+                    }}
+                >
                     <img
                         src="https://res.cloudinary.com/dvsg1fr4g/image/upload/v1745322207/Betterimage.ai_1745322188608_p3illl.jpg"
                         alt="Men fashion"
-                        style={{
-                            width: `${rectangleSize.width}px`,
-                            height: `${rectangleSize.height}px`,
-                        }}
+                        className="object-cover w-full h-full"
                     />
+                    {/* Gradient overlay - darker at bottom */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
+
+                    <div className="absolute inset-0 flex flex-col items-center justify-end pb-[4vw] transition font-serif">
+                        <div className="flex flex-col items-center justify-center">
+                            <span
+                                className="text-white text-5xl font-bold"
+                                style={{
+                                    textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)',
+                                }}
+                            >
+                                Men Fashion
+                            </span>
+                        </div>
+                        <a
+                            href="/productPage?sex=Nam"
+                            className="mt-4 px-6 py-2 text-white text-2xl tracking-widest group relative hover:text-gray-200 transition-colors duration-300"
+                        >
+                            Explore
+                            <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-[1px] bg-white transition-all duration-500 group-hover:w-full" />
+                        </a>
+                    </div>
                 </div>
-                <div>
+
+                {/* Women Fashion */}
+                <div
+                    className="relative group block overflow-hidden"
+                    style={{
+                        width: `${rectangleSize.width}px`,
+                        height: `${rectangleSize.height}px`,
+                    }}
+                >
                     <img
                         src="https://res.cloudinary.com/dvsg1fr4g/image/upload/v1745321978/_ONA0428_b7btez.jpg"
                         alt="Women fashion"
-                        style={{
-                            width: `${rectangleSize.width}px`,
-                            height: `${rectangleSize.height}px`,
-                        }}
+                        className="object-cover w-full h-full"
                     />
+                    {/* Gradient overlay - darker at bottom */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
+
+                    <div className="absolute inset-0 flex flex-col items-center justify-end pb-[4vw] transition font-serif">
+                        <div className="flex flex-col items-center justify-center">
+                            <span
+                                className="text-white text-5xl font-bold"
+                                style={{
+                                    textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)',
+                                }}
+                            >
+                                Women Fashion
+                            </span>
+                        </div>
+                        <a
+                            href="/productPage?sex=Nữ"
+                            className="mt-4 px-6 py-2 text-white text-2xl tracking-widest group relative hover:text-gray-200 transition-colors duration-300"
+                        >
+                            Explore
+                            <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-[1px] bg-white transition-all duration-500 group-hover:w-full" />
+                        </a>
+                    </div>
                 </div>
             </div>
 
