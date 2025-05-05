@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom'; // Import Link
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Card, CardFooter } from '../my-card/components/ui/card';
+import { Card, CardFooter } from '../components_bonus/my-card/components/ui/card';
 
 
 interface ProductCardProps {

@@ -4,7 +4,9 @@ import {
     getOrderById,
     createOrder,
     updateOrderStatus,
-    cancelOrder
+    cancelOrder,
+    getRevenueStats,
+ 
 } from '../controllers/Order.controller';
 
 const router = Router();
@@ -12,8 +14,14 @@ const router = Router();
 // Routes quản lý đơn hàng
 router.get('/user/:userId', getOrdersByUserId);    // GET     /api/orders/user/:userId
 router.get('/:id', getOrderById);                  // GET     /api/orders/:id
+router.get("/", getRevenueStats)                   // GET     /api/orders
 router.post('/', createOrder);                     // POST    /api/orders
 router.put('/:id/status', updateOrderStatus);      // PUT     /api/orders/:id/status
 router.put('/:id/cancel', cancelOrder);            // PUT     /api/orders/:id/cancel
+
+
+
+
+
 
 export default router;

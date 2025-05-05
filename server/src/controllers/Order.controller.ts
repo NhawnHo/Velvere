@@ -246,4 +246,168 @@ export const cancelOrder = async (req: Request, res: Response): Promise<void> =>
         console.error('Lỗi server khi hủy đơn hàng:', err);
         res.status(500).json({ message: 'Lỗi server khi hủy đơn hàng', error: err });
     }
+    
+};
+
+
+//Thống kê doanh thu
+export async function getRevenueStats(req: Request, res: Response) {
+    try {
+      const fullUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`
+      const { searchParams } = new URL(fullUrl)
+  
+      const period = searchParams.get("period") || "daily"
+      const startDate = searchParams.get("startDate")
+      const endDate = searchParams.get("endDate")
+  
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const dateFilter: any = {}
+      if (startDate) dateFilter.orderDate = { $gte: new Date(startDate) }
+      if (endDate) dateFilter.orderDate = { ...dateFilter.orderDate, $lte: new Date(endDate) }
+  
+      const statusFilter = { status: { $ne: "cancelled" } }
+  
+      const filter = {
+        ...dateFilter,
+        ...statusFilter,
+      }
+  
+      let revenueData
+  
+      if (period === "daily") {
+        revenueData = await Order.aggregate([
+          { $match: filter },
+          {
+            $group: {
+              _id: {
+                year: { $year: "$orderDate" },
+                month: { $month: "$orderDate" },
+                day: { $dayOfMonth: "$orderDate" },
+              },
+              revenue: { $sum: "$totalAmount" },
+              orders: { $sum: 1 },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              date: {
+                $dateToString: {
+                  format: "%Y-%m-%d",
+                  date: {
+                    $dateFromParts: {
+                      year: "$_id.year",
+                      month: "$_id.month",
+                      day: "$_id.day",
+                    },
+                  },
+                },
+              },
+              revenue: 1,
+              orders: 1,
+            },
+          },
+          { $sort: { date: 1 } },
+        ])
+      } else if (period === "monthly") {
+        revenueData = await Order.aggregate([
+          { $match: filter },
+          {
+            $group: {
+              _id: {
+                year: { $year: "$orderDate" },
+                month: { $month: "$orderDate" },
+              },
+              revenue: { $sum: "$totalAmount" },
+              orders: { $sum: 1 },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              date: {
+                $dateToString: {
+                  format: "%Y-%m",
+                  date: {
+                    $dateFromParts: {
+                      year: "$_id.year",
+                      month: "$_id.month",
+                      day: 1,
+                    },
+                  },
+                },
+              },
+              revenue: 1,
+              orders: 1,
+            },
+          },
+          { $sort: { date: 1 } },
+        ])
+      } else {
+        revenueData = await Order.aggregate([
+          { $match: filter },
+          {
+            $group: {
+              _id: { year: { $year: "$orderDate" } },
+              revenue: { $sum: "$totalAmount" },
+              orders: { $sum: 1 },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              date: { $toString: "$_id.year" },
+              revenue: 1,
+              orders: 1,
+            },
+          },
+          { $sort: { date: 1 } },
+        ])
+      }
+  
+      const totalRevenue = revenueData.reduce((sum, item) => sum + item.revenue, 0)
+      const totalOrders = revenueData.reduce((sum, item) => sum + item.orders, 0)
+      const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
+  
+      res.json({
+        data: revenueData,
+        summary: {
+          totalRevenue,
+          totalOrders,
+          averageOrderValue,
+        },
+      })
+    } catch (error) {
+      console.error("Error fetching revenue statistics:", error)
+      res.status(500).json({ error: "Failed to fetch revenue statistics" })
+    }
+};
+  
+export const getOrderWithMaxTotalAmount = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  try {
+      // Tìm một đơn hàng, sắp xếp giảm dần theo totalAmount và lấy 1 kết quả đầu tiên
+      const order = await Order.findOne()
+          .sort({ totalAmount: -1 })
+          .limit(1)
+          .lean(); // Sử dụng .lean() để trả về đối tượng JS thuần, tốt cho hiệu năng khi không cần các phương thức của Mongoose Document
+
+      // Kiểm tra nếu không tìm thấy đơn hàng nào
+      if (!order) {
+          return res.status(404).json({ message: 'Không tìm thấy đơn hàng nào.' });
+      }
+
+      // Trả về đơn hàng tìm được
+      return res.status(200).json({
+          type: 'max',
+          order,
+      });
+  } catch (error) {
+      // Ghi log lỗi chi tiết hơn để debug
+      console.error('Lỗi khi lấy đơn hàng có tổng tiền cao nhất:', error);
+      // Trả về lỗi server
+      return res.status(500).json({ message: 'Lỗi server.' });
+  }
 };

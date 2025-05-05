@@ -15,14 +15,13 @@ import Signin from './login/Signin';
 import ScrollToTop from './component/ScrollToTop';
 import ProductPage from './pages/ProductPage';
 import { CartProvider } from './context/CartContext';
-import { ChatProvider } from './context/ChatContext';
-import ChatWidget from './component/ChatWidget';
 import AdminChat from './component/AdminChat';
+import PageRenueve from './dashboard/revenue/page'
+import PageSelling from './dashboard/best-selling/page'
 
 function App() {
   return (
     <CartProvider>
-      <ChatProvider>
         <Router>
           <ScrollToTop />
           <Header />
@@ -39,12 +38,11 @@ function App() {
             <Route path="/productPage" element={<ProductPage />} />
             <Route path="/admin/chat" element={<AdminChat />} />
           </Routes>
-          {/* <ProductPage /> */}
-          {/* <User /> */}
-          <ChatWidget />
+          <PageRenueve/>
+          {/* <PageSelling/> */}
+        
           <Footer />
         </Router>
-      </ChatProvider>
     </CartProvider>
   );
 }
