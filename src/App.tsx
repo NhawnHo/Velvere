@@ -16,8 +16,8 @@ import ScrollToTop from './component/ScrollToTop';
 import ProductPage from './pages/ProductPage';
 import { CartProvider } from './context/CartContext';
 import AdminChat from './component/AdminChat';
-import RevenuePage from './dashboard/revenue/RevenuePage';
-import BestSellingPage from './dashboard/best-selling/BestSellingPage'
+import RevenuePage from './pages/dashboard/revenue/RevenuePage';
+import BestSellingPage from './pages/dashboard/best-selling/BestSellingPage'
 
 function App() {
   return (
