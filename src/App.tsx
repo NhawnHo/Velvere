@@ -18,6 +18,7 @@ import { CartProvider } from './context/CartContext';
 // import AdminChat from './component/AdminChat';
 import RevenuePage from './pages/dashboard/revenue/RevenuePage';
 import BestSellingPage from './pages/dashboard/best-selling/BestSellingPage';
+import AppointmentPage from './pages/AppointmentPage';
 
 function App() {
     return (
@@ -41,7 +42,10 @@ function App() {
                         path="/admin/bestSellingPage"
                         element={<BestSellingPage />}
                     />
-                    {/* <Route path="/admin/chat" element={<AdminChat />} /> */}
+                    <Route
+                        path="/appointmentPage"
+                        element={<AppointmentPage />}
+                    />
                 </Routes>
 
                 <Footer />

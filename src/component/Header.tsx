@@ -355,13 +355,13 @@ const Header: React.FC = () => {
                 </div>
 
                 {isHomePage && (
-                    <a
-                        href="#appointment"
+                    <Link
+                        to="/appointmentPage"
                         className="top-0 w-full z-40 flex justify-center items-center h-16 text-gray-700 tracking-widest group relative hover:text-black transition-colors duration-300"
                     >
                         Book an appointment now
                         <span className="absolute bottom-3 left-1/2 transform -translate-x-1/2 w-0 h-[1px] bg-gray-700 transition-all duration-500 group-hover:w-1/6" />
-                    </a>
+                    </Link>
                 )}
             </div>
 
