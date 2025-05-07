@@ -175,8 +175,10 @@ const Home: React.FC = () => {
                     />
                     {/* Gradient overlay - darker at bottom */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
-
-                    <div className="absolute inset-0 flex flex-col items-center justify-end pb-[4vw] transition font-serif">
+                    <a
+                        href="/productPage?sex=Nam"
+                        className="absolute inset-0 flex flex-col items-center justify-end pb-[4vw] transition font-serif cursor-pointer"
+                    >
                         <div className="flex flex-col items-center justify-center">
                             <span
                                 className="text-white text-5xl font-bold"
@@ -187,14 +189,11 @@ const Home: React.FC = () => {
                                 Men Fashion
                             </span>
                         </div>
-                        <a
-                            href="/productPage?sex=Nam"
-                            className="mt-4 px-6 py-2 text-white text-2xl tracking-widest group relative hover:text-gray-200 transition-colors duration-300"
-                        >
+                        <div className="mt-4 px-6 py-2 text-white text-2xl tracking-widest group relative hover:text-gray-200 transition-colors duration-300">
                             Explore
                             <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-[1px] bg-white transition-all duration-500 group-hover:w-full" />
-                        </a>
-                    </div>
+                        </div>
+                    </a>
                 </div>
 
                 {/* Women Fashion */}
@@ -213,7 +212,10 @@ const Home: React.FC = () => {
                     {/* Gradient overlay - darker at bottom */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
 
-                    <div className="absolute inset-0 flex flex-col items-center justify-end pb-[4vw] transition font-serif">
+                    <a
+                        href="/productPage?sex=Nữ"
+                        className="absolute inset-0 flex flex-col items-center justify-end pb-[4vw] transition font-serif cursor-pointer"
+                    >
                         <div className="flex flex-col items-center justify-center">
                             <span
                                 className="text-white text-5xl font-bold"
@@ -224,14 +226,11 @@ const Home: React.FC = () => {
                                 Women Fashion
                             </span>
                         </div>
-                        <a
-                            href="/productPage?sex=Nữ"
-                            className="mt-4 px-6 py-2 text-white text-2xl tracking-widest group relative hover:text-gray-200 transition-colors duration-300"
-                        >
+                        <div className="mt-4 px-6 py-2 text-white text-2xl tracking-widest group relative hover:text-gray-200 transition-colors duration-300">
                             Explore
                             <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-[1px] bg-white transition-all duration-500 group-hover:w-full" />
-                        </a>
-                    </div>
+                        </div>
+                    </a>
                 </div>
             </div>
 

@@ -16,34 +16,34 @@ import ScrollToTop from './component/ScrollToTop';
 import ProductPage from './pages/ProductPage';
 import { CartProvider } from './context/CartContext';
 import AdminChat from './component/AdminChat';
-import PageRenueve from './dashboard/revenue/page'
-import PageSelling from './dashboard/best-selling/page'
+import RevenuePage from './dashboard/revenue/RevenuePage';
+import BestSellingPage from './dashboard/best-selling/BestSellingPage'
 
 function App() {
   return (
-    <CartProvider>
-        <Router>
-          <ScrollToTop />
-          <Header />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/products" element={<Product />} />
-            <Route path="/user" element={<User />} />
-            <Route path="/product/:id" element={<ProductDetail />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/signin" element={<Signin />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/orders" element={<Orders />} />
-            <Route path="/productPage" element={<ProductPage />} />
-            <Route path="/admin/chat" element={<AdminChat />} />
-          </Routes>
-          <PageRenueve/>
-          {/* <PageSelling/> */}
-        
-          <Footer />
-        </Router>
-    </CartProvider>
+      <CartProvider>
+          <Router>
+              <ScrollToTop />
+              <Header />
+              <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/products" element={<Product />} />
+                  <Route path="/user" element={<User />} />
+                  <Route path="/product/:id" element={<ProductDetail />} />
+                  <Route path="/signup" element={<Signup />} />
+                  <Route path="/signin" element={<Signin />} />
+                  <Route path="/cart" element={<Cart />} />
+                  <Route path="/orders" element={<Orders />} />
+                  <Route path="/productPage" element={<ProductPage />} />
+                  <Route path="/admin/chat" element={<AdminChat />} />
+              </Routes>
+              <RevenuePage />
+              <BestSellingPage/>
+
+              <Footer />
+          </Router>
+      </CartProvider>
   );
 }
 export default App;

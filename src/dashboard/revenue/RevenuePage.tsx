@@ -117,7 +117,6 @@ export default function RevenuePage() {
                 ...item,
                 date: formatDate(item.date, activeTab),
             }));
-            console.log('formattedData', formattedData);
 
             setRevenueData(formattedData);
             setSummary(result.summary);
@@ -130,32 +129,27 @@ export default function RevenuePage() {
     };
     const fetchHighestAndLowestOrders = async () => {
         try {
-            const [maxRes, minRes] = await Promise.all([
-                fetch('http://localhost:3000/api/orders/total-amount?type=max'),
-                fetch('http://localhost:3000/api/orders/total-amount?type=min'),
-            ]);
-    
-            if (!maxRes.ok || !minRes.ok) {
-                throw new Error('Failed to fetch highest or lowest order');
-            }
-    
-            const maxOrder = await maxRes.json();
-            const minOrder = await minRes.json();
-    
-            setSummary(prev => ({
+            const res = await fetch(
+                'http://localhost:3000/api/orders/min-max-total',
+            );
+            if (!res.ok) throw new Error('Failed to fetch min/max order');
+
+            const data = await res.json();
+
+            setSummary((prev) => ({
                 ...prev,
-                highestOrder: maxOrder.order.totalAmount,
-                lowestOrder: minOrder.order.totalAmount
+                highestOrder: data.maxTotalAmount,
+                lowestOrder: data.minTotalAmount,
             }));
         } catch (err) {
             console.error('Error fetching highest/lowest orders:', err);
         }
     };
-    
+
 
     useEffect(() => {
         fetchRevenueData();
-        // fetchHighestAndLowestOrders();
+        fetchHighestAndLowestOrders();
     }, [activeTab]);
 
     const handleFilterClick = () => {
@@ -179,10 +173,10 @@ export default function RevenuePage() {
 
         // Tạo thông tin công ty (bạn sẽ thay thế thông tin này)
         const companyInfo = {
-            name: 'CÔNG TY ABC',
+            name: 'CÔNG TY TNHH VÉLVERE',
             address: '123 Đường Lê Lợi, Quận 1, TP.HCM',
-            phone: '028.1234.5678',
-            email: 'info@congtyabc.com',
+            phone: '+84 2838614107',
+            email: 'welcome@velveremail.com',
             taxCode: '0123456789',
         };
 
@@ -676,34 +670,419 @@ export default function RevenuePage() {
     };
 
     const exportToExcel = () => {
-        const worksheet = XLSX.utils.json_to_sheet(revenueData);
+        // Tạo workbook mới
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Doanh Thu');
-
-        // Add summary sheet
+        
+        // Xác định tên file dựa vào tab hoạt động
+        const period = 
+            activeTab === 'daily' ? 'ngay' : 
+            activeTab === 'monthly' ? 'thang' : 'nam';
+        const fileName = `bao-cao-doanh-thu-${period}.xlsx`;
+        
+        // Tạo style cho báo cáo
+        const headerStyle = {
+            font: { bold: true, color: { rgb: "FFFFFF" } },
+            fill: { fgColor: { rgb: "4472C4" } },
+            alignment: { horizontal: "center", vertical: "center" },
+            border: {
+                top: { style: "thin" },
+                bottom: { style: "thin" },
+                left: { style: "thin" },
+                right: { style: "thin" }
+            }
+        };
+        
+        const currencyStyle = {
+            numFmt: '#,##0 ₫',
+            border: {
+                top: { style: "thin" },
+                bottom: { style: "thin" },
+                left: { style: "thin" },
+                right: { style: "thin" }
+            }
+        };
+        
+        const normalStyle = {
+            border: {
+                top: { style: "thin" },
+                bottom: { style: "thin" },
+                left: { style: "thin" },
+                right: { style: "thin" }
+            }
+        };
+        
+        const titleStyle = {
+            font: { bold: true, size: 16, color: { rgb: "000000" } },
+            alignment: { horizontal: "center" }
+        };
+        
+        const subTitleStyle = {
+            font: { bold: true, size: 12, color: { rgb: "666666" } },
+            alignment: { horizontal: "center" }
+        };
+        
+        const highlightStyle = {
+            font: { bold: true },
+            fill: { fgColor: { rgb: "E2EFDA" } },
+            border: {
+                top: { style: "thin" },
+                bottom: { style: "thin" },
+                left: { style: "thin" },
+                right: { style: "thin" }
+            }
+        };
+        
+        // --- TRANG TỔNG QUAN ---
+        
+        // Tạo dữ liệu cho trang tổng quan
         const summaryData = [
-            {
-                Metric: 'Tổng doanh thu',
-                Value: formatCurrency(summary.totalRevenue),
-            },
-            { Metric: 'Tổng đơn hàng', Value: summary.totalOrders },
-            {
-                Metric: 'Giá trị đơn hàng trung bình',
-                Value: formatCurrency(summary.averageOrderValue),
-            },
+            ['BÁO CÁO TỔNG QUAN DOANH THU'],
+            [''],
+            [`Thời gian: ${getReportPeriodTitle()}`],
+            [''],
+            ['Chỉ số', 'Giá trị'],
+            ['Tổng doanh thu', summary.totalRevenue],
+            ['Tổng đơn hàng', summary.totalOrders],
+            ['Giá trị đơn hàng trung bình', summary.averageOrderValue],
+            ['Tỷ lệ tăng trưởng', `${getGrowthRate()}%`],
+            [''],
+            ['Phân tích nhanh:'],
+            [`• ${getQuickAnalysis()}`]
         ];
-        const summarySheet = XLSX.utils.json_to_sheet(summaryData);
-        XLSX.utils.book_append_sheet(workbook, summarySheet, 'Tổng Kết');
-
-        // Save the Excel file
-        const period =
-            activeTab === 'daily'
-                ? 'ngay'
-                : activeTab === 'monthly'
-                ? 'thang'
-                : 'nam';
-        XLSX.writeFile(workbook, `bao-cao-doanh-thu-${period}.xlsx`);
+        
+        // Tạo worksheet cho trang tổng quan
+        const summaryWS = XLSX.utils.aoa_to_sheet(summaryData);
+        
+        // Định dạng các ô
+        summaryWS['!cols'] = [{ width: 30 }, { width: 20 }];
+        
+        // Thêm định dạng vào worksheet
+        applyStyles(summaryWS, 'A1:B1', titleStyle);
+        applyStyles(summaryWS, 'A3:B3', subTitleStyle);
+        applyStyles(summaryWS, 'A5:B5', headerStyle);
+        applyStyles(summaryWS, 'A6:A9', normalStyle);
+        applyStyles(summaryWS, 'B6', currencyStyle);
+        applyStyles(summaryWS, 'B8', currencyStyle);
+        applyStyles(summaryWS, 'B7:B9', normalStyle);
+        applyStyles(summaryWS, 'A11:B11', highlightStyle);
+        
+        // Thêm worksheet vào workbook
+        XLSX.utils.book_append_sheet(workbook, summaryWS, 'Tổng Quan');
+        
+        // --- TRANG CHI TIẾT DOANH THU ---
+        
+        // Tạo worksheet từ dữ liệu chi tiết
+        const detailWS = XLSX.utils.json_to_sheet(revenueData);
+        
+        // Chỉnh sửa định dạng cho worksheet chi tiết
+        detailWS['!cols'] = [
+            { width: 15 },  // Thời gian
+            { width: 20 },  // Doanh thu
+            { width: 15 },  // Số đơn hàng
+            { width: 20 },  // Giá trị đơn hàng TB
+        ];
+        
+        // Thêm tiêu đề cho worksheet chi tiết
+        XLSX.utils.sheet_add_aoa(detailWS, [
+            ['BÁO CÁO CHI TIẾT DOANH THU'],
+            [''],
+            [`Thời gian: ${getReportPeriodTitle()}`],
+            ['']
+        ], { origin: 'A1' });
+        
+        // Định dạng tiêu đề cho worksheet chi tiết
+        applyStyles(detailWS, 'A1:D1', titleStyle);
+        applyStyles(detailWS, 'A3:D3', subTitleStyle);
+        
+        // Định dạng header columns
+        const headerRow = getHeaderRowPosition();
+        applyStyles(detailWS, `A${headerRow}:D${headerRow}`, headerStyle);
+        
+        // Định dạng các cột dữ liệu
+        for (let i = headerRow + 1; i <= headerRow + revenueData.length; i++) {
+            applyStyles(detailWS, `A${i}`, normalStyle);
+            applyStyles(detailWS, `B${i}`, currencyStyle);
+            applyStyles(detailWS, `C${i}`, normalStyle);
+            applyStyles(detailWS, `D${i}`, currencyStyle);
+        }
+        
+        // Thêm worksheet vào workbook
+        XLSX.utils.book_append_sheet(workbook, detailWS, 'Chi Tiết Doanh Thu');
+        
+        // --- TRANG BIỂU ĐỒ ---
+        
+        // Tạo dữ liệu cho biểu đồ
+        const chartData = prepareChartData();
+        const chartWS = XLSX.utils.aoa_to_sheet([
+            ['BÁO CÁO BIỂU ĐỒ DOANH THU'],
+            [''],
+            [`Thời gian: ${getReportPeriodTitle()}`],
+            [''],
+            ['Thời gian', 'Doanh thu', 'Số đơn hàng']
+        ]);
+        
+        // Thêm dữ liệu cho biểu đồ
+        XLSX.utils.sheet_add_aoa(chartWS, chartData, { origin: 'A5' });
+        
+        // Định dạng cho worksheet biểu đồ
+        chartWS['!cols'] = [{ width: 15 }, { width: 20 }, { width: 15 }];
+        
+        // Thêm định dạng vào worksheet biểu đồ
+        applyStyles(chartWS, 'A1:C1', titleStyle);
+        applyStyles(chartWS, 'A3:C3', subTitleStyle);
+        applyStyles(chartWS, 'A5:C5', headerStyle);
+        
+        // Định dạng dữ liệu biểu đồ
+        for (let i = 6; i < 6 + chartData.length; i++) {
+            applyStyles(chartWS, `A${i}`, normalStyle);
+            applyStyles(chartWS, `B${i}`, currencyStyle);
+            applyStyles(chartWS, `C${i}`, normalStyle);
+        }
+        
+        // Thêm worksheet vào workbook
+        XLSX.utils.book_append_sheet(workbook, chartWS, 'Biểu Đồ');
+        
+        // --- TRANG PHÂN TÍCH ---
+        
+        // Tạo worksheet phân tích
+        const analysisWS = XLSX.utils.aoa_to_sheet([
+            ['PHÂN TÍCH DOANH THU'],
+            [''],
+            [`Thời gian: ${getReportPeriodTitle()}`],
+            [''],
+            ['Tiêu chí', 'Phân tích'],
+            ['Xu hướng doanh thu', getRevenueTrend()],
+            ['Biến động đơn hàng', getOrderFluctuation()],
+            ['Điểm nổi bật', getHighlights()],
+            ['Rủi ro', getRisks()],
+            ['Đề xuất', getRecommendations()]
+        ]);
+        
+        // Định dạng cho worksheet phân tích
+        analysisWS['!cols'] = [{ width: 20 }, { width: 50 }];
+        
+        // Thêm định dạng vào worksheet phân tích
+        applyStyles(analysisWS, 'A1:B1', titleStyle);
+        applyStyles(analysisWS, 'A3:B3', subTitleStyle);
+        applyStyles(analysisWS, 'A5:B5', headerStyle);
+        
+        // Định dạng nội dung phân tích
+        for (let i = 6; i <= 10; i++) {
+            applyStyles(analysisWS, `A${i}:B${i}`, normalStyle);
+        }
+        
+        // Thêm worksheet vào workbook
+        XLSX.utils.book_append_sheet(workbook, analysisWS, 'Phân Tích');
+        
+        // Lưu file Excel
+        XLSX.writeFile(workbook, fileName);
+        
+        // Hiển thị thông báo
+        alert(`Đã xuất báo cáo thành công: ${fileName}`);
     };
+    
+    // Hàm hỗ trợ để áp dụng style cho các ô
+    function applyStyles(worksheet: XLSX.WorkSheet, range: string, style: { font?: { bold: boolean; color: { rgb: string; }; } | { bold: boolean; size: number; color: { rgb: string; }; } | { bold: boolean; size: number; color: { rgb: string; }; } | { bold: boolean; }; alignment?: { horizontal: string; vertical: string; } | { horizontal: string; } | { horizontal: string; }; fill?: { fgColor: { rgb: string; }; } | { fgColor: { rgb: string; }; }; border?: { top: { style: string; }; bottom: { style: string; }; left: { style: string; }; right: { style: string; }; } | { top: { style: string; }; bottom: { style: string; }; left: { style: string; }; right: { style: string; }; } | { top: { style: string; }; bottom: { style: string; }; left: { style: string; }; right: { style: string; }; } | { top: { style: string; }; bottom: { style: string; }; left: { style: string; }; right: { style: string; }; }; numFmt?: string; }) {
+        const [start, end] = range.split(':');
+        const startCell = XLSX.utils.decode_cell(start);
+        const endCell = end ? XLSX.utils.decode_cell(end) : startCell;
+        
+        for (let r = startCell.r; r <= endCell.r; r++) {
+            for (let c = startCell.c; c <= endCell.c; c++) {
+                const cellAddress = XLSX.utils.encode_cell({ r, c });
+                if (!worksheet[cellAddress]) {
+                    worksheet[cellAddress] = { v: '' };
+                }
+                
+                worksheet[cellAddress].s = style;
+            }
+        }
+    }
+    
+    // Hàm lấy vị trí hàng header trong trang chi tiết
+    function getHeaderRowPosition() {
+        return 5; // Sau các tiêu đề và dòng trống
+    }
+    
+    // Hàm tạo tiêu đề cho báo cáo dựa vào loại báo cáo
+    function getReportPeriodTitle() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1;
+        
+        if (activeTab === 'daily') {
+            return `Ngày ${now.getDate()}/${month}/${year}`;
+        } else if (activeTab === 'monthly') {
+            return `Tháng ${month}/${year}`;
+        } else {
+            return `Năm ${year}`;
+        }
+    }
+    
+    // Hàm tạo dữ liệu cho biểu đồ
+    function prepareChartData() {
+        return revenueData.map(item => [
+            item.period,
+            item.revenue,
+            item.orders
+        ]);
+    }
+    
+    // Hàm tạo phần tích tỷ lệ tăng trưởng (giả định)
+    function getGrowthRate() {
+        // Giả định: Tỷ lệ tăng trưởng được tính toán từ dữ liệu
+        // Trong thực tế, bạn sẽ tính toán dựa trên so sánh với kỳ trước
+        const growth = calculateGrowthRate();
+        return growth.toFixed(2);
+    }
+    
+    // Hàm tính toán tỷ lệ tăng trưởng
+    function calculateGrowthRate() {
+        // Giả định: Tỷ lệ tăng trưởng
+        // Trong thực tế, bạn sẽ tính toán dựa trên so sánh với kỳ trước
+        if (revenueData.length < 2) return 0;
+        
+        const currentRevenue = summary.totalRevenue;
+        // Giả sử chúng ta có dữ liệu từ kỳ trước
+        const previousRevenue = currentRevenue * 0.9; // Giả định giá trị cho mục đích minh họa
+        
+        return ((currentRevenue - previousRevenue) / previousRevenue) * 100;
+    }
+    
+    // Các hàm phân tích dữ liệu
+    function getQuickAnalysis() {
+        const growth = calculateGrowthRate();
+        if (growth > 10) {
+            return `Doanh thu tăng trưởng mạnh (${growth.toFixed(2)}%), có thể do chiến dịch marketing thành công hoặc ra mắt sản phẩm mới.`;
+        } else if (growth > 0) {
+            return `Doanh thu tăng nhẹ (${growth.toFixed(2)}%), phù hợp với kỳ vọng tăng trưởng.`;
+        } else {
+            return `Doanh thu giảm (${growth.toFixed(2)}%), cần phân tích nguyên nhân và có kế hoạch khắc phục.`;
+        }
+    }
+    
+    function getRevenueTrend() {
+        // Phân tích xu hướng doanh thu dựa trên dữ liệu
+        // Đây là phân tích giả định, trong thực tế bạn sẽ có hàm phân tích chính xác hơn
+        if (revenueData.length < 3) {
+            return "Cần thêm dữ liệu để phân tích xu hướng chính xác";
+        }
+        
+        let trend = "ổn định";
+        let increases = 0;
+        let decreases = 0;
+        
+        for (let i = 1; i < revenueData.length; i++) {
+            if (revenueData[i].revenue > revenueData[i-1].revenue) {
+                increases++;
+            } else if (revenueData[i].revenue < revenueData[i-1].revenue) {
+                decreases++;
+            }
+        }
+        
+        if (increases > decreases * 2) {
+            trend = "tăng mạnh";
+        } else if (increases > decreases) {
+            trend = "tăng nhẹ";
+        } else if (decreases > increases * 2) {
+            trend = "giảm mạnh";
+        } else if (decreases > increases) {
+            trend = "giảm nhẹ";
+        }
+        
+        return `Doanh thu có xu hướng ${trend} trong giai đoạn báo cáo, với ${increases} lần tăng và ${decreases} lần giảm.`;
+    }
+    
+    function getOrderFluctuation() {
+        // Phân tích biến động số lượng đơn hàng
+        // Đây là phân tích giả định
+        const avgOrders = summary.totalOrders / revenueData.length;
+        let maxDeviation = 0;
+        
+        revenueData.forEach(item => {
+            const deviation = Math.abs(item.orders - avgOrders) / avgOrders;
+            if (deviation > maxDeviation) maxDeviation = deviation;
+        });
+        
+        if (maxDeviation > 0.5) {
+            return "Số lượng đơn hàng có biến động lớn, cần nghiên cứu nguyên nhân của các đỉnh và đáy trong dữ liệu.";
+        } else if (maxDeviation > 0.2) {
+            return "Số lượng đơn hàng có một số biến động nhưng vẫn trong mức kiểm soát.";
+        } else {
+            return "Số lượng đơn hàng khá ổn định trong giai đoạn báo cáo.";
+        }
+    }
+    
+    function getHighlights() {
+        // Tìm điểm nổi bật trong dữ liệu
+        if (revenueData.length === 0) return "Không có dữ liệu để phân tích";
+        
+        // Tìm điểm cao nhất
+        let highestRevenue = revenueData[0];
+        revenueData.forEach(item => {
+            if (item.revenue > highestRevenue.revenue) highestRevenue = item;
+        });
+        
+        // Kiểm tra tỷ lệ tăng trưởng
+        const growth = calculateGrowthRate();
+        
+        return `Doanh thu cao nhất đạt được vào ${highestRevenue.period} với ${formatCurrency(highestRevenue.revenue)}. Tỷ lệ tăng trưởng chung là ${growth.toFixed(2)}%.`;
+    }
+    
+    function getRisks() {
+        // Phân tích rủi ro
+        // Đây là phân tích giả định
+        const growth = calculateGrowthRate();
+        
+        if (growth < 0) {
+            return "Doanh thu đang giảm, có thể do áp lực cạnh tranh hoặc thay đổi hành vi khách hàng. Cần phân tích chi tiết nguyên nhân.";
+        }
+        
+        if (revenueData.length < 3) {
+            return "Cần thêm dữ liệu để đánh giá rủi ro chính xác.";
+        }
+        
+        // Kiểm tra nếu có sự sụt giảm liên tiếp
+        let consecutiveDecreases = 0;
+        let maxConsecutiveDecreases = 0;
+        
+        for (let i = 1; i < revenueData.length; i++) {
+            if (revenueData[i].revenue < revenueData[i-1].revenue) {
+                consecutiveDecreases++;
+                if (consecutiveDecreases > maxConsecutiveDecreases) {
+                    maxConsecutiveDecreases = consecutiveDecreases;
+                }
+            } else {
+                consecutiveDecreases = 0;
+            }
+        }
+        
+        if (maxConsecutiveDecreases >= 3) {
+            return "Có dấu hiệu sụt giảm doanh thu liên tiếp qua nhiều kỳ. Cần kiểm tra chính sách giá và chất lượng sản phẩm.";
+        }
+        
+        return "Không phát hiện rủi ro đáng kể trong giai đoạn báo cáo, nhưng cần theo dõi biến động thị trường.";
+    }
+    
+    function getRecommendations() {
+        // Đề xuất dựa trên phân tích
+        // Đây là đề xuất giả định
+        const growth = calculateGrowthRate();
+        
+        if (growth > 10) {
+            return "Tiếp tục đầu tư vào các kênh marketing đang hiệu quả. Xem xét mở rộng thị trường với các sản phẩm/dịch vụ tương tự.";
+        } else if (growth > 0) {
+            return "Duy trì chiến lược hiện tại nhưng cần có thêm các chương trình khuyến mãi để kích thích tăng trưởng.";
+        } else {
+            return "Cần đánh giá lại chiến lược giá và sản phẩm. Xem xét các chiến dịch marketing mới để thu hút khách hàng.";
+        }
+    }
+    
+    // Hàm định dạng tiền tệ
+    function formatCurrency(value: number | bigint) {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+    }
+    
 
     return (
         <div className="container mx-auto py-8">

@@ -91,7 +91,7 @@ export default function BestSellingPage() {
             }
 
             const response = await fetch(
-                `/api/statistics/best-selling?${params.toString()}`,
+                `http://localhost:3000/api/products/best-selling?${params.toString()}`,
             );
 
             if (!response.ok) {

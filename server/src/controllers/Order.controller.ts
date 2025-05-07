@@ -383,31 +383,27 @@ export async function getRevenueStats(req: Request, res: Response) {
     }
 };
   
-export const getOrderWithMaxTotalAmount = async (
-  req: Request,
-  res: Response
-): Promise<Response> => {
-  try {
-      // Tìm một đơn hàng, sắp xếp giảm dần theo totalAmount và lấy 1 kết quả đầu tiên
-      const order = await Order.findOne()
-          .sort({ totalAmount: -1 })
-          .limit(1)
-          .lean(); // Sử dụng .lean() để trả về đối tượng JS thuần, tốt cho hiệu năng khi không cần các phương thức của Mongoose Document
+// Lấy tổng tiền đơn hàng nhỏ nhất và lớn nhất
+export const getMinMaxOrderTotalAmount = async (req:Request, res:Response) => {
+    try {
+        // Tìm đơn hàng có tổng tiền nhỏ nhất
+        const minOrder = await Order.findOne()
+            .sort({ totalAmount: 1 })
+            .select('totalAmount')
+            .lean();
+        // Tìm đơn hàng có tổng tiền lớn nhất
+        const maxOrder = await Order.findOne()
+            .sort({ totalAmount: -1 })
+            .select('totalAmount')
+            .lean();
 
-      // Kiểm tra nếu không tìm thấy đơn hàng nào
-      if (!order) {
-          return res.status(404).json({ message: 'Không tìm thấy đơn hàng nào.' });
-      }
-
-      // Trả về đơn hàng tìm được
-      return res.status(200).json({
-          type: 'max',
-          order,
-      });
-  } catch (error) {
-      // Ghi log lỗi chi tiết hơn để debug
-      console.error('Lỗi khi lấy đơn hàng có tổng tiền cao nhất:', error);
-      // Trả về lỗi server
-      return res.status(500).json({ message: 'Lỗi server.' });
-  }
+        res.status(200).json({
+            minTotalAmount: minOrder ? minOrder.totalAmount : null,
+            maxTotalAmount: maxOrder ? maxOrder.totalAmount : null,
+        });
+    } catch (err) {
+        console.error('Error getting min/max order total amount:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
 };
+
