@@ -156,7 +156,7 @@ function Cart() {
 
     const handleContinueShopping = () => {
         setPaymentSuccess(false);
-        navigate('/products');
+        navigate('/productPage');
     };
 
     if (isProcessing) {

@@ -17,23 +17,19 @@ export interface IUser extends Document {
 
 const userSchema: Schema = new mongoose.Schema(
     {
-        user_id: { type: Number, required: true, unique: true },
+        user_id: { type: Number, required: true, unique: true, index: true },
         name: { type: String, required: true },
         password: { type: String, required: true },
         birthDate: { type: Date, required: true },
-        email: { type: String, required: true, unique: true },
-        phone: { type: String, required: true, unique: true },
+        email: { type: String, required: true, unique: true , index: true },
+        phone: { type: String, required: true, unique: true, index: true },
         address: { type: String, required: true },
         isAdmin: { type: Boolean, default: false },
-        currentSessionId: { type: String, default: null },
+        currentSessionId: { type: String, default: null, index: true },
     },
     { timestamps: true },
 );
 
-userSchema.index({ email: 1 });
-userSchema.index({ phone: 1 });
-userSchema.index({ user_id: 1 });
-userSchema.index({ currentSessionId: 1 });
 
 const User = mongoose.model<IUser>('User', userSchema, 'Users');
 

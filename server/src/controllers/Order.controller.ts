@@ -347,4 +347,164 @@ export const cancelOrder = async (
             error: err,
         });
     }
+    
 };
+
+
+//Thống kê doanh thu
+export async function getRevenueStats(req: Request, res: Response) {
+    try {
+      const fullUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`
+      const { searchParams } = new URL(fullUrl)
+  
+      const period = searchParams.get("period") || "daily"
+      const startDate = searchParams.get("startDate")
+      const endDate = searchParams.get("endDate")
+  
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const dateFilter: any = {}
+      if (startDate) dateFilter.orderDate = { $gte: new Date(startDate) }
+      if (endDate) dateFilter.orderDate = { ...dateFilter.orderDate, $lte: new Date(endDate) }
+  
+      const statusFilter = { status: { $ne: "cancelled" } }
+  
+      const filter = {
+        ...dateFilter,
+        ...statusFilter,
+      }
+  
+      let revenueData
+  
+      if (period === "daily") {
+        revenueData = await Order.aggregate([
+          { $match: filter },
+          {
+            $group: {
+              _id: {
+                year: { $year: "$orderDate" },
+                month: { $month: "$orderDate" },
+                day: { $dayOfMonth: "$orderDate" },
+              },
+              revenue: { $sum: "$totalAmount" },
+              orders: { $sum: 1 },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              date: {
+                $dateToString: {
+                  format: "%Y-%m-%d",
+                  date: {
+                    $dateFromParts: {
+                      year: "$_id.year",
+                      month: "$_id.month",
+                      day: "$_id.day",
+                    },
+                  },
+                },
+              },
+              revenue: 1,
+              orders: 1,
+            },
+          },
+          { $sort: { date: 1 } },
+        ])
+      } else if (period === "monthly") {
+        revenueData = await Order.aggregate([
+          { $match: filter },
+          {
+            $group: {
+              _id: {
+                year: { $year: "$orderDate" },
+                month: { $month: "$orderDate" },
+              },
+              revenue: { $sum: "$totalAmount" },
+              orders: { $sum: 1 },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              date: {
+                $dateToString: {
+                  format: "%Y-%m",
+                  date: {
+                    $dateFromParts: {
+                      year: "$_id.year",
+                      month: "$_id.month",
+                      day: 1,
+                    },
+                  },
+                },
+              },
+              revenue: 1,
+              orders: 1,
+            },
+          },
+          { $sort: { date: 1 } },
+        ])
+      } else {
+        revenueData = await Order.aggregate([
+          { $match: filter },
+          {
+            $group: {
+              _id: { year: { $year: "$orderDate" } },
+              revenue: { $sum: "$totalAmount" },
+              orders: { $sum: 1 },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              date: { $toString: "$_id.year" },
+              revenue: 1,
+              orders: 1,
+            },
+          },
+          { $sort: { date: 1 } },
+        ])
+      }
+  
+      const totalRevenue = revenueData.reduce((sum, item) => sum + item.revenue, 0)
+      const totalOrders = revenueData.reduce((sum, item) => sum + item.orders, 0)
+      const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
+  
+      res.json({
+        data: revenueData,
+        summary: {
+          totalRevenue,
+          totalOrders,
+          averageOrderValue,
+        },
+      })
+    } catch (error) {
+      console.error("Error fetching revenue statistics:", error)
+      res.status(500).json({ error: "Failed to fetch revenue statistics" })
+    }
+};
+  
+// Lấy tổng tiền đơn hàng nhỏ nhất và lớn nhất
+export const getMinMaxOrderTotalAmount = async (req:Request, res:Response) => {
+    try {
+        // Tìm đơn hàng có tổng tiền nhỏ nhất
+        const minOrder = await Order.findOne()
+            .sort({ totalAmount: 1 })
+            .select('totalAmount')
+            .lean();
+        // Tìm đơn hàng có tổng tiền lớn nhất
+        const maxOrder = await Order.findOne()
+            .sort({ totalAmount: -1 })
+            .select('totalAmount')
+            .lean();
+
+        res.status(200).json({
+            minTotalAmount: minOrder ? minOrder.totalAmount : null,
+            maxTotalAmount: maxOrder ? maxOrder.totalAmount : null,
+        });
+    } catch (err) {
+        console.error('Error getting min/max order total amount:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+

@@ -17,11 +17,12 @@ const orderItemSchema = new mongoose.Schema(
 // Schema cho đơn hàng
 const orderSchema = new mongoose.Schema(
     {
-        order_id: { type: String, required: true, unique: true },
+        order_id: { type: String, required: true, unique: true, index: true },
         user_id: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
-            required: true,
+          required: true,
+            index: true,
         },
         user_name: { type: String, required: true },
         phone: { type: String, required: true },
@@ -55,8 +56,8 @@ const orderSchema = new mongoose.Schema(
 );
 
 // Thêm chỉ mục
-orderSchema.index({ order_id: 1 }, { unique: true });
-orderSchema.index({ user_id: 1 });
+// orderSchema.index({ order_id: 1 }, { unique: true });
+// orderSchema.index({ user_id: 1 });
 
 // Hook để kiểm tra ngày giao hàng và tính tổng tiền
 orderSchema.pre('save', function (next) {
