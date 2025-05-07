@@ -253,147 +253,155 @@ export const updateMultipleProductsStock = async (
 // Thống kê sản phẩm bán chạy nhất
 export const getBestSellingProduct = async (req: Request, res: Response) => {
   try {
-    // Lấy các tham số từ query params
-    const { timeRange = 'month', category = 'all', search = '' } = req.query;
+      // Lấy các tham số từ query params
+      const { timeRange = 'month', category = 'all', search = '' } = req.query;
 
-    // Tính khoảng thời gian lọc
-    const now = new Date();
-    const startDate = new Date();
-    switch (timeRange) {
-      case 'week':
-        startDate.setDate(now.getDate() - 7);
-        break;
-      case 'year':
-        startDate.setFullYear(now.getFullYear() - 1);
-        break;
-      default:
-        startDate.setMonth(now.getMonth() - 1);
-    }
-
-    // Lấy các đơn hàng đã hoàn thành trong khoảng thời gian đó
-    const orders = await Order.find({
-      orderDate: { $gte: startDate, $lte: now },
-      status: { $nin: ['cancelled'] },
-    }).lean();
-
-    // Gộp tất cả sản phẩm từ các đơn hàng
-    const allItems = orders.flatMap((order: any) => order.items);
-
-    // Gom nhóm sản phẩm theo product_id
-    const productSales = allItems.reduce((acc: any, item: any) => {
-      const id = item.product_id;
-      if (!acc[id]) {
-        acc[id] = { quantity: 0, revenue: 0 };
+      // Tính khoảng thời gian lọc
+      const now = new Date();
+      const startDate = new Date();
+      switch (timeRange) {
+          case 'week':
+              startDate.setDate(now.getDate() - 7);
+              break;
+          case 'year':
+              startDate.setFullYear(now.getFullYear() - 1);
+              break;
+          default:
+              startDate.setMonth(now.getMonth() - 1);
       }
-      acc[id].quantity += item.quantity;
-      acc[id].revenue += item.quantity * item.price;
-      return acc;
-    }, {});
 
-    // Tạo điều kiện truy vấn Product
-    const productQuery: any = {};
-    if (category !== 'all') {
-      productQuery.category_id = category;
-    }
+      // Lấy các đơn hàng đã hoàn thành trong khoảng thời gian đó
+      const orders = await Order.find({
+          orderDate: { $gte: startDate, $lte: now },
+          status: { $nin: ['cancelled'] },
+      }).lean();
 
-    if (search) {
-      productQuery.$or = [
-        { product_name: { $regex: search, $options: 'i' } },
-        { product_id: { $regex: search, $options: 'i' } },
-      ];
-    }
+      // Gộp tất cả sản phẩm từ các đơn hàng
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const allItems = orders.flatMap((order: any) => order.items);
 
-    // Lấy thông tin sản phẩm
-    const products = await Product.find(productQuery).lean();
+      // Gom nhóm sản phẩm theo product_id
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+      const productSales = allItems.reduce((acc: any, item: any) => {
+          const id = item.product_id;
+          if (!acc[id]) {
+              acc[id] = { quantity: 0, revenue: 0 };
+          }
+          acc[id].quantity += item.quantity;
+          acc[id].revenue += item.quantity * item.price;
+          return acc;
+      }, {});
 
-    // Ghép thông tin doanh số với sản phẩm
-    const enrichedProducts = await Promise.all(
-        products.map(async (product: any) => {
-            const id = product.product_id?.toString();
-    
-            const stats = await Order.aggregate([
-                {
-                    $match: {
-                        'items.product_id': id, // Dùng product_id thay vì product_name
-                    },
-                },
-                {
-                    $unwind: '$items',
-                },
-                {
-                    $match: {
-                        'items.product_id': id,
-                    },
-                },
-                {
-                    $group: {
-                        _id: '$items.product_id',
-                        totalQuantity: { $sum: '$items.quantity' },
-                        totalRevenue: {
-                            $sum: {
-                                $multiply: ['$items.quantity', '$items.price'],
-                            },
-                        },
-                    },
-                },
-            ]);
-        
-            // Kiểm tra nếu có kết quả từ aggregation
-            const statsResult = stats.length > 0 ? stats[0] : { totalQuantity: 0, totalRevenue: 0 };
-            
-    
-            return {
-                id,
-                name: product.product_name,
-                category: product.category_id,
-                price: product.price,
-                sold: statsResult.totalQuantity,
-                revenue: statsResult.totalRevenue,
-                stock: product.variants?.reduce(
-                    (sum: number, v: any) => sum + (v.stock || 0),
-                    0
-                ),
-                image: getImage(product.images),
-            };
-        })
-    );
-    
-
-    // console.log("sold", enrichedProducts)
-
-    // Sắp xếp theo sản phẩm bán chạy
-    enrichedProducts.sort((a, b) => b.sold - a.sold);
-
-    // Thống kê theo danh mục
-    const categoryStats = enrichedProducts.reduce((acc: any, p: any) => {
-      if (!acc[p.category]) {
-        acc[p.category] = { name: p.category, value: 0 };
+      // Tạo điều kiện truy vấn Product
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const productQuery: any = {};
+      if (category !== 'all') {
+          productQuery.category_id = category;
       }
-      acc[p.category].value += p.sold;
-      return acc;
-    }, {});
+
+      if (search) {
+          productQuery.$or = [
+              { product_name: { $regex: search, $options: 'i' } },
+              { product_id: { $regex: search, $options: 'i' } },
+          ];
+      }
+
+      // Lấy thông tin sản phẩm
+      const products = await Product.find(productQuery).lean();
+
+      // Ghép thông tin doanh số với sản phẩm
+      const enrichedProducts = await Promise.all(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          products.map(async (product: any) => {
+              const id = product.product_id?.toString();
+
+              const stats = await Order.aggregate([
+                  {
+                      $match: {
+                          'items.product_id': id, // Dùng product_id thay vì product_name
+                      },
+                  },
+                  {
+                      $unwind: '$items',
+                  },
+                  {
+                      $match: {
+                          'items.product_id': id,
+                      },
+                  },
+                  {
+                      $group: {
+                          _id: '$items.product_id',
+                          totalQuantity: { $sum: '$items.quantity' },
+                          totalRevenue: {
+                              $sum: {
+                                  $multiply: [
+                                      '$items.quantity',
+                                      '$items.price',
+                                  ],
+                              },
+                          },
+                      },
+                  },
+              ]);
+
+              // Kiểm tra nếu có kết quả từ aggregation
+              const statsResult =
+                  stats.length > 0
+                      ? stats[0]
+                      : { totalQuantity: 0, totalRevenue: 0 };
+
+              return {
+                  id,
+                  name: product.product_name,
+                  category: product.category_id,
+                  price: product.price,
+                  sold: statsResult.totalQuantity,
+                  revenue: statsResult.totalRevenue,
+                  stock: product.variants?.reduce(
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      (sum: number, v: any) => sum + (v.stock || 0),
+                      0,
+                  ),
+                  image: getImage(product.images),
+              };
+          }),
+      );
+
+      // console.log("sold", enrichedProducts)
+
+      // Sắp xếp theo sản phẩm bán chạy
+      enrichedProducts.sort((a, b) => b.sold - a.sold);
+
+      // Thống kê theo danh mục
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const categoryStats = enrichedProducts.reduce((acc: any, p: any) => {
+          if (!acc[p.category]) {
+              acc[p.category] = { name: p.category, value: 0 };
+          }
+          acc[p.category].value += p.sold;
+          return acc;
+      }, {});
     const categoryData = Object.values(categoryStats).sort(
-      (a: any, b: any) => b.value - a.value,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (a: any, b: any) => b.value - a.value,
     );
 
-    // Tổng kết
-    const summary = {
-      totalProducts: products.length,
-      totalSold: enrichedProducts.reduce((sum, p) => sum + p.sold, 0),
-      totalRevenue: enrichedProducts.reduce(
-        (sum, p) => sum + p.revenue,
-        0,
-      ),
-      totalCategories: categoryData.length,
-    };
-    // console.log("Summary:" , summary)
+      // Tổng kết
+      const summary = {
+          totalProducts: products.length,
+          totalSold: enrichedProducts.reduce((sum, p) => sum + p.sold, 0),
+          totalRevenue: enrichedProducts.reduce((sum, p) => sum + p.revenue, 0),
+          totalCategories: categoryData.length,
+      };
+      // console.log("Summary:" , summary)
 
-    // Trả về kết quả
-    res.json({
-      products: enrichedProducts,
-      categories: categoryData,
-      summary,
-    });
+      // Trả về kết quả
+      res.json({
+          products: enrichedProducts,
+          categories: categoryData,
+          summary,
+      });
   } catch (error) {
     console.error('Error fetching best-selling products:', error);
     res.status(500).json({
