@@ -1,15 +1,14 @@
-import {
-    createContext,
-    useContext,
-    useState,
-    useEffect,
-    ReactNode,
-} from 'react';
+'use client';
 
-// Định nghĩa kiểu dữ liệu cho sản phẩm trong giỏ hàng
+import React, { createContext, useContext, useEffect, useState } from 'react';
+// uuidv4 is no longer needed as we are using the actual product_id from the database
+// import { v4 as uuidv4 } from 'uuid';
+
 export interface CartItem {
-    _id: string;
-    product_id: number;
+    // Removed _id field as it was a temporary UUID, not the database product ID
+    // _id: string;
+    // Changed product_id type to string to match MongoDB ObjectId string representation
+    product_id: string;
     product_name: string;
     image: string;
     price: number;
@@ -18,141 +17,293 @@ export interface CartItem {
     color: string;
 }
 
-// Định nghĩa các hàm và state cho context
 interface CartContextType {
-    cartItems: CartItem[];
-    addToCart: (item: CartItem) => void;
-    removeFromCart: (itemId: string, size: string, color: string) => void;
+    cartItems: CartItem[]; // addToCart now expects an item without the temporary _id
+    addToCart: (item: Omit<CartItem, '_id'>) => void; // removeFromCart and updateQuantity now use product_id, size, and color to identify the item
+    removeFromCart: (productId: string, size: string, color: string) => void;
     updateQuantity: (
-        itemId: string,
+        productId: string,
         size: string,
         color: string,
         quantity: number,
     ) => void;
     clearCart: () => void;
+    isLoading: boolean;
     totalItems: number;
     totalPrice: number;
+    isAuthenticated: boolean;
+    logout: () => void;
 }
 
-// Tạo Context với giá trị mặc định là null
-const CartContext = createContext<CartContextType | null>(null);
+const CartContext = createContext<CartContextType | undefined>(undefined);
 
-// Hook tùy chỉnh để sử dụng context
 export const useCart = () => {
     const context = useContext(CartContext);
-    if (!context) {
-        throw new Error('useCart phải được sử dụng trong CartProvider');
-    }
+    if (!context) throw new Error('useCart must be used within a CartProvider');
     return context;
 };
 
-// Props cho CartProvider
-interface CartProviderProps {
-    children: ReactNode;
-}
-
-// Component Provider
-export const CartProvider = ({ children }: CartProviderProps) => {
-    // State để lưu trữ giỏ hàng
+export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
+    children,
+}) => {
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-    // Tính tổng số lượng sản phẩm trong giỏ hàng
-    const totalItems = cartItems.reduce(
-        (total, item) => total + item.quantity,
-        0,
-    );
-
-    // Tính tổng tiền
+    const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
     const totalPrice = cartItems.reduce(
-        (total, item) => total + item.price * item.quantity,
+        (sum, item) => sum + item.price * item.quantity,
         0,
     );
 
-    // Load giỏ hàng từ localStorage khi khởi động
     useEffect(() => {
-        const savedCart = localStorage.getItem('cart');
-        if (savedCart) {
-            setCartItems(JSON.parse(savedCart));
-        }
-    }, []);
+        let isMounted = true;
 
-    // Lưu giỏ hàng vào localStorage khi có thay đổi
-    useEffect(() => {
-        localStorage.setItem('cart', JSON.stringify(cartItems));
-    }, [cartItems]);
+        const checkAuthAndLoadCart = async () => {
+            if (!isMounted) return;
 
-    // Thêm sản phẩm vào giỏ hàng
-    const addToCart = (item: CartItem) => {
-        setCartItems((prevItems) => {
-            // Kiểm tra xem sản phẩm đã có trong giỏ hàng chưa (cùng id, size và color)
-            const existingItemIndex = prevItems.findIndex(
-                (cartItem) =>
-                    cartItem._id === item._id &&
-                    cartItem.size === item.size &&
-                    cartItem.color === item.color,
-            );
-
-            // Nếu sản phẩm đã tồn tại, tăng số lượng
-            if (existingItemIndex !== -1) {
-                const updatedItems = [...prevItems];
-                updatedItems[existingItemIndex].quantity += item.quantity;
-                return updatedItems;
+            try {
+                const res = await fetch(
+                    'http://localhost:3000/api/users/check-session',
+                    {
+                        method: 'GET',
+                        credentials: 'include',
+                    },
+                );
+                const data = await res.json();
+                if (isMounted) {
+                    setIsAuthenticated(data.authenticated);
+                    if (data.authenticated && data.user) {
+                        // When loading cart from backend, ensure product_id is the string ObjectId
+                        const cartRes = await fetch(
+                            'http://localhost:3000/api/cart',
+                            {
+                                method: 'GET',
+                                credentials: 'include',
+                            },
+                        );
+                        const cartData = await cartRes.json(); // Assuming cartData.items from backend has product_id as string ObjectId
+                        setCartItems(cartData.items || []);
+                    } else {
+                        setCartItems([]);
+                    }
+                }
+            } catch (err) {
+                if (isMounted) {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    if ((err as any)?.status !== 401) {
+                        console.error(
+                            'Error checking auth status or loading cart:',
+                            err,
+                        );
+                    }
+                    setIsAuthenticated(false);
+                    setCartItems([]);
+                }
             }
+        };
 
-            // Nếu sản phẩm chưa có trong giỏ hàng, thêm mới
-            return [...prevItems, item];
-        });
-    };
+        checkAuthAndLoadCart();
 
-    // Xóa sản phẩm khỏi giỏ hàng
-    const removeFromCart = (itemId: string, size: string, color: string) => {
-        setCartItems((prevItems) =>
-            prevItems.filter(
-                (item) =>
-                    !(
-                        item._id === itemId &&
-                        item.size === size &&
-                        item.color === color
-                    ),
-            ),
+        return () => {
+            isMounted = false;
+        };
+    }, []); // Helper function to find an item in the cart by product_id, size, and color
+
+    const findCartItem = (productId: string, size: string, color: string) => {
+        return cartItems.find(
+            (item) =>
+                item.product_id === productId &&
+                item.size === size &&
+                item.color === color,
         );
     };
 
-    // Cập nhật số lượng sản phẩm
-    const updateQuantity = (
-        itemId: string,
+    const syncCart = async (updated: CartItem[]) => {
+        if (!isAuthenticated) {
+            console.warn('User not authenticated, cannot sync cart'); // Instead of throwing an error, maybe handle this more gracefully in the UI // throw new Error('Please log in to sync cart');
+            return; // Exit if not authenticated
+        }
+
+        setIsLoading(true);
+        try {
+            const res = await fetch('http://localhost:3000/api/cart', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({ items: updated }),
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                if (res.status === 401) {
+                    setIsAuthenticated(false); // Consider showing a message to the user to log in
+                    console.error('Session expired, please log in again');
+                }
+                throw new Error(errorData.message || 'Failed to sync cart');
+            }
+
+            const data = await res.json();
+            setCartItems(data.items);
+        } catch (err) {
+            console.error('Failed to sync cart:', err); // Re-throw the error so components using syncCart can handle it (e.g., show error message)
+            throw err;
+        } finally {
+            setIsLoading(false);
+        }
+    }; // newItem should already contain the correct product_id (string ObjectId)
+
+    const addToCart = async (newItem: Omit<CartItem, '_id'>) => {
+        if (!isAuthenticated) {
+            console.warn('User not authenticated, cannot add to cart'); // Consider storing in local storage or showing a login prompt
+            return;
+        } // Find existing item based on product_id, size, and color
+
+        const exists = findCartItem(
+            newItem.product_id,
+            newItem.size,
+            newItem.color,
+        );
+
+        const updated = exists
+            ? cartItems.map(
+                  (
+                      item, // Update existing item based on product_id, size, and color
+                  ) =>
+                      item.product_id === newItem.product_id &&
+                      item.size === newItem.size &&
+                      item.color === newItem.color
+                          ? {
+                                ...item,
+                                quantity: item.quantity + newItem.quantity,
+                            }
+                          : item,
+              )
+            : // Add new item if it doesn't exist
+              [...cartItems, newItem as CartItem]; // Cast newItem to CartItem as _id is removed
+
+        try {
+            await syncCart(updated);
+        } catch (err) {
+            console.error('Failed to add item to cart:', err); // Handle error in UI, e.g., show a dialog
+        }
+    };
+
+    const updateQuantity = async (
+        productId: string, // Use product_id instead of temporary itemId
         size: string,
         color: string,
         quantity: number,
     ) => {
-        setCartItems((prevItems) =>
-            prevItems.map((item) =>
-                item._id === itemId &&
+        if (!isAuthenticated) {
+            console.warn('User not authenticated, cannot update quantity');
+            return;
+        }
+        if (quantity < 1) return;
+
+        const updated = cartItems.map(
+            (
+                item, // Find item based on product_id, size, and color
+            ) =>
+                item.product_id === productId &&
                 item.size === size &&
                 item.color === color
                     ? { ...item, quantity }
                     : item,
-            ),
         );
+        try {
+            await syncCart(updated);
+        } catch (err) {
+            console.error('Failed to update quantity:', err); // Handle error in UI
+        }
     };
 
-    // Xóa toàn bộ giỏ hàng
-    const clearCart = () => {
-        setCartItems([]);
+    const removeFromCart = async (
+        productId: string, // Use product_id instead of temporary itemId
+        size: string,
+        color: string,
+    ) => {
+        if (!isAuthenticated) {
+            console.warn('User not authenticated, cannot remove item');
+            return;
+        } // Filter out the item based on product_id, size, and color
+        const updated = cartItems.filter(
+            (item) =>
+                !(
+                    item.product_id === productId &&
+                    item.size === size &&
+                    item.color === color
+                ),
+        );
+        try {
+            await syncCart(updated);
+        } catch (err) {
+            console.error('Failed to remove item from cart:', err); // Handle error in UI
+        }
     };
 
-    // Giá trị của context
-    const value: CartContextType = {
-        cartItems,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-        clearCart,
-        totalItems,
-        totalPrice,
+    const clearCart = async () => {
+        if (!isAuthenticated) {
+            console.warn('User not authenticated, cannot clear cart');
+            return;
+        }
+        try {
+            setIsLoading(true);
+            const res = await fetch('http://localhost:3000/api/cart', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+            });
+            if (!res.ok) {
+                const errorData = await res.json();
+                if (res.status === 401) {
+                    setIsAuthenticated(false);
+                    console.error('Session expired, please log in again');
+                }
+                throw new Error(errorData.message || 'Failed to clear cart');
+            }
+            setCartItems([]);
+        } catch (err) {
+            console.error('Failed to clear cart:', err); // Handle error in UI
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const logout = async () => {
+        try {
+            await fetch('http://localhost:3000/api/users/logout', {
+                method: 'POST',
+                credentials: 'include',
+            });
+            setIsAuthenticated(false);
+            setCartItems([]);
+            window.location.href = '/'; // Redirect after logout
+        } catch (err) {
+            console.error('Failed to logout:', err); // Handle error in UI
+        }
     };
 
     return (
-        <CartContext.Provider value={value}>{children}</CartContext.Provider>
+        <CartContext.Provider
+            value={{
+                cartItems,
+                addToCart,
+                updateQuantity,
+                removeFromCart,
+                clearCart,
+                isLoading,
+                totalItems,
+                totalPrice,
+                isAuthenticated,
+                logout,
+            }}
+        >
+           {children}
+        </CartContext.Provider>
     );
 };

@@ -3,27 +3,28 @@ import { Link } from 'react-router-dom'; // Import Link
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, CardFooter } from '../components_bonus/my-card/components/ui/card';
 
-
 interface ProductCardProps {
     _id: string;
     product_name: string;
     description: string;
     category_id: string;
     sex: string;
+    images: string[];
+    price: number;
+    xuatXu: string;
+    chatLieu: string;
     variants: {
         size: string;
         color: string;
         stock: number;
     }[];
-    images: string[];
-    price: number;
 }
 
 export default function ProductCard({
     _id,
     product_name,
     images,
-    price
+    price,
 }: ProductCardProps) {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -42,10 +43,9 @@ export default function ProductCard({
         style: 'currency',
         currency: 'VND',
     }).format(price);
-  const isVideo = (url: string) => {
-      return /\.(mp4|webm|ogg)$/i.test(url);
-  };
-
+    const isVideo = (url: string) => {
+        return /\.(mp4|webm|ogg)$/i.test(url);
+    };
 
     return (
         <Link
@@ -56,11 +56,10 @@ export default function ProductCard({
                     <div className="relative h-[450px] w-[400px] ">
                         {isVideo(images[currentImageIndex]) ? (
                             <video
-                  src={images[currentImageIndex]}
-                  autoPlay
-                  muted
-                  loop
-                              
+                                src={images[currentImageIndex]}
+                                autoPlay
+                                muted
+                                loop
                                 className="w-full h-full object-cover"
                             />
                         ) : (

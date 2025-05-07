@@ -1,7 +1,23 @@
+import type React from 'react';
 import { useState } from 'react';
 import Input from '../component/Input';
 import MessageDialog from '../component/MessageDialog';
-// import { useNavigate } from 'react-router-dom';
+import type mongoose from 'mongoose';
+import type { Session, SessionData } from 'express-session';
+
+declare module 'express-serve-static-core' {
+    interface Request {
+        session: Session &
+            Partial<
+                SessionData & {
+                    userId?: mongoose.Types.ObjectId;
+                    isAdmin?: boolean;
+                }
+            >;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        user?: any;
+    }
+}
 
 function Signin() {
     const [formData, setFormData] = useState({
@@ -10,14 +26,13 @@ function Signin() {
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
+
     const [dialog, setDialog] = useState({
         isOpen: false,
         title: '',
         description: '',
         type: '' as 'success' | 'error' | '',
     });
-
-    // const navigate = useNavigate();
 
     const inputFields = [
         { name: 'phone', type: 'text', label: 'Số điện thoại' },
@@ -73,6 +88,7 @@ function Signin() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
         if (!validate()) {
             setDialog({
                 isOpen: true,
@@ -89,29 +105,32 @@ function Signin() {
         };
 
         try {
+            // Xóa session cũ trước khi đăng nhập
+            await fetch('http://localhost:3000/api/users/logout', {
+                method: 'POST',
+                credentials: 'include',
+            });
+
             const res = await fetch('http://localhost:3000/api/users/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(payload),
+                credentials: 'include',
             });
 
             if (res.ok) {
                 const result = await res.json();
-
-                // ✅ LƯU TOKEN VÀ USER VÀO localStorage
-                localStorage.setItem('token', result.token);
-                localStorage.setItem('user', JSON.stringify(result.user));
-
+                if (result.user && result.user._id) {
+                    localStorage.setItem('user', JSON.stringify(result.user));
+                }
                 setDialog({
                     isOpen: true,
                     title: 'Đăng nhập thành công!',
                     description: 'Chào mừng bạn trở lại.',
                     type: 'success',
                 });
-
-                // ✅ Sau 1.5s, chuyển trang hoặc reload
                 setTimeout(() => {
                     setDialog({
                         isOpen: false,
@@ -119,13 +138,13 @@ function Signin() {
                         description: '',
                         type: '',
                     });
-                    window.location.reload(); // hoặc navigate('/')
+                    window.location.href = '/'; // Chuyển hướng sang trang chủ
                 }, 1500);
             } else {
                 const error = await res.json();
                 setDialog({
                     isOpen: true,
-                    title: `${error.message || 'Lỗi không xác định'}`,
+                    title: error.message || 'Lỗi đăng nhập',
                     description: error.detail
                         ? Array.isArray(error.detail)
                             ? error.detail.join(', ')
@@ -134,7 +153,7 @@ function Signin() {
                     type: 'error',
                 });
             }
-        } catch (err: unknown) {
+        } catch (err) {
             console.error('Lỗi gửi yêu cầu:', err);
             setDialog({
                 isOpen: true,
@@ -149,7 +168,6 @@ function Signin() {
     return (
         <div className="mt-[3vw]">
             <p className="text-5xl uppercase font-serif text-center">Sign In</p>
-
             <div className="mx-[34vw]">
                 <div className="max-w-[30vw]">
                     <form
@@ -172,7 +190,6 @@ function Signin() {
                                 error={errors[field.name]}
                             />
                         ))}
-
                         <div className="flex items-center justify-between mt-6">
                             <button
                                 className="font-light uppercase text-lg border w-full py-2 mt-3 hover:bg-black hover:text-white transition duration-300"
@@ -181,7 +198,6 @@ function Signin() {
                                 Sign In
                             </button>
                         </div>
-
                         <div className="mt-4 text-center text-sm">
                             <a
                                 href="/forgot-password"
@@ -199,7 +215,6 @@ function Signin() {
                     </form>
                 </div>
             </div>
-
             <MessageDialog
                 isOpen={dialog.isOpen}
                 title={dialog.title}

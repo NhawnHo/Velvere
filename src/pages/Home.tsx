@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import FashionCategories from '../component/FashionCategories';
 
 const cn = (...classes: string[]) => classes.filter(Boolean).join(' ');
 
 const Home: React.FC = () => {
     const [isScrolled, setIsScrolled] = useState(false);
-    const [isFirstImageVisible, setIsFirstImageVisible] = useState(false);
-    const [isSecondImageVisible, setIsSecondImageVisible] = useState(false);
-    const [isTextVisible, setIsTextVisible] = useState(false);
+    const [, setIsFirstImageVisible] = useState(false);
+    const [, setIsSecondImageVisible] = useState(false);
+    const [, setIsTextVisible] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
     const firstImageRef = useRef<HTMLDivElement>(null);
     const secondImageRef = useRef<HTMLDivElement>(null);
