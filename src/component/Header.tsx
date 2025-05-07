@@ -456,40 +456,55 @@ const Header: React.FC = () => {
                                         <div className="space-y-4">
                                             {searchResults
                                                 .slice(0, 5)
-                                                .map((product) => (
-                                                    <div
-                                                        key={product._id}
-                                                        className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded"
-                                                        onClick={() =>
-                                                            handleSearchResultClick(
-                                                                product._id,
-                                                            )
-                                                        }
-                                                    >
-                                                        <img
-                                                            src={
-                                                                product
-                                                                    .images[0] ||
-                                                                '/placeholder.svg'
+                                                .map((product) => {
+                                                    // Kiểm tra xem ảnh đầu tiên là video hay không
+                                                    const firstImage =
+                                                        product.images[0];
+                                                    const imageSrc =
+                                                        firstImage &&
+                                                        (firstImage.endsWith(
+                                                            '.mp4',
+                                                        ) ||
+                                                            firstImage.includes(
+                                                                'video',
+                                                            ))
+                                                            ? product
+                                                                  .images[1] ||
+                                                              '/placeholder.svg' // Lấy ảnh thứ 2 nếu ảnh đầu là video
+                                                            : firstImage ||
+                                                              '/placeholder.svg'; // Nếu không phải video thì lấy ảnh đầu tiên
+
+                                                    return (
+                                                        <div
+                                                            key={product._id}
+                                                            className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded"
+                                                            onClick={() =>
+                                                                handleSearchResultClick(
+                                                                    product._id,
+                                                                )
                                                             }
-                                                            alt={
-                                                                product.product_name
-                                                            }
-                                                            className="w-16 h-16 object-cover rounded mr-3"
-                                                        />
-                                                        <div>
-                                                            <h4 className="font-medium">
-                                                                {
+                                                        >
+                                                            <img
+                                                                src={imageSrc}
+                                                                alt={
                                                                     product.product_name
                                                                 }
-                                                            </h4>
-                                                            <p className="text-sm text-gray-500">
-                                                                {product.price.toLocaleString()}
-                                                                ₫
-                                                            </p>
+                                                                className="w-16 h-16 object-cover rounded mr-3"
+                                                            />
+                                                            <div>
+                                                                <h4 className="font-medium">
+                                                                    {
+                                                                        product.product_name
+                                                                    }
+                                                                </h4>
+                                                                <p className="text-sm text-gray-500">
+                                                                    {product.price.toLocaleString()}{' '}
+                                                                    ₫
+                                                                </p>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                ))}
+                                                    );
+                                                })}
 
                                             {searchResults.length > 5 && (
                                                 <button
@@ -704,7 +719,7 @@ const Header: React.FC = () => {
                                                 </li>
                                                 <li role="none">
                                                     <Link
-                                                        to="/admin/products"
+                                                        to="/admin/bestSellingPage"
                                                         onClick={() =>
                                                             setShowSideMenu(
                                                                 false,
@@ -713,7 +728,7 @@ const Header: React.FC = () => {
                                                         className="block px-4 py-2 hover:bg-gray-100"
                                                         role="menuitem"
                                                     >
-                                                        Danh sách sản phẩm
+                                                        Thống kê sản phẩm
                                                     </Link>
                                                 </li>
                                                 <li role="none">
@@ -887,18 +902,68 @@ const Header: React.FC = () => {
                                             </ul>
                                         )}
                                     </li>
+
                                     <li role="none">
-                                        <Link
-                                            to="/admin/dashboard"
+                                        <button
                                             onClick={() =>
-                                                setShowSideMenu(false)
+                                                toggleMenu('statistics')
                                             }
-                                            className="block w-full px-6 py-3 text-left hover:bg-gray-100"
-                                            role="menuitem"
+                                            className="w-full px-6 py-3 text-left hover:bg-gray-100 flex justify-between items-center"
+                                            aria-expanded={
+                                                expandedMenu === 'statistics'
+                                            }
+                                            aria-controls="statistics-submenu"
                                         >
-                                            Bảng điều khiển
-                                        </Link>
+                                            Thống kê
+                                            <i
+                                                className={`fa-solid ${
+                                                    expandedMenu ===
+                                                    'statistics'
+                                                        ? 'fa-chevron-up'
+                                                        : 'fa-chevron-down'
+                                                }`}
+                                                aria-hidden="true"
+                                            />
+                                        </button>
+                                        {expandedMenu === 'statistics' && (
+                                            <ul
+                                                className="pl-8 text-sm text-gray-700"
+                                                role="menu"
+                                                id="statistics-submenu"
+                                            >
+                                                <li role="none">
+                                                    <Link
+                                                        to="/admin/bestSellingPage"
+                                                        onClick={() =>
+                                                            setShowSideMenu(
+                                                                false,
+                                                            )
+                                                        }
+                                                        className="block px-4 py-2 hover:bg-gray-100"
+                                                        role="menuitem"
+                                                    >
+                                                        Thống kê sản phẩm bán
+                                                        chạy
+                                                    </Link>
+                                                </li>
+                                                <li role="none">
+                                                    <Link
+                                                        to="/admin/revenuePage"
+                                                        onClick={() =>
+                                                            setShowSideMenu(
+                                                                false,
+                                                            )
+                                                        }
+                                                        className="block px-4 py-2 hover:bg-gray-100"
+                                                        role="menuitem"
+                                                    >
+                                                        Thống kê doanh thu
+                                                    </Link>
+                                                </li>
+                                            </ul>
+                                        )}
                                     </li>
+
                                     <li role="none">
                                         <Link
                                             to="/admin/settings"

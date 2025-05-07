@@ -151,16 +151,16 @@ export default function BestSellingPage() {
   const exportToPDF = () => {
     // Định nghĩa màu sắc
     const colors = {
-      primary: '#1e3a8a',       // Xanh navy đậm
-      secondary: '#0ea5e9',     // Xanh dương nhạt
-      accent: '#f59e0b',        // Cam vàng
-      success: '#10b981',       // Xanh lá
-      danger: '#ef4444',        // Đỏ
-      warning: '#f97316',       // Cam
-      dark: '#1e293b',          // Xám đen
-      light: '#f8fafc',         // Trắng xám
-      muted: '#64748b',         // Xám trung tính
-      border: '#e2e8f0'         // Xám nhạt cho viền
+        primary: '#1e3a8a', // Xanh navy đậm
+        secondary: '#0ea5e9', // Xanh dương nhạt
+        accent: '#f59e0b', // Cam vàng
+        success: '#10b981', // Xanh lá
+        danger: '#ef4444', // Đỏ
+        warning: '#f97316', // Cam
+        dark: '#1e293b', // Xám đen
+        light: '#f8fafc', // Trắng xám
+        muted: '#64748b', // Xám trung tính
+        border: '#f1f5f9', // Xám nhạt cho viền
     };
 
     // Định nghĩa period
@@ -1194,365 +1194,363 @@ export default function BestSellingPage() {
   };
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">
+      <div className="container mx-auto py-8">
+          <div className="flex mb-6 mt-10 justify-end items-end">
+              {/* <h1 className="text-3xl font-bold text-gray-800">
           Sản Phẩm Bán Chạy
-        </h1>
-        <div className="flex space-x-2">
-          <Button
-            variant="outline"
-            onClick={exportToPDF}
-            disabled={isLoading || filteredProducts.length === 0}
-          >
-            <FileText className="mr-2 h-4 w-4" />
-            Xuất PDF
-          </Button>
-          <Button
-            variant="outline"
-            onClick={exportToExcel}
-            disabled={isLoading || filteredProducts.length === 0}
-          >
-            <FileSpreadsheet className="mr-2 h-4 w-4" />
-            Xuất Excel
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">
-              Tổng Sản Phẩm
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {summary.totalProducts}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">
-              Tổng Đã Bán
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {summary.totalSold}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">
-              Doanh Thu
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrency(summary.totalRevenue)}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">
-              Danh Mục
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {summary.totalCategories}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Top 10 Sản Phẩm Bán Chạy</CardTitle>
-            <CardDescription>Số lượng đã bán</CardDescription>
-          </CardHeader>
-          <CardContent className="h-[400px]">
-            {isLoading ? (
-              <div className="flex justify-center items-center h-full">
-                <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-              </div>
-            ) : top10Products.length === 0 ? (
-              <div className="flex justify-center items-center h-full text-gray-500">
-                Không có dữ liệu
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={top10Products}
-                  layout="vertical"
-                  margin={{
-                    top: 5,
-                    right: 30,
-                    left: 20,
-                    bottom: 5,
-                  }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    width={150}
-                    tick={{ fontSize: 12 }}
-                  />
-                  <Tooltip
-                    formatter={(value) => [
-                      `${value} sản phẩm`,
-                      'Đã bán',
-                    ]}
-                  />
-                  <Legend />
-                  <Bar
-                    dataKey="sold"
-                    fill="#8884d8"
-                    name="Số lượng đã bán"
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Phân Bố Theo Danh Mục</CardTitle>
-            <CardDescription>
-              Tỷ lệ sản phẩm bán ra theo danh mục
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="h-[400px]">
-            {isLoading ? (
-              <div className="flex justify-center items-center h-full">
-                <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-              </div>
-            ) : categoryData.length === 0 ? (
-              <div className="flex justify-center items-center h-full text-gray-500">
-                Không có dữ liệu
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={categoryData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={120}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, percent }) =>
-                      `${name}: ${(percent * 100).toFixed(
-                        0,
-                      )}%`
-                    }
+        </h1> */}
+              <div className="flex space-x-2 ">
+                  <Button
+                      variant="outline"
+                      onClick={exportToPDF}
+                      disabled={isLoading || filteredProducts.length === 0}
                   >
-                    {categoryData.map(
-                      (entry: any, index: number) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={
-                            COLORS[
-                            index %
-                            COLORS.length
-                            ]
-                          }
-                        />
-                      ),
-                    )}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value) => [
-                      `${value} sản phẩm`,
-                      'Đã bán',
-                    ]}
-                  />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col md:flex-row justify-between md:items-center space-y-4 md:space-y-0">
-            <CardTitle>Danh Sách Sản Phẩm</CardTitle>
-            <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
-              <div className="flex items-center space-x-2">
-                <Select
-                  value={timeRange}
-                  onValueChange={setTimeRange}
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Chọn thời gian" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="week">
-                      Tuần này
-                    </SelectItem>
-                    <SelectItem value="month">
-                      Tháng này
-                    </SelectItem>
-                    <SelectItem value="year">
-                      Năm nay
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+                      <FileText className="mr-2 h-4 w-4" />
+                      Xuất PDF
+                  </Button>
+                  <Button
+                      variant="outline"
+                      onClick={exportToExcel}
+                      disabled={isLoading || filteredProducts.length === 0}
+                  >
+                      <FileSpreadsheet className="mr-2 h-4 w-4" />
+                      Xuất Excel
+                  </Button>
               </div>
-              <div className="flex items-center space-x-2">
-                <Select
-                  value={categoryFilter}
-                  onValueChange={setCategoryFilter}
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Chọn danh mục" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">
-                      Tất cả danh mục
-                    </SelectItem>
-                    {categoryData.map(
-                      (category: any, index: number) => (
-                        <SelectItem
-                          key={index}
-                          value={category.name}
-                        >
-                          {category.name}
-                        </SelectItem>
-                      ),
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="relative flex items-center">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500 outline-0" />
-                <Input
-                  placeholder="Tìm kiếm sản phẩm..."
-                  className="pl-8 outline-0"
-                  value={searchTerm}
-                  onChange={(e) =>
-                    setSearchTerm(e.target.value)
-                  }
-
-                />
-                <Button
-                  variant="outline"
-                  className="ml-2"
-                  onClick={handleSearch}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    'Tìm'
-                  )}
-                </Button>
-              </div>
-            </div>
           </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center items-center h-[200px]">
-              <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-            </div>
-          ) : filteredProducts.length === 0 ? (
-            <div className="flex justify-center items-center h-[200px] text-gray-500">
-              Không có dữ liệu
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="border-b">
-                    <th className="py-3 px-4 text-left">
-                      Mã SP
-                    </th>
-                    <th className="py-3 px-4 text-left">
-                      Hình ảnh
-                    </th>
-                    <th className="py-3 px-4 text-left">
-                      Tên sản phẩm
-                    </th>
-                    <th className="py-3 px-4 text-left">
-                      Danh mục
-                    </th>
-                    <th className="py-3 px-4 text-left">
-                      Giá bán
-                    </th>
-                    <th className="py-3 px-4 text-left">
-                      Đã bán
-                    </th>
-                    <th className="py-3 px-4 text-left">
-                      Doanh thu
-                    </th>
-                    <th className="py-3 px-4 text-left">
-                      Tồn kho
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredProducts.map(
-                    (product: any, index: number) => (
-                      <tr
-                        key={index}
-                        className="border-b hover:bg-gray-50"
-                      >
-                        <td className="py-3 px-4">
-                          {product.id}
-                        </td>
-                        <td className="py-3 px-4">
-                          <img
-                            src={
-                              product.image ||
-                              '/placeholder.svg?height=40&width=40'
-                            }
-                            alt={product.name}
-                            className="w-10 h-10 object-cover rounded"
-                          />
-                        </td>
-                        <td className="py-3 px-4">
-                          {product.name}
-                        </td>
-                        <td className="py-3 px-4">
-                          {product.category}
-                        </td>
-                        <td className="py-3 px-4">
-                          {formatCurrency(
-                            product.price,
-                          )}
-                        </td>
-                        <td className="py-3 px-4">
-                          {product.sold}
-                        </td>
-                        <td className="py-3 px-4">
-                          {formatCurrency(
-                            product.revenue,
-                          )}
-                        </td>
-                        <td className="py-3 px-4">
-                          {product.stock}
-                        </td>
-                      </tr>
-                    ),
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+              <Card>
+                  <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-gray-500">
+                          Tổng Sản Phẩm
+                      </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                      <div className="text-2xl font-bold">
+                          {summary.totalProducts}
+                      </div>
+                  </CardContent>
+              </Card>
+              <Card>
+                  <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-gray-500">
+                          Tổng Đã Bán
+                      </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                      <div className="text-2xl font-bold">
+                          {summary.totalSold}
+                      </div>
+                  </CardContent>
+              </Card>
+              <Card>
+                  <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-gray-500">
+                          Doanh Thu
+                      </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                      <div className="text-2xl font-bold">
+                          {formatCurrency(summary.totalRevenue)}
+                      </div>
+                  </CardContent>
+              </Card>
+              <Card>
+                  <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-gray-500">
+                          Danh Mục
+                      </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                      <div className="text-2xl font-bold">
+                          {summary.totalCategories}
+                      </div>
+                  </CardContent>
+              </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              <Card>
+                  <CardHeader>
+                      <CardTitle>Top 10 Sản Phẩm Bán Chạy</CardTitle>
+                      <CardDescription>Số lượng đã bán</CardDescription>
+                  </CardHeader>
+                  <CardContent className="h-[400px]">
+                      {isLoading ? (
+                          <div className="flex justify-center items-center h-full">
+                              <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+                          </div>
+                      ) : top10Products.length === 0 ? (
+                          <div className="flex justify-center items-center h-full text-gray-500">
+                              Không có dữ liệu
+                          </div>
+                      ) : (
+                          <ResponsiveContainer width="100%" height="100%">
+                              <BarChart
+                                  data={top10Products}
+                                  layout="vertical"
+                                  margin={{
+                                      top: 5,
+                                      right: 30,
+                                      left: 20,
+                                      bottom: 5,
+                                  }}
+                              >
+                                  <CartesianGrid strokeDasharray="3 3" />
+                                  <XAxis type="number" />
+                                  <YAxis
+                                      type="category"
+                                      dataKey="name"
+                                      width={150}
+                                      tick={{ fontSize: 12 }}
+                                  />
+                                  <Tooltip
+                                      formatter={(value) => [
+                                          `${value} sản phẩm`,
+                                          'Đã bán',
+                                      ]}
+                                  />
+                                  <Legend />
+                                  <Bar
+                                      dataKey="sold"
+                                      fill="#8884d8"
+                                      name="Số lượng đã bán"
+                                  />
+                              </BarChart>
+                          </ResponsiveContainer>
+                      )}
+                  </CardContent>
+              </Card>
+
+              <Card>
+                  <CardHeader>
+                      <CardTitle>Phân Bố Theo Danh Mục</CardTitle>
+                      <CardDescription>
+                          Tỷ lệ sản phẩm bán ra theo danh mục
+                      </CardDescription>
+                  </CardHeader>
+                  <CardContent className="h-[400px]">
+                      {isLoading ? (
+                          <div className="flex justify-center items-center h-full">
+                              <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+                          </div>
+                      ) : categoryData.length === 0 ? (
+                          <div className="flex justify-center items-center h-full text-gray-500">
+                              Không có dữ liệu
+                          </div>
+                      ) : (
+                          <ResponsiveContainer width="100%" height="100%">
+                              <PieChart>
+                                  <Pie
+                                      data={categoryData}
+                                      cx="50%"
+                                      cy="50%"
+                                      labelLine={false}
+                                      outerRadius={120}
+                                      fill="#8884d8"
+                                      dataKey="value"
+                                      label={({ name, percent }) =>
+                                          `${name}: ${(percent * 100).toFixed(
+                                              0,
+                                          )}%`
+                                      }
+                                  >
+                                      {categoryData.map(
+                                          (entry: any, index: number) => (
+                                              <Cell
+                                                  key={`cell-${index}`}
+                                                  fill={
+                                                      COLORS[
+                                                          index % COLORS.length
+                                                      ]
+                                                  }
+                                              />
+                                          ),
+                                      )}
+                                  </Pie>
+                                  <Tooltip
+                                      formatter={(value) => [
+                                          `${value} sản phẩm`,
+                                          'Đã bán',
+                                      ]}
+                                  />
+                                  <Legend />
+                              </PieChart>
+                          </ResponsiveContainer>
+                      )}
+                  </CardContent>
+              </Card>
+          </div>
+
+          <Card>
+              <CardHeader>
+                  <div className="flex flex-col md:flex-row justify-between md:items-center space-y-4 md:space-y-0">
+                      <CardTitle>Danh Sách Sản Phẩm</CardTitle>
+                      <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+                          <div className="flex items-center space-x-2">
+                              <Select
+                                  value={timeRange}
+                                  onValueChange={setTimeRange}
+                              >
+                                  <SelectTrigger className="w-[180px]">
+                                      <SelectValue placeholder="Chọn thời gian" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                      <SelectItem value="week">
+                                          Tuần này
+                                      </SelectItem>
+                                      <SelectItem value="month">
+                                          Tháng này
+                                      </SelectItem>
+                                      <SelectItem value="year">
+                                          Năm nay
+                                      </SelectItem>
+                                  </SelectContent>
+                              </Select>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                              <Select
+                                  value={categoryFilter}
+                                  onValueChange={setCategoryFilter}
+                              >
+                                  <SelectTrigger className="w-[180px]">
+                                      <SelectValue placeholder="Chọn danh mục" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                      <SelectItem value="all">
+                                          Tất cả danh mục
+                                      </SelectItem>
+                                      {categoryData.map(
+                                          (category: any, index: number) => (
+                                              <SelectItem
+                                                  key={index}
+                                                  value={category.name}
+                                              >
+                                                  {category.name}
+                                              </SelectItem>
+                                          ),
+                                      )}
+                                  </SelectContent>
+                              </Select>
+                          </div>
+                          <div className="relative flex items-center">
+                              <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500 outline-0" />
+                              <Input
+                                  placeholder="Tìm kiếm sản phẩm..."
+                                  className="pl-8 outline-0"
+                                  value={searchTerm}
+                                  onChange={(e) =>
+                                      setSearchTerm(e.target.value)
+                                  }
+                              />
+                              <Button
+                                  variant="outline"
+                                  className="ml-2"
+                                  onClick={handleSearch}
+                                  disabled={isLoading}
+                              >
+                                  {isLoading ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                      'Tìm'
+                                  )}
+                              </Button>
+                          </div>
+                      </div>
+                  </div>
+              </CardHeader>
+              <CardContent>
+                  {isLoading ? (
+                      <div className="flex justify-center items-center h-[200px]">
+                          <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+                      </div>
+                  ) : filteredProducts.length === 0 ? (
+                      <div className="flex justify-center items-center h-[200px] text-gray-500">
+                          Không có dữ liệu
+                      </div>
+                  ) : (
+                      <div className="overflow-x-auto">
+                          <table className="w-full border-collapse">
+                              <thead>
+                                  <tr className="border-b">
+                                      <th className="py-3 px-4 text-left">
+                                          Mã SP
+                                      </th>
+                                      <th className="py-3 px-4 text-left">
+                                          Hình ảnh
+                                      </th>
+                                      <th className="py-3 px-4 text-left">
+                                          Tên sản phẩm
+                                      </th>
+                                      <th className="py-3 px-4 text-left">
+                                          Danh mục
+                                      </th>
+                                      <th className="py-3 px-4 text-left">
+                                          Giá bán
+                                      </th>
+                                      <th className="py-3 px-4 text-left">
+                                          Đã bán
+                                      </th>
+                                      <th className="py-3 px-4 text-left">
+                                          Doanh thu
+                                      </th>
+                                      <th className="py-3 px-4 text-left">
+                                          Tồn kho
+                                      </th>
+                                  </tr>
+                              </thead>
+                              <tbody>
+                                  {filteredProducts.map(
+                                      (product: any, index: number) => (
+                                          <tr
+                                              key={index}
+                                              className="border-b hover:bg-gray-50"
+                                          >
+                                              <td className="py-3 px-4">
+                                                  {product.id}
+                                              </td>
+                                              <td className="py-3 px-4">
+                                                  <img
+                                                      src={
+                                                          product.image ||
+                                                          '/placeholder.svg?height=40&width=40'
+                                                      }
+                                                      alt={product.name}
+                                                      className="w-10 h-10 object-cover rounded"
+                                                  />
+                                              </td>
+                                              <td className="py-3 px-4">
+                                                  {product.name}
+                                              </td>
+                                              <td className="py-3 px-4">
+                                                  {product.category}
+                                              </td>
+                                              <td className="py-3 px-4">
+                                                  {formatCurrency(
+                                                      product.price,
+                                                  )}
+                                              </td>
+                                              <td className="py-3 px-4">
+                                                  {product.sold}
+                                              </td>
+                                              <td className="py-3 px-4">
+                                                  {formatCurrency(
+                                                      product.revenue,
+                                                  )}
+                                              </td>
+                                              <td className="py-3 px-4">
+                                                  {product.stock}
+                                              </td>
+                                          </tr>
+                                      ),
+                                  )}
+                              </tbody>
+                          </table>
+                      </div>
                   )}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+              </CardContent>
+          </Card>
+      </div>
   );
 }

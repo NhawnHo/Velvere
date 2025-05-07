@@ -1086,10 +1086,8 @@ export default function RevenuePage() {
 
     return (
         <div className="container mx-auto py-8">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold text-gray-800">
-                    Thống Kê Doanh Thu
-                </h1>
+            <div className="flex justify-end items-end mt-10 mb-6">
+               
                 <div className="flex space-x-2">
                     <Button
                         variant="outline"

@@ -1,16 +1,20 @@
 import { Request, Response } from 'express';
-import { NextResponse } from 'next/server';
 import Product from '../models/Product.model';
 import Order from '../models/Order.model';
+import mongoose from 'mongoose';
+import { ProductDocument } from '../models/ProductDocument ';
 
 export const getAllProducts = async (req: Request, res: Response) => {
     try {
-        const products = await Product.find();
-        res.json(products);
+      const products = await Product.find();
+      console.log(products);
+      res.json(products);
+      
     } catch (err) {
         console.error('Lỗi server khi lấy sản phẩm:', err);
         res.status(500).json({ message: 'Lỗi server khi lấy sản phẩm', err });
-    }
+  }
+  
 };
 
 export const getProductById = async (
@@ -310,27 +314,30 @@ export const getBestSellingProduct = async (req: Request, res: Response) => {
             const stats = await Order.aggregate([
                 {
                     $match: {
-                        'items.product_name': product.product_name, // Lọc các đơn hàng chứa sản phẩm theo product_name
+                        'items.product_id': id, // Dùng product_id thay vì product_name
                     },
                 },
                 {
-                    $unwind: '$items', // Tách các mục sản phẩm từ đơn hàng
+                    $unwind: '$items',
                 },
                 {
                     $match: {
-                        'items.product_name': product.product_name, // Lọc lại các mục sản phẩm với product_name đúng
+                        'items.product_id': id,
                     },
                 },
                 {
                     $group: {
-                        _id: '$items.product_name',  // Nhóm theo product_name
-                        totalQuantity: { $sum: '$items.quantity' },  // Tổng số lượng đã bán
-                        totalRevenue: { $sum: { $multiply: ['$items.quantity', '$items.price'] } },  // Tổng doanh thu
+                        _id: '$items.product_id',
+                        totalQuantity: { $sum: '$items.quantity' },
+                        totalRevenue: {
+                            $sum: {
+                                $multiply: ['$items.quantity', '$items.price'],
+                            },
+                        },
                     },
                 },
             ]);
-            
-    
+        
             // Kiểm tra nếu có kết quả từ aggregation
             const statsResult = stats.length > 0 ? stats[0] : { totalQuantity: 0, totalRevenue: 0 };
             
