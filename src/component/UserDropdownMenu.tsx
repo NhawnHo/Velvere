@@ -43,7 +43,8 @@ const UserDropdownMenu: React.FC<Props> = ({
                 setUser(null);
                 setShowUserMenu(false);
 
-                await clearCart(); // 👈 Reset giỏ hàng khi logout
+                await clearCart(); // Reset giỏ hàng khi logout
+                window.location.reload(); // Tải lại trang
 
                 navigate('/');
             } else {

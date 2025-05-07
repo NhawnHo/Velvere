@@ -76,7 +76,9 @@ const Header: React.FC = () => {
         const checkUserSession = async () => {
             try {
                 console.log('Kiểm tra session từ server...');
-                const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+                const apiBaseUrl =
+                    import.meta.env.VITE_API_BASE_URL ||
+                    'http://localhost:3000';
                 const response = await fetch(
                     `${apiBaseUrl}/api/users/check-session`,
                     {
@@ -166,27 +168,29 @@ const Header: React.FC = () => {
 
         setIsSearching(true);
         try {
-            const response = await fetch(
-                `http://localhost:3000/api/products?search=${encodeURIComponent(
-                    query,
-                )}`,
-                {
-                    credentials: 'include',
-                },
-            );
-
+            const response = await fetch(`http://localhost:3000/api/products`);
             if (!response.ok) throw new Error('Network response was not ok');
 
             const products: Product[] = await response.json();
-            const filteredProducts = products.filter((product) =>
-                product.product_name
-                    .toLowerCase()
-                    .includes(query.toLowerCase()),
+
+            // Lọc sản phẩm dựa trên query
+            const filteredProducts = products.filter(
+                (product) =>
+                    product.product_name
+                        .toLowerCase()
+                        .includes(query.toLowerCase()) ||
+                    product.description
+                        .toLowerCase()
+                        .includes(query.toLowerCase()) ||
+                    product.chatLieu
+                        .toLowerCase()
+                        .includes(query.toLowerCase()) ||
+                    product.xuatXu.toLowerCase().includes(query.toLowerCase()),
             );
 
             setSearchResults(filteredProducts);
         } catch (error) {
-            console.error('Lỗi khi tìm kiếm sản phẩm:', error);
+            console.error('Error searching products:', error);
             setSearchResults([]);
         } finally {
             setIsSearching(false);
@@ -262,8 +266,6 @@ const Header: React.FC = () => {
     const toggleMenu = (menu: string) => {
         setExpandedMenu((prev) => (prev === menu ? null : menu));
     };
-
-  
 
     return (
         <>

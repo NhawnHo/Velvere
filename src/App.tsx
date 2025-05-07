@@ -15,6 +15,7 @@ import ScrollToTop from './component/ScrollToTop';
 import ProductPage from './pages/ProductPage';
 import { CartProvider } from './context/CartContext';
 import { ChatProvider } from './context/ChatContext';
+import Product from './pages/ProductSearch';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
             <Route path="/cart" element={<Cart />} />
             <Route path="/orders" element={<Orders />} />
             <Route path="/productPage" element={<ProductPage />} />
+            <Route path="/products" element={<Product />} />
            
           </Routes>
           <Footer />
