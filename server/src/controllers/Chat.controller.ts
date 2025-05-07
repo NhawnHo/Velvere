@@ -101,7 +101,7 @@ export const sendMessage = async (req: Request, res: Response): Promise<void> =>
 export const getMessagesBySessionId = async (req: Request, res: Response): Promise<void> => {
     try {
         const { sessionId } = req.params;
-        console.log('Lấy tin nhắn của phiên chat:', sessionId);
+        // console.log('Lấy tin nhắn của phiên chat:', sessionId);
 
         if (!mongoose.Types.ObjectId.isValid(sessionId)) {
             console.error('ID phiên chat không hợp lệ:', sessionId);
@@ -112,10 +112,10 @@ export const getMessagesBySessionId = async (req: Request, res: Response): Promi
         const messages = await ChatMessage.find({ session_id: sessionId })
             .sort({ createdAt: 1 });
         
-        console.log(`Đã tìm thấy ${messages.length} tin nhắn`);
+        // console.log(`Đã tìm thấy ${messages.length} tin nhắn`);
         res.status(200).json(messages);
     } catch (err) {
-        console.error('Lỗi server khi lấy tin nhắn chat:', err);
+        // console.error('Lỗi server khi lấy tin nhắn chat:', err);
         res.status(500).json({ message: 'Lỗi server khi lấy tin nhắn chat', error: err });
     }
 };

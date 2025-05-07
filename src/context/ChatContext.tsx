@@ -98,7 +98,8 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
             }
 
             // Nếu không có session hoặc session không còn active, tạo mới
-            // Chuẩn bị thông tin người dùng
+          // Chuẩn bị thông tin người dùng
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
             let userData: any = {
                 user_name: 'Khách'
             };

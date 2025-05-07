@@ -136,6 +136,7 @@ function Signup() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(payload),
+                credentials: 'include', // Đảm bảo cookies được gửi kèm
             });
 
             if (res.ok) {
@@ -155,6 +156,11 @@ function Signup() {
                     confirmPassword: '',
                 });
                 setErrors({});
+
+                // Chuyển hướng đến trang đăng nhập sau khi đăng ký thành công
+                setTimeout(() => {
+                    window.location.href = '/signin';
+                }, 2000);
             } else {
                 const error = await res.json();
                 // Sử dụng error.message từ backend làm tiêu đề, thêm mô tả mặc định hoặc chi tiết nếu có
@@ -195,7 +201,7 @@ function Signup() {
                     >
                         {inputFields.map((field) => (
                             <Input
-                                key={field.name}               // Key rất quan trọng khi render list
+                                key={field.name} // Key rất quan trọng khi render list
                                 name={field.name}
                                 type={field.type}
                                 label={field.label}
@@ -204,9 +210,9 @@ function Signup() {
                                         field.name as keyof typeof formData
                                     ]
                                 } // Lấy value từ formData
-                                onChange={handleChange}       // Sử dụng cùng hàm handler
-                                onBlur={handleBlur}           // Sử dụng cùng hàm handler
-                                error={errors[field.name]}    // Lấy lỗi từ errors
+                                onChange={handleChange} // Sử dụng cùng hàm handler
+                                onBlur={handleBlur} // Sử dụng cùng hàm handler
+                                error={errors[field.name]} // Lấy lỗi từ errors
                             />
                         ))}
 
@@ -223,7 +229,6 @@ function Signup() {
             </div>
 
             {/* Dialog thông báo */}
-
             <MessageDialog
                 isOpen={dialog.isOpen}
                 title={dialog.title}

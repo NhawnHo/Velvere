@@ -59,7 +59,7 @@ export default function ProductPage() {
             </h2>
             <div className="flex flex-wrap gap-5 justify-center">
                 {products.map((product) => (
-                    <ProductCard key={product._id} {...product} />
+                    <ProductCard xuatXu={''} chatLieu={''} key={product._id} {...product} />
                 ))}
             </div>
         </div>

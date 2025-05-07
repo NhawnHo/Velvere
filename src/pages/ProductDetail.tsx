@@ -1,11 +1,11 @@
+'use client';
+
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import ShowMoreText from 'react-show-more-text';
-import { useCart } from '../context/CartContext';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import MessageDialog from '../component/MessageDialog';
-import ProductCard from '../component/ProductCard';
 import RelatedProducts from '../component/RelatedProducts';
+import { useCart } from '../context/CartContext';
 
 interface Variant {
     size: string;
@@ -15,7 +15,8 @@ interface Variant {
 
 interface Product {
     _id: string;
-    product_id: number;
+    // Đã sửa product_id từ number sang string để khớp với ObjectId
+    product_id: string;
     product_name: string;
     description: string;
     category_id: string;
@@ -29,14 +30,12 @@ interface Product {
 
 function ProductDetail() {
     const { id } = useParams();
-    const navigate = useNavigate(); // Thêm hook useNavigate để chuyển hướng
+    const navigate = useNavigate();
     const { addToCart } = useCart();
     const [product, setProduct] = useState<Product | null>(null);
     const [selectedSize, setSelectedSize] = useState<string>('');
     const [selectedColor, setSelectedColor] = useState<string>('');
     const [mainImage, setMainImage] = useState<string>('');
-    // Thay đổi giá trị mặc định của quantity thành 1
-
     const [quantity, setQuantity] = useState(1);
     const [dialog, setDialog] = useState({
         isOpen: false,
@@ -44,17 +43,53 @@ function ProductDetail() {
         description: '',
         type: '' as 'success' | 'error' | '',
     });
+
     useEffect(() => {
+        // Fetch product details using the product ID from the URL
         fetch(`http://localhost:3000/api/products/${id}`)
-            .then((res) => res.json())
+            .then((res) => {
+                if (!res.ok) {
+                    // Handle non-OK responses, e.g., 404 Not Found
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                return res.json();
+            })
             .then((data) => {
                 setProduct(data);
-                setMainImage(data.images[0]); // Thiết lập hình ảnh chính ban đầu
+                // Set the first image as the main image initially
+                if (data.images && data.images.length > 0) {
+                    setMainImage(data.images[0]);
+                } else {
+                    // Use a placeholder if no images are available
+                    setMainImage('/placeholder.svg');
+                }
             })
-            .catch((err) => console.error('Error fetching product:', err));
-    }, [id]);
+            .catch((err) => {
+                console.error('Error fetching product:', err);
+                // Optionally, show an error message to the user
+                setDialog({
+                    isOpen: true,
+                    title: 'Lỗi tải sản phẩm',
+                    description:
+                        'Không thể tải thông tin sản phẩm. Vui lòng thử lại.',
+                    type: 'error',
+                });
+            });
+    }, [id]); // Re-run effect if the product ID changes
 
-    if (!product) return <p>Loading...</p>;
+    // Show loading state if product data is not yet available
+    if (!product) {
+        return (
+            <div className="container mx-auto my-20 py-8 px-4 text-center">
+                <div className="flex flex-col items-center justify-center">
+                    <div className="animate-spin rounded-full h-16 w-16 border-t-1 border-b-1 border-gray-400 mb-4"></div>
+                    <h2 className="text-xl font-semibold mb-2">
+                        Đang tải sản phẩm...
+                    </h2>
+                </div>
+            </div>
+        );
+    }
 
     // Lấy danh sách size và color duy nhất từ variants
     const uniqueSizes = Array.from(
@@ -71,8 +106,27 @@ function ProductDetail() {
 
     const isAvailableInStock = selectedVariant && selectedVariant.stock > 0;
 
+    // Kiểm tra trạng thái đăng nhập
+    const checkUserLogin = () => {
+        const userJSON = localStorage.getItem('user');
+        if (!userJSON) {
+            setDialog({
+                isOpen: true,
+                title: 'Đăng nhập để tiếp tục',
+                description:
+                    'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng hoặc mua ngay.',
+                type: 'error',
+            });
+            return false;
+        }
+        return true;
+    };
+
     // Xử lý thêm vào giỏ hàng
-    const handleAddToCart = () => {
+    const handleAddToCart = async () => {
+        // Kiểm tra đăng nhập
+        if (!checkUserLogin()) return;
+
         // Kiểm tra xem đã chọn size và color hay chưa
         if (!selectedSize || !selectedColor) {
             setDialog({
@@ -97,29 +151,48 @@ function ProductDetail() {
             return;
         }
 
-        // Thêm sản phẩm vào giỏ hàng
-        addToCart({
-            _id: product._id,
-            product_id: product.product_id,
-            product_name: product.product_name,
-            image: imageToUse,
-            price: product.price,
-            quantity: quantity,
-            size: selectedSize,
-            color: selectedColor,
-        });
+        // Xác định hình ảnh để sử dụng (không phải video)
+        const imageToUse =
+            product.images.find((img) => !isVideo(img)) ||
+            product.images[0] ||
+            '/placeholder.svg';
 
-        // Hiển thị thông báo thành công
-        setDialog({
-            isOpen: true,
-            title: 'Thêm vào giỏ hàng thành công',
-            description: 'Sản phẩm đã được thêm vào giỏ hàng của bạn.',
-            type: 'success',
-        });
+        try {
+            // Thêm sản phẩm vào giỏ hàng
+            // Sử dụng product.product_id (string ObjectId)
+            await addToCart({
+                product_id: product.product_id,
+                product_name: product.product_name,
+                image: imageToUse,
+                price: product.price,
+                quantity: quantity,
+                size: selectedSize,
+                color: selectedColor,
+            });
+
+            // Hiển thị thông báo thành công
+            setDialog({
+                isOpen: true,
+                title: 'Thêm vào giỏ hàng thành công',
+                description: 'Sản phẩm đã được thêm vào giỏ hàng của bạn.',
+                type: 'success',
+            });
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+            setDialog({
+                isOpen: true,
+                title: 'Lỗi',
+                description: 'Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng.',
+                type: 'error',
+            });
+        }
     };
 
     // Xử lý mua ngay
-    const handleBuyNow = () => {
+    const handleBuyNow = async () => {
+        // Kiểm tra đăng nhập
+        if (!checkUserLogin()) return;
+
         // Kiểm tra xem đã chọn size và color hay chưa
         if (!selectedSize || !selectedColor) {
             setDialog({
@@ -144,32 +217,52 @@ function ProductDetail() {
             return;
         }
 
-        // Thêm sản phẩm vào giỏ hàng
-        addToCart({
-            _id: product._id,
-            product_id: product.product_id,
-            product_name: product.product_name,
-            image: product.images[0],
-            price: product.price,
-            quantity: quantity,
-            size: selectedSize,
-            color: selectedColor,
-        });
+        // Xác định hình ảnh để sử dụng (không phải video)
+        const imageToUse =
+            product.images.find((img) => !isVideo(img)) ||
+            product.images[0] ||
+            '/placeholder.svg';
 
-        // Chuyển hướng đến trang giỏ hàng
-        navigate('/cart');
+        try {
+            // Thêm sản phẩm vào giỏ hàng
+            // Sử dụng product.product_id (string ObjectId)
+            await addToCart({
+                product_id: product.product_id,
+                product_name: product.product_name,
+                image: imageToUse,
+                price: product.price,
+                quantity: quantity,
+                size: selectedSize,
+                color: selectedColor,
+            });
+
+            // Chuyển hướng đến trang giỏ hàng
+            navigate('/cart');
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+            setDialog({
+                isOpen: true,
+                title: 'Lỗi',
+                description: 'Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng.',
+                type: 'error',
+            });
+        }
     };
 
     const handleCloseDialog = () => {
         setDialog({ isOpen: false, title: '', description: '', type: '' });
+        // Nếu thông báo là yêu cầu đăng nhập, chuyển hướng đến trang đăng nhập
+        if (dialog.title === 'Đăng nhập để tiếp tục') {
+            navigate('/signin');
+        }
     };
+
     const isVideo = (url: string) => {
         return /\.(mp4|webm|ogg)$/i.test(url);
     };
-    const imageToUse = isVideo(product.images[0])
-        ? product.images[1]
-        : product.images[0];
 
+   
+  
     return (
         <div className="flex flex-col items-center">
             <div className="flex flex-col md:flex-row gap-10 p-6 mt-10">
@@ -185,7 +278,7 @@ function ProductDetail() {
                         />
                     ) : (
                         <img
-                            src={mainImage}
+                            src={mainImage} // Use mainImage directly, it has a fallback
                             alt={product.product_name}
                             className="w-[40vw] h-[700px] rounded max-w-2xl object-cover"
                         />
@@ -209,7 +302,7 @@ function ProductDetail() {
                                     />
                                 ) : (
                                     <img
-                                        src={media}
+                                        src={media || '/placeholder.svg'} // Add fallback for thumbnails
                                         alt={`thumbnail-${idx}`}
                                         className="w-full h-full object-cover rounded"
                                     />
@@ -287,6 +380,7 @@ function ProductDetail() {
                                     setQuantity(Math.max(1, quantity - 1))
                                 }
                                 className="px-2"
+                                disabled={quantity <= 1} // Disable if quantity is 1
                             >
                                 -
                             </button>
@@ -294,6 +388,11 @@ function ProductDetail() {
                             <button
                                 onClick={() => setQuantity(quantity + 1)}
                                 className="px-2"
+                                // Optionally disable if quantity reaches max stock for selected variant
+                                disabled={
+                                    selectedVariant &&
+                                    quantity >= selectedVariant.stock
+                                }
                             >
                                 +
                             </button>
@@ -321,13 +420,17 @@ function ProductDetail() {
                     <div className="flex gap-4">
                         <button
                             onClick={handleAddToCart}
-                            className="px-6 py-3 border border-black rounded-full hover:bg-black hover:text-white"
+                            className="px-6 py-3 border border-black rounded-full hover:bg-black hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                            // Sử dụng biến boolean cho thuộc tính disabled
+                          
                         >
                             THÊM VÀO GIỎ
                         </button>
                         <button
                             onClick={handleBuyNow}
-                            className="px-6 py-3 bg-black text-white rounded-full hover:bg-white hover:text-black hover:border hover:border-black transition"
+                            className="px-6 py-3 bg-black text-white rounded-full hover:bg-white hover:text-black hover:border hover:border-black transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            // Sử dụng biến boolean cho thuộc tính disabled
+                           
                         >
                             MUA NGAY
                         </button>
@@ -349,21 +452,25 @@ function ProductDetail() {
                         </ShowMoreText>
                     </div>
                 </div>
+            </div>
 
-                <MessageDialog
-                    isOpen={dialog.isOpen}
-                    title={dialog.title}
-                    description={dialog.description}
-                    type={dialog.type}
-                    onClose={handleCloseDialog}
-                />
-            </div>
-            <div className="flex flex-row items-center w-full justify-center mt-10 mb-10">
-                <RelatedProducts
-                    currentProductId={product._id} // Truyền id của sản phẩm hiện tại
-                    categoryId={product.category_id}
-                />
-            </div>
+            <MessageDialog
+                isOpen={dialog.isOpen}
+                title={dialog.title}
+                description={dialog.description}
+                type={dialog.type}
+                onClose={handleCloseDialog}
+            />
+
+            {/* Related Products section */}
+            {product.category_id && product._id && (
+                <div className="flex flex-row items-center w-full justify-center mt-10 mb-10">
+                    <RelatedProducts
+                        currentProductId={product._id}
+                        categoryId={product.category_id}
+                    />
+                </div>
+            )}
         </div>
     );
 }

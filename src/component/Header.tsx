@@ -1,8 +1,23 @@
-import React, { useEffect, useRef, useState } from 'react';
+'use client';
+
+import type React from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import UserDropdownMenu, { User } from './UserDropdownMenu';
+import UserDropdownMenu from './UserDropdownMenu';
 import { useCart } from '../context/CartContext';
+
+// Định nghĩa interface cho User
+export interface User {
+    _id: string;
+    user_id: number;
+    name: string;
+    email: string;
+    phone: string;
+    birthDate?: string;
+    address?: string;
+    isAdmin: boolean;
+}
 
 // Định nghĩa interface cho sản phẩm
 interface Product {
@@ -34,14 +49,14 @@ const Header: React.FC = () => {
     const userMenuRef = useRef<HTMLDivElement>(null);
     const location = useLocation();
     const isHomePage = location.pathname === '/';
-    const { totalItems } = useCart();
     const [expandedSubMenu, setExpandedSubMenu] = useState<string | null>(null);
+    const { totalItems } = useCart();
 
-    // Các state mới cho tính năng tìm kiếm
+    // Các state cho tính năng tìm kiếm
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [searchResults, setSearchResults] = useState<Product[]>([]);
     const [isSearching, setIsSearching] = useState<boolean>(false);
-    const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([
+    const [suggestions] = useState<SearchSuggestion[]>([
         { text: 'Túi xách', category: 'Phụ kiện' },
         { text: 'Quý bà Dior', category: 'Thời trang' },
         { text: 'Ví', category: 'Phụ kiện' },
@@ -53,19 +68,93 @@ const Header: React.FC = () => {
     // Thêm state user
     const [user, setUser] = useState<User | null>(null);
 
-    // Đọc user từ localStorage khi component mount
+    // Kiểm tra xem người dùng có phải là admin không
+    const isAdmin = user?.isAdmin === true;
+
+    // Đọc user từ localStorage và kiểm tra session khi component mount
     useEffect(() => {
-        const savedUser = localStorage.getItem('user');
-        if (savedUser) {
+        const checkUserSession = async () => {
             try {
-                const parsedUser: User = JSON.parse(savedUser);
-                setUser(parsedUser);
+                console.log('Kiểm tra session từ server...');
+                const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+                const response = await fetch(
+                    `${apiBaseUrl}/api/users/check-session`,
+                    {
+                        method: 'GET',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    },
+                );
+
+                if (response.ok) {
+                    const userData = await response.json();
+                    if (userData.authenticated) {
+                        console.log('Session hợp lệ:', userData.user);
+                        setUser(userData.user);
+                        localStorage.setItem(
+                            'user',
+                            JSON.stringify(userData.user),
+                        );
+                    } else {
+                        console.log('Session không hợp lệ:', userData.message);
+                        setUser(null);
+                        localStorage.removeItem('user');
+                    }
+                } else {
+                    console.log(
+                        'Lỗi response từ check-session:',
+                        await response.text(),
+                    );
+                    const savedUser = localStorage.getItem('user');
+                    if (savedUser) {
+                        try {
+                            const parsedUser: User = JSON.parse(savedUser);
+                            setUser(parsedUser);
+                            console.log(
+                                'Sử dụng user từ localStorage:',
+                                parsedUser,
+                            );
+                        } catch (parseError) {
+                            console.error(
+                                'Lỗi khi parse user từ localStorage:',
+                                parseError,
+                            );
+                            localStorage.removeItem('user');
+                            setUser(null);
+                        }
+                    } else {
+                        localStorage.removeItem('user');
+                        setUser(null);
+                    }
+                }
             } catch (error) {
-                console.error('Failed to parse user from localStorage:', error);
-                localStorage.removeItem('user');
-                localStorage.removeItem('token');
+                console.error('Lỗi khi kiểm tra session:', error);
+                const savedUser = localStorage.getItem('user');
+                if (savedUser) {
+                    try {
+                        const parsedUser: User = JSON.parse(savedUser);
+                        setUser(parsedUser);
+                        console.log(
+                            'Sử dụng user từ localStorage:',
+                            parsedUser,
+                        );
+                    } catch (parseError) {
+                        console.error(
+                            'Lỗi khi parse user từ localStorage:',
+                            parseError,
+                        );
+                        localStorage.removeItem('user');
+                        setUser(null);
+                    }
+                } else {
+                    setUser(null);
+                }
             }
-        }
+        };
+
+        checkUserSession();
     }, []);
 
     // Hàm tìm kiếm sản phẩm
@@ -77,12 +166,18 @@ const Header: React.FC = () => {
 
         setIsSearching(true);
         try {
-            const response = await fetch(`http://localhost:3000/api/products`);
+            const response = await fetch(
+                `http://localhost:3000/api/products?search=${encodeURIComponent(
+                    query,
+                )}`,
+                {
+                    credentials: 'include',
+                },
+            );
+
             if (!response.ok) throw new Error('Network response was not ok');
 
             const products: Product[] = await response.json();
-
-            // Lọc sản phẩm dựa trên query
             const filteredProducts = products.filter((product) =>
                 product.product_name
                     .toLowerCase()
@@ -91,14 +186,14 @@ const Header: React.FC = () => {
 
             setSearchResults(filteredProducts);
         } catch (error) {
-            console.error('Error searching products:', error);
+            console.error('Lỗi khi tìm kiếm sản phẩm:', error);
             setSearchResults([]);
         } finally {
             setIsSearching(false);
         }
     };
 
-    // Debounce hàm tìm kiếm để tránh gọi API quá nhiều
+    // Debounce hàm tìm kiếm
     useEffect(() => {
         const timer = setTimeout(() => {
             if (searchQuery) {
@@ -109,7 +204,7 @@ const Header: React.FC = () => {
         return () => clearTimeout(timer);
     }, [searchQuery]);
 
-    // Xử lý khi người dùng nhấn Enter trong ô tìm kiếm
+    // Xử lý khi nhấn Enter trong ô tìm kiếm
     const handleSearchSubmit = (
         e: React.KeyboardEvent<HTMLInputElement> | React.MouseEvent,
     ) => {
@@ -121,14 +216,14 @@ const Header: React.FC = () => {
         }
     };
 
-    // Xử lý khi người dùng click vào một gợi ý
+    // Xử lý khi click vào gợi ý
     const handleSuggestionClick = (suggestion: string) => {
         setSearchQuery(suggestion);
         setShowSearchPanel(false);
         navigate(`/products?search=${encodeURIComponent(suggestion)}`);
     };
 
-    // Xử lý click vào kết quả tìm kiếm
+    // Xử lý khi click vào kết quả tìm kiếm
     const handleSearchResultClick = (productId: string) => {
         setShowSearchPanel(false);
         navigate(`/product/${productId}`);
@@ -152,9 +247,7 @@ const Header: React.FC = () => {
         if (!isHomePage) return;
         const onScroll = () => setScrolled(window.scrollY > 10);
         window.addEventListener('scroll', onScroll);
-
-        onScroll(); // 👉 gọi ngay lần đầu để set chính xác trạng thái scrolled
-
+        onScroll();
         return () => window.removeEventListener('scroll', onScroll);
     }, [isHomePage]);
 
@@ -169,6 +262,8 @@ const Header: React.FC = () => {
     const toggleMenu = (menu: string) => {
         setExpandedMenu((prev) => (prev === menu ? null : menu));
     };
+
+  
 
     return (
         <>
@@ -197,10 +292,7 @@ const Header: React.FC = () => {
                             }
                             text-white`}
                     >
-                        <Link to="/">
-                            {/* Consider using Link from react-router-dom if this is an internal link */}
-                            VÉLVERE
-                        </Link>
+                        <Link to="/">VÉLVERE</Link>
                     </h1>
 
                     <div
@@ -211,32 +303,37 @@ const Header: React.FC = () => {
                                 : 'opacity-100'
                         }`}
                     >
-                        <Link to="/cart" className="relative">
-                            <i className="fa-solid fa-bag-shopping text-gray-100 hover:text-gray-400 transition cursor-pointer" />
-                            {totalItems > 0 && (
-                                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-                                    {totalItems > 99 ? '99+' : totalItems}
-                                </span>
-                            )}
-                        </Link>
+                        {/* Hiển thị giỏ hàng chỉ khi không phải admin */}
+                        {!isAdmin && (
+                            <Link to="/cart" className="relative">
+                                <i className="fa-solid fa-bag-shopping text-gray-100 hover:text-gray-400 transition cursor-pointer" />
+                                {totalItems > 0 && (
+                                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                                        {totalItems > 99 ? '99+' : totalItems}
+                                    </span>
+                                )}
+                            </Link>
+                        )}
+
+                        {/* User menu dropdown */}
                         <div className="relative" ref={userMenuRef}>
                             <button
                                 onClick={() => setShowUserMenu(!showUserMenu)}
                                 className="user-icon-button"
                                 aria-label="User account menu"
                             >
-                                <i className="fa-solid fa-user text-gray-100 hover:text-gray-400 transition cursor-pointer" />
-
-                                {/* <img
-                                    src={userIcon}
-                                    alt="User"
-                                    className="w-[2vw] h-[2vw] max-w-[22px] max-h-[22px] "
-                                /> */}
+                                <i
+                                    className={`fa-solid ${
+                                        user ? 'fa-user-check' : 'fa-user'
+                                    } text-gray-100 hover:text-gray-400 transition cursor-pointer`}
+                                />
                             </button>
+
                             {showUserMenu && (
                                 <UserDropdownMenu
                                     user={user}
                                     setUser={setUser}
+                                    setShowUserMenu={setShowUserMenu}
                                 />
                             )}
                         </div>
@@ -245,36 +342,21 @@ const Header: React.FC = () => {
                             onClick={() => setShowSearchPanel(true)}
                             aria-label="Open search"
                         >
-                            {' '}
-                            {/* Added aria-label */}
                             <i className="fa-solid fa-magnifying-glass text-gray-100 hover:text-gray-400 transition cursor-pointer"></i>
-                            {/* <img
-                                src={search}
-                                alt="Search"
-                                className="w-[2vw] h-[2vw] max-w-[22px] max-h-[22px]"
-                            /> */}
                         </button>
 
                         <button
                             onClick={() => setShowSideMenu(true)}
                             aria-label="Open menu"
                         >
-                            {' '}
-                            {/* Added aria-label */}
                             <i className="fa-solid fa-bars text-gray-100 hover:text-gray-400 transition cursor-pointer"></i>
-                            {/* <img
-                                src={menu}
-                                alt="Menu"
-                                className="w-[2vw] h-[2vw] max-w-[22px] max-h-[22px]"
-                            /> */}
                         </button>
                     </div>
                 </div>
 
                 {isHomePage && (
                     <a
-                        href="#"
-                        // Consider using Link from react-router-dom if this is an internal link
+                        href="#appointment"
                         className="top-0 w-full z-40 flex justify-center items-center h-16 text-gray-700 tracking-widest group relative hover:text-black transition-colors duration-300"
                     >
                         Book an appointment now
@@ -283,7 +365,7 @@ const Header: React.FC = () => {
                 )}
             </div>
 
-            {/* Search Panel - Đã được cập nhật */}
+            {/* Search Panel */}
             <AnimatePresence>
                 {showSearchPanel && (
                     <>
@@ -387,7 +469,8 @@ const Header: React.FC = () => {
                                                         <img
                                                             src={
                                                                 product
-                                                                    .images[0]
+                                                                    .images[0] ||
+                                                                '/placeholder.svg'
                                                             }
                                                             alt={
                                                                 product.product_name
@@ -520,682 +603,756 @@ const Header: React.FC = () => {
                                     <i className="fa-solid fa-xmark text-lg text-gray-600"></i>
                                 </button>
                             </div>
-                            <ul className="flex flex-col" role="menu">
-                                <li role="none">
-                                    <Link
-                                        to="/productPage"
-                                        onClick={() => setShowSideMenu(false)}
-                                        className="block w-full px-6 py-3 hover:bg-gray-100"
-                                        role="menuitem"
-                                    >
-                                        Sản phẩm
-                                    </Link>
-                                </li>
-                                <li role="none">
-                                    <button
-                                        onClick={() => toggleMenu('men')}
-                                        className="w-full px-6 py-3 text-left hover:bg-gray-100 flex justify-between items-center"
-                                        aria-expanded={expandedMenu === 'men'}
-                                        aria-controls="men-submenu"
-                                    >
-                                        Thời trang Nam
-                                        <i
-                                            className={`fa-solid ${
-                                                expandedMenu === 'men'
-                                                    ? 'fa-chevron-up'
-                                                    : 'fa-chevron-down'
-                                            }`}
-                                            aria-hidden="true"
-                                        />
-                                    </button>
-                                    {expandedMenu === 'men' && (
-                                        <ul
-                                            className="pl-8 text-sm text-gray-700"
-                                            role="menu"
-                                            id="men-submenu"
+
+                            {/* Menu nội dung khác nhau cho admin và user */}
+                            {isAdmin ? (
+                                <ul className="flex flex-col" role="menu">
+                                    <li role="none">
+                                        <button
+                                            onClick={() =>
+                                                toggleMenu('products')
+                                            }
+                                            className="w-full px-6 py-3 text-left hover:bg-gray-100 flex justify-between items-center"
+                                            aria-expanded={
+                                                expandedMenu === 'products'
+                                            }
+                                            aria-controls="products-submenu"
                                         >
-                                            {/* Áo Sub-Submenu */}
-                                            <li role="none">
-                                                <button
-                                                    onClick={() =>
-                                                        setExpandedSubMenu(
-                                                            (prev) =>
-                                                                prev ===
-                                                                'men-ao' // Use a unique key for the men's 'Áo' submenu
-                                                                    ? null
-                                                                    : 'men-ao',
-                                                        )
-                                                    }
-                                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex justify-between items-center" // Added flex for spacing icon
-                                                    aria-expanded={
-                                                        expandedSubMenu ===
-                                                        'men-ao'
-                                                    } // Add aria-expanded
-                                                    aria-controls="men-ao-sub-submenu" // Add aria-controls
-                                                >
-                                                    Áo
-                                                    <i
-                                                        className={`ml-2 fa-solid ${
+                                            Sản phẩm
+                                            <i
+                                                className={`fa-solid ${
+                                                    expandedMenu === 'products'
+                                                        ? 'fa-chevron-up'
+                                                        : 'fa-chevron-down'
+                                                }`}
+                                                aria-hidden="true"
+                                            />
+                                        </button>
+                                        {expandedMenu === 'products' && (
+                                            <ul
+                                                className="pl-8 text-sm text-gray-700"
+                                                role="menu"
+                                                id="products-submenu"
+                                            >
+                                                <li role="none">
+                                                    <button
+                                                        onClick={() =>
+                                                            setExpandedSubMenu(
+                                                                (prev) =>
+                                                                    prev ===
+                                                                    'products-add'
+                                                                        ? null
+                                                                        : 'products-add',
+                                                            )
+                                                        }
+                                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex justify-between items-center"
+                                                        aria-expanded={
+                                                            expandedSubMenu ===
+                                                            'products-add'
+                                                        }
+                                                        aria-controls="products-add-submenu"
+                                                    >
+                                                        Thêm sản phẩm
+                                                        <i
+                                                            className={`ml-2 fa-solid ${
+                                                                expandedSubMenu ===
+                                                                'products-add'
+                                                                    ? 'fa-chevron-up'
+                                                                    : 'fa-chevron-down'
+                                                            }`}
+                                                            aria-hidden="true"
+                                                        />
+                                                    </button>
+                                                    {expandedSubMenu ===
+                                                        'products-add' && (
+                                                        <ul
+                                                            className="pl-4 text-sm text-gray-700"
+                                                            role="menu"
+                                                            id="products-add-submenu"
+                                                        >
+                                                            <li role="none">
+                                                                <Link
+                                                                    to="/admin/products/add"
+                                                                    onClick={() =>
+                                                                        setShowSideMenu(
+                                                                            false,
+                                                                        )
+                                                                    }
+                                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                                    role="menuitem"
+                                                                >
+                                                                    Thêm sản
+                                                                    phẩm mới
+                                                                </Link>
+                                                            </li>
+                                                            <li role="none">
+                                                                <Link
+                                                                    to="/admin/products/import"
+                                                                    onClick={() =>
+                                                                        setShowSideMenu(
+                                                                            false,
+                                                                        )
+                                                                    }
+                                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                                    role="menuitem"
+                                                                >
+                                                                    Nhập hàng
+                                                                </Link>
+                                                            </li>
+                                                        </ul>
+                                                    )}
+                                                </li>
+                                                <li role="none">
+                                                    <Link
+                                                        to="/admin/products"
+                                                        onClick={() =>
+                                                            setShowSideMenu(
+                                                                false,
+                                                            )
+                                                        }
+                                                        className="block px-4 py-2 hover:bg-gray-100"
+                                                        role="menuitem"
+                                                    >
+                                                        Danh sách sản phẩm
+                                                    </Link>
+                                                </li>
+                                                <li role="none">
+                                                    <Link
+                                                        to="/admin/categories"
+                                                        onClick={() =>
+                                                            setShowSideMenu(
+                                                                false,
+                                                            )
+                                                        }
+                                                        className="block px-4 py-2 hover:bg-gray-100"
+                                                        role="menuitem"
+                                                    >
+                                                        Quản lý danh mục
+                                                    </Link>
+                                                </li>
+                                            </ul>
+                                        )}
+                                    </li>
+                                    <li role="none">
+                                        <button
+                                            onClick={() => toggleMenu('orders')}
+                                            className="w-full px-6 py-3 text-left hover:bg-gray-100 flex justify-between items-center"
+                                            aria-expanded={
+                                                expandedMenu === 'orders'
+                                            }
+                                            aria-controls="orders-submenu"
+                                        >
+                                            Đơn hàng
+                                            <i
+                                                className={`fa-solid ${
+                                                    expandedMenu === 'orders'
+                                                        ? 'fa-chevron-up'
+                                                        : 'fa-chevron-down'
+                                                }`}
+                                                aria-hidden="true"
+                                            />
+                                        </button>
+                                        {expandedMenu === 'orders' && (
+                                            <ul
+                                                className="pl-8 text-sm text-gray-700"
+                                                role="menu"
+                                                id="orders-submenu"
+                                            >
+                                                <li role="none">
+                                                    <Link
+                                                        to="/admin/orders"
+                                                        onClick={() =>
+                                                            setShowSideMenu(
+                                                                false,
+                                                            )
+                                                        }
+                                                        className="block px-4 py-2 hover:bg-gray-100"
+                                                        role="menuitem"
+                                                    >
+                                                        Tất cả đơn hàng
+                                                    </Link>
+                                                </li>
+                                                <li role="none">
+                                                    <Link
+                                                        to="/admin/orders/pending"
+                                                        onClick={() =>
+                                                            setShowSideMenu(
+                                                                false,
+                                                            )
+                                                        }
+                                                        className="block px-4 py-2 hover:bg-gray-100"
+                                                        role="menuitem"
+                                                    >
+                                                        Đơn hàng chờ xử lý
+                                                    </Link>
+                                                </li>
+                                                <li role="none">
+                                                    <Link
+                                                        to="/admin/orders/shipping"
+                                                        onClick={() =>
+                                                            setShowSideMenu(
+                                                                false,
+                                                            )
+                                                        }
+                                                        className="block px-4 py-2 hover:bg-gray-100"
+                                                        role="menuitem"
+                                                    >
+                                                        Đơn hàng đang giao
+                                                    </Link>
+                                                </li>
+                                                <li role="none">
+                                                    <Link
+                                                        to="/admin/orders/completed"
+                                                        onClick={() =>
+                                                            setShowSideMenu(
+                                                                false,
+                                                            )
+                                                        }
+                                                        className="block px-4 py-2 hover:bg-gray-100"
+                                                        role="menuitem"
+                                                    >
+                                                        Đơn hàng đã hoàn thành
+                                                    </Link>
+                                                </li>
+                                                <li role="none">
+                                                    <Link
+                                                        to="/admin/orders/cancelled"
+                                                        onClick={() =>
+                                                            setShowSideMenu(
+                                                                false,
+                                                            )
+                                                        }
+                                                        className="block px-4 py-2 hover:bg-gray-100"
+                                                        role="menuitem"
+                                                    >
+                                                        Đơn hàng đã hủy
+                                                    </Link>
+                                                </li>
+                                            </ul>
+                                        )}
+                                    </li>
+                                    <li role="none">
+                                        <button
+                                            onClick={() => toggleMenu('users')}
+                                            className="w-full px-6 py-3 text-left hover:bg-gray-100 flex justify-between items-center"
+                                            aria-expanded={
+                                                expandedMenu === 'users'
+                                            }
+                                            aria-controls="users-submenu"
+                                        >
+                                            Người dùng
+                                            <i
+                                                className={`fa-solid ${
+                                                    expandedMenu === 'users'
+                                                        ? 'fa-chevron-up'
+                                                        : 'fa-chevron-down'
+                                                }`}
+                                                aria-hidden="true"
+                                            />
+                                        </button>
+                                        {expandedMenu === 'users' && (
+                                            <ul
+                                                className="pl-8 text-sm text-gray-700"
+                                                role="menu"
+                                                id="users-submenu"
+                                            >
+                                                <li role="none">
+                                                    <Link
+                                                        to="/admin/users"
+                                                        onClick={() =>
+                                                            setShowSideMenu(
+                                                                false,
+                                                            )
+                                                        }
+                                                        className="block px-4 py-2 hover:bg-gray-100"
+                                                        role="menuitem"
+                                                    >
+                                                        Danh sách người dùng
+                                                    </Link>
+                                                </li>
+                                                <li role="none">
+                                                    <Link
+                                                        to="/admin/users/add"
+                                                        onClick={() =>
+                                                            setShowSideMenu(
+                                                                false,
+                                                            )
+                                                        }
+                                                        className="block px-4 py-2 hover:bg-gray-100"
+                                                        role="menuitem"
+                                                    >
+                                                        Thêm người dùng mới
+                                                    </Link>
+                                                </li>
+                                            </ul>
+                                        )}
+                                    </li>
+                                    <li role="none">
+                                        <Link
+                                            to="/admin/dashboard"
+                                            onClick={() =>
+                                                setShowSideMenu(false)
+                                            }
+                                            className="block w-full px-6 py-3 text-left hover:bg-gray-100"
+                                            role="menuitem"
+                                        >
+                                            Bảng điều khiển
+                                        </Link>
+                                    </li>
+                                    <li role="none">
+                                        <Link
+                                            to="/admin/settings"
+                                            onClick={() =>
+                                                setShowSideMenu(false)
+                                            }
+                                            className="block w-full px-6 py-3 text-left hover:bg-gray-100"
+                                            role="menuitem"
+                                        >
+                                            Cài đặt hệ thống
+                                        </Link>
+                                    </li>
+                                </ul>
+                            ) : (
+                                <ul className="flex flex-col" role="menu">
+                                    <li role="none">
+                                        <Link
+                                            to="/productPage"
+                                            onClick={() =>
+                                                setShowSideMenu(false)
+                                            }
+                                            className="block w-full px-6 py-3 hover:bg-gray-100"
+                                            role="menuitem"
+                                        >
+                                            Sản phẩm
+                                        </Link>
+                                    </li>
+                                    <li role="none">
+                                        <button
+                                            onClick={() => toggleMenu('men')}
+                                            className="w-full px-6 py-3 text-left hover:bg-gray-100 flex justify-between items-center"
+                                            aria-expanded={
+                                                expandedMenu === 'men'
+                                            }
+                                            aria-controls="men-submenu"
+                                        >
+                                            Thời trang Nam
+                                            <i
+                                                className={`fa-solid ${
+                                                    expandedMenu === 'men'
+                                                        ? 'fa-chevron-up'
+                                                        : 'fa-chevron-down'
+                                                }`}
+                                                aria-hidden="true"
+                                            />
+                                        </button>
+                                        {expandedMenu === 'men' && (
+                                            <ul
+                                                className="pl-8 text-sm text-gray-700"
+                                                role="menu"
+                                                id="men-submenu"
+                                            >
+                                                <li role="none">
+                                                    <button
+                                                        onClick={() =>
+                                                            setExpandedSubMenu(
+                                                                (prev) =>
+                                                                    prev ===
+                                                                    'men-ao'
+                                                                        ? null
+                                                                        : 'men-ao',
+                                                            )
+                                                        }
+                                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex justify-between items-center"
+                                                        aria-expanded={
                                                             expandedSubMenu ===
                                                             'men-ao'
-                                                                ? 'fa-chevron-up'
-                                                                : 'fa-chevron-down'
-                                                        }`}
-                                                        aria-hidden="true"
-                                                    />
-                                                </button>
-                                                {expandedSubMenu ===
-                                                    'men-ao' && (
-                                                    <ul
-                                                        className="pl-4 text-sm text-gray-700"
-                                                        role="menu" // Add role="menu"
-                                                        id="men-ao-sub-submenu" // Add id
+                                                        }
+                                                        aria-controls="men-ao-sub-submenu"
                                                     >
-                                                        <li role="none">
-                                                            <Link
-                                                                to="/productPage?sex=Nam&category_id=vest"
-                                                                onClick={() =>
-                                                                    setShowSideMenu(
-                                                                        false,
-                                                                    )
-                                                                }
-                                                                className="block px-4 py-2 hover:bg-gray-100"
-                                                                role="menuitem"
-                                                            >
-                                                                Áo vest
-                                                            </Link>
-                                                        </li>
-                                                        <li role="none">
-                                                            <Link
-                                                                to="/productPage?sex=Nam&category_id=aothun"
-                                                                onClick={() =>
-                                                                    setShowSideMenu(
-                                                                        false,
-                                                                    )
-                                                                }
-                                                                className="block px-4 py-2 hover:bg-gray-100"
-                                                                role="menuitem"
-                                                            >
-                                                                Áo thun
-                                                            </Link>
-                                                        </li>
-                                                        <li role="none">
-                                                            <Link
-                                                                to="/productPage?sex=Nam&category_id=aosomi"
-                                                                onClick={() =>
-                                                                    setShowSideMenu(
-                                                                        false,
-                                                                    )
-                                                                }
-                                                                className="block px-4 py-2 hover:bg-gray-100"
-                                                                role="menuitem"
-                                                            >
-                                                                Áo sơ mi
-                                                            </Link>
-                                                        </li>
-                                                        <li role="none">
-                                                            <Link
-                                                                to="/productPage?sex=Nam&category_id=aolen"
-                                                                onClick={() =>
-                                                                    setShowSideMenu(
-                                                                        false,
-                                                                    )
-                                                                }
-                                                                className="block px-4 py-2 hover:bg-gray-100"
-                                                                role="menuitem"
-                                                            >
-                                                                Áo len
-                                                            </Link>
-                                                        </li>
-                                                        <li role="none">
-                                                            <Link
-                                                                to="/productPage?sex=Nam&category_id=aokhoac"
-                                                                onClick={() =>
-                                                                    setShowSideMenu(
-                                                                        false,
-                                                                    )
-                                                                }
-                                                                className="block px-4 py-2 hover:bg-gray-100"
-                                                                role="menuitem"
-                                                            >
-                                                                Áo khoác
-                                                            </Link>
-                                                        </li>
-                                                    </ul>
-                                                )}
-                                            </li>
-                                            {/* Phụ kiện Sub-Submenu */}
-                                            <li role="none">
-                                                <button
-                                                    onClick={() =>
-                                                        setExpandedSubMenu(
-                                                            (prev) =>
-                                                                prev ===
-                                                                'men-phukien' // Use a unique key for the men's 'Phụ kiện' submenu
-                                                                    ? null
-                                                                    : 'men-phukien',
-                                                        )
-                                                    }
-                                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex justify-between items-center" // Added flex for spacing icon
-                                                    aria-expanded={
-                                                        expandedSubMenu ===
-                                                        'men-phukien'
-                                                    } // Add aria-expanded
-                                                    aria-controls="men-phukien-sub-submenu" // Add aria-controls
-                                                >
-                                                    Phụ kiện
-                                                    <i
-                                                        className={`ml-2 fa-solid ${
+                                                        Áo
+                                                        <i
+                                                            className={`ml-2 fa-solid ${
+                                                                expandedSubMenu ===
+                                                                'men-ao'
+                                                                    ? 'fa-chevron-up'
+                                                                    : 'fa-chevron-down'
+                                                            }`}
+                                                            aria-hidden="true"
+                                                        />
+                                                    </button>
+                                                    {expandedSubMenu ===
+                                                        'men-ao' && (
+                                                        <ul
+                                                            className="pl-4 text-sm text-gray-700"
+                                                            role="menu"
+                                                            id="men-ao-sub-submenu"
+                                                        >
+                                                            <li role="none">
+                                                                <Link
+                                                                    to="/productPage?sex=Nam&category_id=vest"
+                                                                    onClick={() =>
+                                                                        setShowSideMenu(
+                                                                            false,
+                                                                        )
+                                                                    }
+                                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                                    role="menuitem"
+                                                                >
+                                                                    Áo vest
+                                                                </Link>
+                                                            </li>
+                                                            <li role="none">
+                                                                <Link
+                                                                    to="/productPage?sex=Nam&category_id=aothun"
+                                                                    onClick={() =>
+                                                                        setShowSideMenu(
+                                                                            false,
+                                                                        )
+                                                                    }
+                                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                                    role="menuitem"
+                                                                >
+                                                                    Áo thun
+                                                                </Link>
+                                                            </li>
+                                                            <li role="none">
+                                                                <Link
+                                                                    to="/productPage?sex=Nam&category_id=aosomi"
+                                                                    onClick={() =>
+                                                                        setShowSideMenu(
+                                                                            false,
+                                                                        )
+                                                                    }
+                                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                                    role="menuitem"
+                                                                >
+                                                                    Áo sơ mi
+                                                                </Link>
+                                                            </li>
+                                                            <li role="none">
+                                                                <Link
+                                                                    to="/productPage?sex=Nam&category_id=aolen"
+                                                                    onClick={() =>
+                                                                        setShowSideMenu(
+                                                                            false,
+                                                                        )
+                                                                    }
+                                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                                    role="menuitem"
+                                                                >
+                                                                    Áo len
+                                                                </Link>
+                                                            </li>
+                                                            <li role="none">
+                                                                <Link
+                                                                    to="/productPage?sex=Nam&category_id=aokhoac"
+                                                                    onClick={() =>
+                                                                        setShowSideMenu(
+                                                                            false,
+                                                                        )
+                                                                    }
+                                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                                    role="menuitem"
+                                                                >
+                                                                    Áo khoác
+                                                                </Link>
+                                                            </li>
+                                                        </ul>
+                                                    )}
+                                                </li>
+                                                <li role="none">
+                                                    <button
+                                                        onClick={() =>
+                                                            setExpandedSubMenu(
+                                                                (prev) =>
+                                                                    prev ===
+                                                                    'men-phukien'
+                                                                        ? null
+                                                                        : 'men-phukien',
+                                                            )
+                                                        }
+                                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex justify-between items-center"
+                                                        aria-expanded={
                                                             expandedSubMenu ===
                                                             'men-phukien'
-                                                                ? 'fa-chevron-up'
-                                                                : 'fa-chevron-down'
-                                                        }`}
-                                                        aria-hidden="true"
-                                                    />
-                                                </button>
-                                                {expandedSubMenu ===
-                                                    'men-phukien' && ( // Correct conditional rendering
-                                                    <ul
-                                                        className="pl-4 text-sm text-gray-700"
-                                                        role="menu" // Add role="menu"
-                                                        id="men-phukien-sub-submenu" // Add id
+                                                        }
+                                                        aria-controls="men-phukien-sub-submenu"
                                                     >
-                                                        <li role="none">
-                                                            <Link
-                                                                to="/productPage?sex=Nam&category_id=mu"
-                                                                onClick={() =>
-                                                                    setShowSideMenu(
-                                                                        false,
-                                                                    )
-                                                                }
-                                                                className="block px-4 py-2 hover:bg-gray-100"
-                                                                role="menuitem"
-                                                            >
-                                                                Mũ
-                                                            </Link>
-                                                        </li>
-                                                        <li role="none">
-                                                            <Link
-                                                                to="/productPage?sex=Nam&category_id=thatlung"
-                                                                onClick={() =>
-                                                                    setShowSideMenu(
-                                                                        false,
-                                                                    )
-                                                                }
-                                                                className="block px-4 py-2 hover:bg-gray-100"
-                                                                role="menuitem"
-                                                            >
-                                                                Thắt lưng
-                                                            </Link>
-                                                        </li>
-                                                        <li role="none">
-                                                            <Link
-                                                                to="/productPage?sex=Nam&category_id=khanchoang"
-                                                                onClick={() =>
-                                                                    setShowSideMenu(
-                                                                        false,
-                                                                    )
-                                                                }
-                                                                className="block px-4 py-2 hover:bg-gray-100"
-                                                                role="menuitem"
-                                                            >
-                                                                Khăn choàng
-                                                            </Link>
-                                                        </li>
-                                                        <li role="none">
-                                                            <Link
-                                                                to="/productPage?sex=Nam&category_id=tui"
-                                                                onClick={() =>
-                                                                    setShowSideMenu(
-                                                                        false,
-                                                                    )
-                                                                }
-                                                                className="block px-4 py-2 hover:bg-gray-100"
-                                                                role="menuitem"
-                                                            >
-                                                                Túi
-                                                            </Link>
-                                                        </li>
-                                                        <li role="none">
-                                                            <Link
-                                                                to="/productPage?sex=Nam&category_id=trangsuc"
-                                                                onClick={() =>
-                                                                    setShowSideMenu(
-                                                                        false,
-                                                                    )
-                                                                }
-                                                                className="block px-4 py-2 hover:bg-gray-100"
-                                                                role="menuitem"
-                                                            >
-                                                                Trang sức
-                                                            </Link>
-                                                        </li>
-                                                    </ul>
-                                                )}
-                                            </li>
-                                            {/* Quần Link */}
-                                            <li role="none">
-                                                <Link
-                                                    to="/productPage?sex=Nam&category_id=quan"
-                                                    onClick={() =>
-                                                        setShowSideMenu(false)
-                                                    }
-                                                    className="block px-4 py-2 hover:bg-gray-100"
-                                                    role="menuitem"
-                                                >
-                                                    Quần
-                                                </Link>
-                                            </li>
-                                            {/* Giày Link */}
-                                            <li role="none">
-                                                <Link
-                                                    to="/productPage?sex=Nam&category_id=giay"
-                                                    onClick={() =>
-                                                        setShowSideMenu(false)
-                                                    }
-                                                    className="block px-4 py-2 hover:bg-gray-100"
-                                                    role="menuitem"
-                                                >
-                                                    Giày
-                                                </Link>
-                                            </li>
-                                        </ul>
-                                    )}
-                                </li>
-                                <li role="none">
-                                    <button
-                                        onClick={() => toggleMenu('women')} // Toggles the main women's menu
-                                        className="w-full px-6 py-3 text-left hover:bg-gray-100 flex justify-between items-center"
-                                        aria-expanded={expandedMenu === 'women'}
-                                        aria-controls="women-submenu"
-                                    >
-                                        Thời trang Nữ
-                                        <i
-                                            className={`fa-solid ${
+                                                        Phụ kiện
+                                                        <i
+                                                            className={`ml-2 fa-solid ${
+                                                                expandedSubMenu ===
+                                                                'men-phukien'
+                                                                    ? 'fa-chevron-up'
+                                                                    : 'fa-chevron-down'
+                                                            }`}
+                                                            aria-hidden="true"
+                                                        />
+                                                    </button>
+                                                    {expandedSubMenu ===
+                                                        'men-phukien' && (
+                                                        <ul
+                                                            className="pl-4 text-sm text-gray-700"
+                                                            role="menu"
+                                                            id="men-phukien-sub-submenu"
+                                                        >
+                                                            <li role="none">
+                                                                <Link
+                                                                    to="/productPage?sex=Nam&category_id=mu"
+                                                                    onClick={() =>
+                                                                        setShowSideMenu(
+                                                                            false,
+                                                                        )
+                                                                    }
+                                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                                    role="menuitem"
+                                                                >
+                                                                    Mũ
+                                                                </Link>
+                                                            </li>
+                                                            <li role="none">
+                                                                <Link
+                                                                    to="/productPage?sex=Nam&category_id=thatlung"
+                                                                    onClick={() =>
+                                                                        setShowSideMenu(
+                                                                            false,
+                                                                        )
+                                                                    }
+                                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                                    role="menuitem"
+                                                                >
+                                                                    Thắt lưng
+                                                                </Link>
+                                                            </li>
+                                                            <li role="none">
+                                                                <Link
+                                                                    to="/productPage?sex=Nam&category_id=khanchoang"
+                                                                    onClick={() =>
+                                                                        setShowSideMenu(
+                                                                            false,
+                                                                        )
+                                                                    }
+                                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                                    role="menuitem"
+                                                                >
+                                                                    Khăn choàng
+                                                                </Link>
+                                                            </li>
+                                                            <li role="none">
+                                                                <Link
+                                                                    to="/productPage?sex=Nam&category_id=tui"
+                                                                    onClick={() =>
+                                                                        setShowSideMenu(
+                                                                            false,
+                                                                        )
+                                                                    }
+                                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                                    role="menuitem"
+                                                                >
+                                                                    Túi
+                                                                </Link>
+                                                            </li>
+                                                            <li role="none">
+                                                                <Link
+                                                                    to="/productPage?sex=Nam&category_id=trangsuc"
+                                                                    onClick={() =>
+                                                                        setShowSideMenu(
+                                                                            false,
+                                                                        )
+                                                                    }
+                                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                                    role="menuitem"
+                                                                >
+                                                                    Trang sức
+                                                                </Link>
+                                                            </li>
+                                                        </ul>
+                                                    )}
+                                                </li>
+                                                <li role="none">
+                                                    <Link
+                                                        to="/productPage?sex=Nam&category_id=quan"
+                                                        onClick={() =>
+                                                            setShowSideMenu(
+                                                                false,
+                                                            )
+                                                        }
+                                                        className="block px-4 py-2 hover:bg-gray-100"
+                                                        role="menuitem"
+                                                    >
+                                                        Quần
+                                                    </Link>
+                                                </li>
+                                                <li role="none">
+                                                    <Link
+                                                        to="/productPage?sex=Nam&category_id=giay"
+                                                        onClick={() =>
+                                                            setShowSideMenu(
+                                                                false,
+                                                            )
+                                                        }
+                                                        className="block px-4 py-2 hover:bg-gray-100"
+                                                        role="menuitem"
+                                                    >
+                                                        Giày
+                                                    </Link>
+                                                </li>
+                                            </ul>
+                                        )}
+                                    </li>
+                                    <li role="none">
+                                        <button
+                                            onClick={() => toggleMenu('women')}
+                                            className="w-full px-6 py-3 text-left hover:bg-gray-100 flex justify-between items-center"
+                                            aria-expanded={
                                                 expandedMenu === 'women'
-                                                    ? 'fa-chevron-up'
-                                                    : 'fa-chevron-down'
-                                            }`}
-                                            aria-hidden="true"
-                                        />
-                                    </button>
-                                    {expandedMenu === 'women' && (
-                                        <ul
-                                            className="pl-8 text-sm text-gray-700"
-                                            role="menu"
-                                            id="women-submenu"
+                                            }
+                                            aria-controls="women-submenu"
                                         >
-                                            {/* Áo Sub-Submenu for Women */}
-                                            <li role="none">
-                                                <button
-                                                    onClick={() =>
-                                                        setExpandedSubMenu(
-                                                            (prev) =>
-                                                                prev ===
-                                                                'women-ao' // Unique key for women's 'Áo' submenu
-                                                                    ? null
-                                                                    : 'women-ao',
-                                                        )
-                                                    }
-                                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex justify-between items-center"
-                                                    aria-expanded={
-                                                        expandedSubMenu ===
-                                                        'women-ao'
-                                                    } // aria-expanded matches the state key
-                                                    aria-controls="women-ao-sub-submenu" // aria-controls matches the sub-submenu id
-                                                >
-                                                    Áo
-                                                    <i
-                                                        className={`ml-2 fa-solid ${
+                                            Thời trang Nữ
+                                            <i
+                                                className={`fa-solid ${
+                                                    expandedMenu === 'women'
+                                                        ? 'fa-chevron-up'
+                                                        : 'fa-chevron-down'
+                                                }`}
+                                                aria-hidden="true"
+                                            />
+                                        </button>
+                                        {expandedMenu === 'women' && (
+                                            <ul
+                                                className="pl-8 text-sm text-gray-700"
+                                                role="menu"
+                                                id="women-submenu"
+                                            >
+                                                <li role="none">
+                                                    <button
+                                                        onClick={() =>
+                                                            setExpandedSubMenu(
+                                                                (prev) =>
+                                                                    prev ===
+                                                                    'women-ao'
+                                                                        ? null
+                                                                        : 'women-ao',
+                                                            )
+                                                        }
+                                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex justify-between items-center"
+                                                        aria-expanded={
                                                             expandedSubMenu ===
                                                             'women-ao'
-                                                                ? 'fa-chevron-up'
-                                                                : 'fa-chevron-down'
-                                                        }`}
-                                                        aria-hidden="true"
-                                                    />
-                                                </button>
-                                                {expandedSubMenu ===
-                                                    'women-ao' && ( // Conditional rendering based on women's 'Áo' key
-                                                    <ul
-                                                        className="pl-4 text-sm text-gray-700"
-                                                        role="menu"
-                                                        id="women-ao-sub-submenu" // Unique id for the sub-submenu
+                                                        }
+                                                        aria-controls="women-ao-sub-submenu"
                                                     >
-                                                        {/* Example women's topwear categories - Updated paths */}
-                                                        <li role="none">
-                                                            <Link
-                                                                to="/productPage?sex=Nữ&category_id=aovest"
-                                                                onClick={() =>
-                                                                    setShowSideMenu(
-                                                                        false,
-                                                                    )
-                                                                }
-                                                                className="block px-4 py-2 hover:bg-gray-100"
-                                                                role="menuitem"
-                                                            >
-                                                                Áo vest
-                                                            </Link>
-                                                        </li>
-                                                        <li role="none">
-                                                            <Link
-                                                                to="/productPage?sex=Nữ&category_id=aothun"
-                                                                onClick={() =>
-                                                                    setShowSideMenu(
-                                                                        false,
-                                                                    )
-                                                                }
-                                                                className="block px-4 py-2 hover:bg-gray-100"
-                                                                role="menuitem"
-                                                            >
-                                                                Áo thun
-                                                            </Link>
-                                                        </li>
-                                                        <li role="none">
-                                                            <Link
-                                                                to="/productPage?sex=Nữ&category_id=aosomi"
-                                                                onClick={() =>
-                                                                    setShowSideMenu(
-                                                                        false,
-                                                                    )
-                                                                }
-                                                                className="block px-4 py-2 hover:bg-gray-100"
-                                                                role="menuitem"
-                                                            >
-                                                                Áo sơ mi
-                                                            </Link>
-                                                        </li>
-                                                        <li role="none">
-                                                            <Link
-                                                                to="/productPage?sex=Nữ&category_id=aolen"
-                                                                onClick={() =>
-                                                                    setShowSideMenu(
-                                                                        false,
-                                                                    )
-                                                                }
-                                                                className="block px-4 py-2 hover:bg-gray-100"
-                                                                role="menuitem"
-                                                            >
-                                                                Áo len
-                                                            </Link>
-                                                        </li>
-                                                        <li role="none">
-                                                            <Link
-                                                                to="/productPage?sex=Nữ&category_id=aokhoac"
-                                                                onClick={() =>
-                                                                    setShowSideMenu(
-                                                                        false,
-                                                                    )
-                                                                }
-                                                                className="block px-4 py-2 hover:bg-gray-100"
-                                                                role="menuitem"
-                                                            >
-                                                                Áo khoác
-                                                            </Link>
-                                                        </li>
-                                                        {/* Add other women's topwear links here */}
-                                                    </ul>
-                                                )}
-                                            </li>
-
-                                            {/* Đầm Sub-Submenu for Women */}
-                                            <li role="none">
-                                                <button
-                                                    onClick={() =>
-                                                        setExpandedSubMenu(
-                                                            (prev) =>
-                                                                prev ===
-                                                                'women-dam' // Unique key for women's 'Đầm' submenu
-                                                                    ? null
-                                                                    : 'women-dam',
-                                                        )
-                                                    }
-                                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex justify-between items-center"
-                                                    aria-expanded={
-                                                        expandedSubMenu ===
-                                                        'women-dam'
-                                                    } // aria-expanded matches the state key
-                                                    aria-controls="women-dam-sub-submenu" // aria-controls matches the sub-submenu id
-                                                >
-                                                    Đầm
-                                                    <i
-                                                        className={`ml-2 fa-solid ${
-                                                            expandedSubMenu ===
-                                                            'women-dam'
-                                                                ? 'fa-chevron-up'
-                                                                : 'fa-chevron-down'
-                                                        }`}
-                                                        aria-hidden="true"
-                                                    />
-                                                </button>
-                                                {expandedSubMenu ===
-                                                    'women-dam' && ( // Conditional rendering based on women's 'Đầm' key
-                                                    <ul
-                                                        className="pl-4 text-sm text-gray-700"
-                                                        role="menu"
-                                                        id="women-dam-sub-submenu" // Unique id for the sub-submenu
-                                                    >
-                                                        {/* Women's dress categories - Updated paths */}
-                                                        <li role="none">
-                                                            <Link
-                                                                to="/productPage?sex=Nữ&category_id=dambody"
-                                                                onClick={() =>
-                                                                    setShowSideMenu(
-                                                                        false,
-                                                                    )
-                                                                }
-                                                                className="block px-4 py-2 hover:bg-gray-100"
-                                                                role="menuitem"
-                                                            >
-                                                                Đầm body
-                                                            </Link>
-                                                        </li>
-                                                        <li role="none">
-                                                            <Link
-                                                                to="/productPage?sex=Nữ&category_id=damcongso"
-                                                                onClick={() =>
-                                                                    setShowSideMenu(
-                                                                        false,
-                                                                    )
-                                                                }
-                                                                className="block px-4 py-2 hover:bg-gray-100"
-                                                                role="menuitem"
-                                                            >
-                                                                Đầm công sở
-                                                            </Link>
-                                                        </li>
-                                                        <li role="none">
-                                                            <Link
-                                                                to="/productPage?sex=Nữ&category_id=damdahoi"
-                                                                onClick={() =>
-                                                                    setShowSideMenu(
-                                                                        false,
-                                                                    )
-                                                                }
-                                                                className="block px-4 py-2 hover:bg-gray-100"
-                                                                role="menuitem"
-                                                            >
-                                                                Đầm dạ hội
-                                                            </Link>
-                                                        </li>
-                                                        <li role="none">
-                                                            <Link
-                                                                to="/productPage?sex=Nữ&category_id=vay" // Assuming 'vay' maps to skirts
-                                                                onClick={() =>
-                                                                    setShowSideMenu(
-                                                                        false,
-                                                                    )
-                                                                }
-                                                                className="block px-4 py-2 hover:bg-gray-100"
-                                                                role="menuitem"
-                                                            >
-                                                                Váy
-                                                            </Link>
-                                                        </li>
-                                                        {/* Add other women's dress/skirt links here */}
-                                                    </ul>
-                                                )}
-                                            </li>
-
-                                            {/* Phụ kiện Sub-Submenu for Women */}
-                                            <li role="none">
-                                                <button
-                                                    onClick={() =>
-                                                        setExpandedSubMenu(
-                                                            (prev) =>
-                                                                prev ===
-                                                                'women-phukien' // Unique key for women's 'Phụ kiện' submenu
-                                                                    ? null
-                                                                    : 'women-phukien',
-                                                        )
-                                                    }
-                                                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex justify-between items-center"
-                                                    aria-expanded={
-                                                        expandedSubMenu ===
-                                                        'women-phukien'
-                                                    } // aria-expanded matches the state key
-                                                    aria-controls="women-phukien-sub-submenu" // aria-controls matches the sub-submenu id
-                                                >
-                                                    Phụ kiện
-                                                    <i
-                                                        className={`ml-2 fa-solid ${
-                                                            expandedSubMenu ===
-                                                            'women-phukien'
-                                                                ? 'fa-chevron-up'
-                                                                : 'fa-chevron-down'
-                                                        }`}
-                                                        aria-hidden="true"
-                                                    />
-                                                </button>
-                                                {expandedSubMenu ===
-                                                    'women-phukien' && ( // Conditional rendering based on women's 'Phụ kiện' key
-                                                    <ul
-                                                        className="pl-4 text-sm text-gray-700"
-                                                        role="menu"
-                                                        id="women-phukien-sub-submenu" // Unique id for the sub-submenu
-                                                    >
-                                                        {/* Women's accessories categories - Updated paths */}
-                                                        <li role="none">
-                                                            <Link
-                                                                to="/productPage?sex=Nữ&category_id=mu"
-                                                                onClick={() =>
-                                                                    setShowSideMenu(
-                                                                        false,
-                                                                    )
-                                                                }
-                                                                className="block px-4 py-2 hover:bg-gray-100"
-                                                                role="menuitem"
-                                                            >
-                                                                Mũ
-                                                            </Link>
-                                                        </li>
-                                                        <li role="none">
-                                                            <Link
-                                                                to="/productPage?sex=Nữ&category_id=thatlung"
-                                                                onClick={() =>
-                                                                    setShowSideMenu(
-                                                                        false,
-                                                                    )
-                                                                }
-                                                                className="block px-4 py-2 hover:bg-gray-100"
-                                                                role="menuitem"
-                                                            >
-                                                                Thắt lưng
-                                                            </Link>
-                                                        </li>
-                                                        <li role="none">
-                                                            <Link
-                                                                to="/productPage?sex=Nữ&category_id=khanchoang"
-                                                                onClick={() =>
-                                                                    setShowSideMenu(
-                                                                        false,
-                                                                    )
-                                                                }
-                                                                className="block px-4 py-2 hover:bg-gray-100"
-                                                                role="menuitem"
-                                                            >
-                                                                Khăn choàng
-                                                            </Link>
-                                                        </li>
-
-                                                        <li role="none">
-                                                            <Link
-                                                                to="/productPage?sex=Nữ&category_id=tui"
-                                                                onClick={() =>
-                                                                    setShowSideMenu(
-                                                                        false,
-                                                                    )
-                                                                }
-                                                                className="block px-4 py-2 hover:bg-gray-100"
-                                                                role="menuitem"
-                                                            >
-                                                                Túi
-                                                            </Link>
-                                                        </li>
-                                                        <li role="none">
-                                                            <Link
-                                                                to="/productPage?sex=Nữ&category_id=trangsuc"
-                                                                onClick={() =>
-                                                                    setShowSideMenu(
-                                                                        false,
-                                                                    )
-                                                                }
-                                                                className="block px-4 py-2 hover:bg-gray-100"
-                                                                role="menuitem"
-                                                            >
-                                                                Trang sức
-                                                            </Link>
-                                                        </li>
-                                                        <li role="none">
-                                                            <Link
-                                                                to="/productPage?sex=Nữ&category_id=phukien"
-                                                                onClick={() =>
-                                                                    setShowSideMenu(
-                                                                        false,
-                                                                    )
-                                                                }
-                                                                className="block px-4 py-2 hover:bg-gray-100"
-                                                                role="menuitem"
-                                                            >
-                                                                Phụ kiện
-                                                            </Link>
-                                                        </li>
-                                                        {/* Add other women's accessory links here */}
-                                                    </ul>
-                                                )}
-                                            </li>
-                                            {/* Quần Link for Women */}
-                                            <li role="none">
-                                                <Link
-                                                    to="/productPage?sex=Nữ&category_id=quan"
-                                                    onClick={() =>
-                                                        setShowSideMenu(false)
-                                                    }
-                                                    className="block px-4 py-2 hover:bg-gray-100"
-                                                    role="menuitem"
-                                                >
-                                                    Quần
-                                                </Link>
-                                            </li>
-
-                                            {/* Giày Link for Women */}
-                                            <li role="none">
-                                                <Link
-                                                    to="/productPage?sex=Nữ&category_id=giay"
-                                                    onClick={() =>
-                                                        setShowSideMenu(false)
-                                                    }
-                                                    className="block px-4 py-2 hover:bg-gray-100"
-                                                    role="menuitem"
-                                                >
-                                                    Giày
-                                                </Link>
-                                            </li>
-                                        </ul>
+                                                        Áo
+                                                        <i
+                                                            className={`ml-2 fa-solid ${
+                                                                expandedSubMenu ===
+                                                                'women-ao'
+                                                                    ? 'fa-chevron-up'
+                                                                    : 'fa-chevron-down'
+                                                            }`}
+                                                            aria-hidden="true"
+                                                        />
+                                                    </button>
+                                                    {expandedSubMenu ===
+                                                        'women-ao' && (
+                                                        <ul
+                                                            className="pl-4 text-sm text-gray-700"
+                                                            role="menu"
+                                                            id="women-ao-sub-submenu"
+                                                        >
+                                                            <li role="none">
+                                                                <Link
+                                                                    to="/productPage?sex=Nữ&category_id=aovest"
+                                                                    onClick={() =>
+                                                                        setShowSideMenu(
+                                                                            false,
+                                                                        )
+                                                                    }
+                                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                                    role="menuitem"
+                                                                >
+                                                                    Áo vest
+                                                                </Link>
+                                                            </li>
+                                                            <li role="none">
+                                                                <Link
+                                                                    to="/productPage?sex=Nữ&category_id=aothun"
+                                                                    onClick={() =>
+                                                                        setShowSideMenu(
+                                                                            false,
+                                                                        )
+                                                                    }
+                                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                                    role="menuitem"
+                                                                >
+                                                                    Áo thun
+                                                                </Link>
+                                                            </li>
+                                                            <li role="none">
+                                                                <Link
+                                                                    to="/productPage?sex=Nữ&category_id=aosomi"
+                                                                    onClick={() =>
+                                                                        setShowSideMenu(
+                                                                            false,
+                                                                        )
+                                                                    }
+                                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                                    role="menuitem"
+                                                                >
+                                                                    Áo sơ mi
+                                                                </Link>
+                                                            </li>
+                                                            <li role="none">
+                                                                <Link
+                                                                    to="/productPage?sex=Nữ&category_id=aolen"
+                                                                    onClick={() =>
+                                                                        setShowSideMenu(
+                                                                            false,
+                                                                        )
+                                                                    }
+                                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                                    role="menuitem"
+                                                                >
+                                                                    Áo len
+                                                                </Link>
+                                                            </li>
+                                                            <li role="none">
+                                                                <Link
+                                                                    to="/productPage?sex=Nữ&category_id=aokhoac"
+                                                                    onClick={() =>
+                                                                        setShowSideMenu(
+                                                                            false,
+                                                                        )
+                                                                    }
+                                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                                    role="menuitem"
+                                                                >
+                                                                    Áo khoác
+                                                                </Link>
+                                                            </li>
+                                                        </ul>
+                                                    )}
+                                                </li>
+                                            </ul>
+                                        )}
+                                    </li>
+                                    {user && (
+                                        <li role="none">
+                                            <Link
+                                                to="/orders"
+                                                onClick={() =>
+                                                    setShowSideMenu(false)
+                                                }
+                                                className="block w-full px-6 py-3 hover:bg-gray-100"
+                                                role="menuitem"
+                                            >
+                                                Đơn hàng của tôi
+                                            </Link>
+                                        </li>
                                     )}
-                                </li>
-                            </ul>
+                                </ul>
+                            )}
                         </motion.div>
                     </>
                 )}
