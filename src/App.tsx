@@ -21,53 +21,42 @@ import BestSellingPage from './pages/dashboard/best-selling/BestSellingPage';
 
 function App() {
     return (
-        <>
-            <CartProvider>
-                <Router>
-                    <ScrollToTop />
-                    <Header />
-                    <Routes>
-                        <Route path="/" element={<Home />} />
-                        <Route path="/contact" element={<Contact />} />
-                        <Route path="/products" element={<Product />} />
-                        <Route path="/user" element={<User />} />
-                        <Route
-                            path="/product/:id"
-                            element={<ProductDetail />}
-                        />
-                        <Route path="/signup" element={<Signup />} />
-                        <Route path="/signin" element={<Signin />} />
-                        <Route path="/cart" element={<Cart />} />
-                        <Route path="/orders" element={<Orders />} />
-                        <Route path="/productPage" element={<ProductPage />} />
-                        <Route
-                            path="/admin/productPage"
-                            element={<ProductPage />}
-                        />
-                        <Route path="/products" element={<ProductSearch />} />
-                        <Route path="/admin/users" element={<User />} />
-                        <Route
-                            path="admin/products/add"
-                            element={<AddProduct />}
-                        />
-                        <Route
-                            path="/admin/products/update/:id"
-                            element={<AddProduct />}
-                        />
-                        <Route
-                            path="/admin/revenuePage"
-                            element={<RevenuePage />}
-                        />{' '}
-                        <Route
-                            path="/admin/bestSellingPage"
-                            element={<BestSellingPage />}
-                        />
-                    </Routes>
+        <CartProvider>
+            <Router>
+                <ScrollToTop />
+                <Header />
+                <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/contact" element={<Contact />} />
+                    <Route path="/products" element={<Product />} />
+                    <Route path="/user" element={<User />} />
+                    <Route path="/product/:id" element={<ProductDetail />} />
+                    <Route path="/signup" element={<Signup />} />
+                    <Route path="/signin" element={<Signin />} />
+                    <Route path="/cart" element={<Cart />} />
+                    <Route path="/orders" element={<Orders />} />
+                    <Route path="/productPage" element={<ProductPage />} />
+                    <Route path="/admin/productPage" element={<ProductPage />} />
+                    <Route path="/products" element={<ProductSearch />} />
+                    <Route path="/admin/users" element={<User />} />
+                    <Route path="admin/products/add" element={<AddProduct />} />
+                    <Route
+                        path="/admin/products/update/:id"
+                        element={<AddProduct />}
+                    />
+                    <Route
+                        path="/admin/revenuePage"
+                        element={<RevenuePage />}
+                    />{' '}
+                    <Route
+                        path="/admin/bestSellingPage"
+                        element={<BestSellingPage />}
+                    />
+                </Routes>
 
-                    <Footer />
-                </Router>
-            </CartProvider>
-        </>
+                <Footer />
+            </Router>
+        </CartProvider>
     );
 }
 export default App;
