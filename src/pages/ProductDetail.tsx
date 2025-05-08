@@ -15,7 +15,6 @@ interface Variant {
 
 interface Product {
     _id: string;
-    // Đã sửa product_id từ number sang string để khớp với ObjectId
     product_id: string;
     product_name: string;
     description: string;
@@ -26,6 +25,17 @@ interface Product {
     xuatXu: string;
     chatLieu: string;
     variants: Variant[];
+}
+
+interface User {
+    _id: string;
+    user_id: number;
+    name: string;
+    email: string;
+    phone: string;
+    birthDate?: string;
+    address?: string;
+    isAdmin: boolean;
 }
 
 function ProductDetail() {
@@ -43,30 +53,41 @@ function ProductDetail() {
         description: '',
         type: '' as 'success' | 'error' | '',
     });
+    const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
-        // Fetch product details using the product ID from the URL
+        const userJSON = localStorage.getItem('user');
+        if (userJSON) {
+            try {
+                const user: User = JSON.parse(userJSON);
+              setIsAdmin(user.isAdmin === true);
+            } catch (error) {
+                console.error('Error parsing user JSON:', error);
+                setIsAdmin(false);
+            }
+        } else {
+            setIsAdmin(false);
+        }
+    }, []);
+
+    useEffect(() => {
         fetch(`http://localhost:3000/api/products/${id}`)
             .then((res) => {
                 if (!res.ok) {
-                    // Handle non-OK responses, e.g., 404 Not Found
                     throw new Error(`HTTP error! status: ${res.status}`);
                 }
                 return res.json();
             })
             .then((data) => {
                 setProduct(data);
-                // Set the first image as the main image initially
                 if (data.images && data.images.length > 0) {
                     setMainImage(data.images[0]);
                 } else {
-                    // Use a placeholder if no images are available
                     setMainImage('/placeholder.svg');
                 }
             })
             .catch((err) => {
                 console.error('Error fetching product:', err);
-                // Optionally, show an error message to the user
                 setDialog({
                     isOpen: true,
                     title: 'Lỗi tải sản phẩm',
@@ -75,9 +96,8 @@ function ProductDetail() {
                     type: 'error',
                 });
             });
-    }, [id]); // Re-run effect if the product ID changes
+    }, [id]);
 
-    // Show loading state if product data is not yet available
     if (!product) {
         return (
             <div className="container mx-auto my-20 py-8 px-4 text-center">
@@ -91,7 +111,6 @@ function ProductDetail() {
         );
     }
 
-    // Lấy danh sách size và color duy nhất từ variants
     const uniqueSizes = Array.from(
         new Set(product.variants.map((v) => v.size)),
     );
@@ -99,14 +118,12 @@ function ProductDetail() {
         new Set(product.variants.map((v) => v.color)),
     );
 
-    // Kiểm tra xem sản phẩm có tồn kho không với size và color đã chọn
     const selectedVariant = product.variants.find(
         (v) => v.size === selectedSize && v.color === selectedColor,
     );
 
     const isAvailableInStock = selectedVariant && selectedVariant.stock > 0;
 
-    // Kiểm tra trạng thái đăng nhập
     const checkUserLogin = () => {
         const userJSON = localStorage.getItem('user');
         if (!userJSON) {
@@ -122,12 +139,9 @@ function ProductDetail() {
         return true;
     };
 
-    // Xử lý thêm vào giỏ hàng
     const handleAddToCart = async () => {
-        // Kiểm tra đăng nhập
         if (!checkUserLogin()) return;
 
-        // Kiểm tra xem đã chọn size và color hay chưa
         if (!selectedSize || !selectedColor) {
             setDialog({
                 isOpen: true,
@@ -139,7 +153,6 @@ function ProductDetail() {
             return;
         }
 
-        // Kiểm tra tồn kho
         if (!isAvailableInStock) {
             setDialog({
                 isOpen: true,
@@ -151,15 +164,12 @@ function ProductDetail() {
             return;
         }
 
-        // Xác định hình ảnh để sử dụng (không phải video)
         const imageToUse =
             product.images.find((img) => !isVideo(img)) ||
             product.images[0] ||
             '/placeholder.svg';
 
         try {
-            // Thêm sản phẩm vào giỏ hàng
-            // Sử dụng product.product_id (string ObjectId)
             await addToCart({
                 product_id: product.product_id,
                 product_name: product.product_name,
@@ -170,7 +180,6 @@ function ProductDetail() {
                 color: selectedColor,
             });
 
-            // Hiển thị thông báo thành công
             setDialog({
                 isOpen: true,
                 title: 'Thêm vào giỏ hàng thành công',
@@ -188,12 +197,9 @@ function ProductDetail() {
         }
     };
 
-    // Xử lý mua ngay
     const handleBuyNow = async () => {
-        // Kiểm tra đăng nhập
         if (!checkUserLogin()) return;
 
-        // Kiểm tra xem đã chọn size và color hay chưa
         if (!selectedSize || !selectedColor) {
             setDialog({
                 isOpen: true,
@@ -205,7 +211,6 @@ function ProductDetail() {
             return;
         }
 
-        // Kiểm tra tồn kho
         if (!isAvailableInStock) {
             setDialog({
                 isOpen: true,
@@ -217,15 +222,12 @@ function ProductDetail() {
             return;
         }
 
-        // Xác định hình ảnh để sử dụng (không phải video)
         const imageToUse =
             product.images.find((img) => !isVideo(img)) ||
             product.images[0] ||
             '/placeholder.svg';
 
         try {
-            // Thêm sản phẩm vào giỏ hàng
-            // Sử dụng product.product_id (string ObjectId)
             await addToCart({
                 product_id: product.product_id,
                 product_name: product.product_name,
@@ -236,7 +238,6 @@ function ProductDetail() {
                 color: selectedColor,
             });
 
-            // Chuyển hướng đến trang giỏ hàng
             navigate('/cart');
         } catch (error) {
             console.error('Error adding to cart:', error);
@@ -249,9 +250,13 @@ function ProductDetail() {
         }
     };
 
+    const handleUpdateProduct = () => {
+        console.log('Navigating to update product with ID:', product._id);
+        navigate(`/admin/products/update/${product._id}`);
+    };
+
     const handleCloseDialog = () => {
         setDialog({ isOpen: false, title: '', description: '', type: '' });
-        // Nếu thông báo là yêu cầu đăng nhập, chuyển hướng đến trang đăng nhập
         if (dialog.title === 'Đăng nhập để tiếp tục') {
             navigate('/signin');
         }
@@ -261,12 +266,38 @@ function ProductDetail() {
         return /\.(mp4|webm|ogg)$/i.test(url);
     };
 
-   
-  
+    const renderActionButtons = () => {
+        if (isAdmin) {
+            return (
+                <button
+                    onClick={handleUpdateProduct}
+                    className="px-6 py-3 border border-black rounded-full hover:bg-black hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    CẬP NHẬT SẢN PHẨM
+                </button>
+            );
+        }
+        return (
+            <div className="flex gap-4">
+                <button
+                    onClick={handleAddToCart}
+                    className="px-6 py-3 border border-black rounded-full hover:bg-black hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    THÊM VÀO GIỎ
+                </button>
+                <button
+                    onClick={handleBuyNow}
+                    className="px-6 py-3 bg-black text-white rounded-full hover:bg-white hover:text-black hover:border hover:border-black transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    MUA NGAY
+                </button>
+            </div>
+        );
+    };
+
     return (
         <div className="flex flex-col items-center">
             <div className="flex flex-col md:flex-row gap-10 p-6 mt-10">
-                {/* Hình ảnh sản phẩm */}
                 <div className="flex p-2 border-r border-gray-200">
                     {isVideo(mainImage) ? (
                         <video
@@ -278,12 +309,11 @@ function ProductDetail() {
                         />
                     ) : (
                         <img
-                            src={mainImage} // Use mainImage directly, it has a fallback
+                            src={mainImage}
                             alt={product.product_name}
                             className="w-[40vw] h-[700px] rounded max-w-2xl object-cover"
                         />
                     )}
-                    {/* Thumbnails */}
                     <div className="flex flex-col gap-2">
                         {product.images.map((media, idx) => (
                             <div
@@ -302,7 +332,7 @@ function ProductDetail() {
                                     />
                                 ) : (
                                     <img
-                                        src={media || '/placeholder.svg'} // Add fallback for thumbnails
+                                        src={media || '/placeholder.svg'}
                                         alt={`thumbnail-${idx}`}
                                         className="w-full h-full object-cover rounded"
                                     />
@@ -312,18 +342,13 @@ function ProductDetail() {
                     </div>
                 </div>
 
-                {/* Thông tin sản phẩm */}
                 <div className="flex-1">
                     <h1 className="text-3xl font-semibold uppercase mb-1">
                         {product.product_name}
                     </h1>
-
-                    {/* Giá */}
                     <p className="text-2xl font-extralight text-gray-800 mb-4">
                         {product.price.toLocaleString()}₫
                     </p>
-
-                    {/* Thông tin thêm */}
                     <p className="text-sm text-gray-600 mb-2">
                         Chất liệu: {product.chatLieu}
                     </p>
@@ -331,7 +356,6 @@ function ProductDetail() {
                         Xuất xứ: {product.xuatXu}
                     </p>
 
-                    {/* Chọn SIZE */}
                     <div className="mb-6">
                         <p className="font-semibold mb-2">Kích cỡ:</p>
                         <div className="flex gap-2 flex-wrap">
@@ -351,7 +375,6 @@ function ProductDetail() {
                         </div>
                     </div>
 
-                    {/* Chọn MÀU */}
                     <div className="mb-6">
                         <p className="font-semibold mb-2">Màu sắc:</p>
                         <div className="flex gap-2 flex-wrap">
@@ -371,7 +394,6 @@ function ProductDetail() {
                         </div>
                     </div>
 
-                    {/* Số lượng */}
                     <div className="mb-6">
                         <p className="font-semibold mb-2">Số lượng:</p>
                         <div className="flex items-center gap-2 border w-fit px-3 py-1 rounded">
@@ -380,7 +402,7 @@ function ProductDetail() {
                                     setQuantity(Math.max(1, quantity - 1))
                                 }
                                 className="px-2"
-                                disabled={quantity <= 1} // Disable if quantity is 1
+                                disabled={quantity <= 1}
                             >
                                 -
                             </button>
@@ -388,7 +410,6 @@ function ProductDetail() {
                             <button
                                 onClick={() => setQuantity(quantity + 1)}
                                 className="px-2"
-                                // Optionally disable if quantity reaches max stock for selected variant
                                 disabled={
                                     selectedVariant &&
                                     quantity >= selectedVariant.stock
@@ -399,7 +420,6 @@ function ProductDetail() {
                         </div>
                     </div>
 
-                    {/* Hiển thị tình trạng kho hàng */}
                     {selectedSize && selectedColor && selectedVariant && (
                         <div className="mb-4">
                             <p
@@ -416,27 +436,8 @@ function ProductDetail() {
                         </div>
                     )}
 
-                    {/* Nút hành động */}
-                    <div className="flex gap-4">
-                        <button
-                            onClick={handleAddToCart}
-                            className="px-6 py-3 border border-black rounded-full hover:bg-black hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                            // Sử dụng biến boolean cho thuộc tính disabled
-                          
-                        >
-                            THÊM VÀO GIỎ
-                        </button>
-                        <button
-                            onClick={handleBuyNow}
-                            className="px-6 py-3 bg-black text-white rounded-full hover:bg-white hover:text-black hover:border hover:border-black transition disabled:opacity-50 disabled:cursor-not-allowed"
-                            // Sử dụng biến boolean cho thuộc tính disabled
-                           
-                        >
-                            MUA NGAY
-                        </button>
-                    </div>
+                    {renderActionButtons()}
 
-                    {/* Mô tả sản phẩm */}
                     <div>
                         <p className="font-semibold mt-5 mb-2">Mô tả: </p>
                         <ShowMoreText
@@ -462,7 +463,6 @@ function ProductDetail() {
                 onClose={handleCloseDialog}
             />
 
-            {/* Related Products section */}
             {product.category_id && product._id && (
                 <div className="flex flex-row items-center w-full justify-center mt-10 mb-10">
                     <RelatedProducts

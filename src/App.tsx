@@ -15,8 +15,7 @@ import ScrollToTop from './component/ScrollToTop';
 import ProductPage from './pages/ProductPage';
 import { CartProvider } from './context/CartContext';
 import ProductSearch from './pages/ProductSearch';
-
-// import AdminChat from './component/AdminChat';
+import AddProduct from './component/AddProduct';
 import RevenuePage from './pages/dashboard/revenue/RevenuePage';
 import BestSellingPage from './pages/dashboard/best-selling/BestSellingPage';
 
@@ -37,7 +36,14 @@ function App() {
                     <Route path="/cart" element={<Cart />} />
                     <Route path="/orders" element={<Orders />} />
                     <Route path="/productPage" element={<ProductPage />} />
+                    <Route path="/admin/productPage" element={<ProductPage />} />
                     <Route path="/products" element={<ProductSearch />} />
+                    <Route path="/admin/users" element={<User />} />
+                    <Route path="admin/products/add" element={<AddProduct />} />
+                    <Route
+                        path="/admin/products/update/:id"
+                        element={<AddProduct />}
+                    />
                     <Route
                         path="/admin/revenuePage"
                         element={<RevenuePage />}
@@ -46,7 +52,6 @@ function App() {
                         path="/admin/bestSellingPage"
                         element={<BestSellingPage />}
                     />
-                    {/* <Route path="/admin/chat" element={<AdminChat />} /> */}
                 </Routes>
 
                 <Footer />

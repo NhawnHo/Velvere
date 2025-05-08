@@ -652,72 +652,27 @@ const Header: React.FC = () => {
                                                 id="products-submenu"
                                             >
                                                 <li role="none">
-                                                    <button
-                                                        onClick={() =>
-                                                            setExpandedSubMenu(
-                                                                (prev) =>
-                                                                    prev ===
-                                                                    'products-add'
-                                                                        ? null
-                                                                        : 'products-add',
-                                                            )
-                                                        }
-                                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex justify-between items-center"
-                                                        aria-expanded={
-                                                            expandedSubMenu ===
-                                                            'products-add'
-                                                        }
-                                                        aria-controls="products-add-submenu"
-                                                    >
-                                                        Thêm sản phẩm
-                                                        <i
-                                                            className={`ml-2 fa-solid ${
+                                                    <Link to="/admin/products/add">
+                                                        <button
+                                                            onClick={() =>
+                                                                setExpandedSubMenu(
+                                                                    (prev) =>
+                                                                        prev ===
+                                                                        'products-add'
+                                                                            ? null
+                                                                            : 'products-add',
+                                                                )
+                                                            }
+                                                            className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex justify-between items-center"
+                                                            aria-expanded={
                                                                 expandedSubMenu ===
                                                                 'products-add'
-                                                                    ? 'fa-chevron-up'
-                                                                    : 'fa-chevron-down'
-                                                            }`}
-                                                            aria-hidden="true"
-                                                        />
-                                                    </button>
-                                                    {expandedSubMenu ===
-                                                        'products-add' && (
-                                                        <ul
-                                                            className="pl-4 text-sm text-gray-700"
-                                                            role="menu"
-                                                            id="products-add-submenu"
+                                                            }
+                                                            aria-controls="products-add-submenu"
                                                         >
-                                                            <li role="none">
-                                                                <Link
-                                                                    to="/admin/products/add"
-                                                                    onClick={() =>
-                                                                        setShowSideMenu(
-                                                                            false,
-                                                                        )
-                                                                    }
-                                                                    className="block px-4 py-2 hover:bg-gray-100"
-                                                                    role="menuitem"
-                                                                >
-                                                                    Thêm sản
-                                                                    phẩm mới
-                                                                </Link>
-                                                            </li>
-                                                            <li role="none">
-                                                                <Link
-                                                                    to="/admin/products/import"
-                                                                    onClick={() =>
-                                                                        setShowSideMenu(
-                                                                            false,
-                                                                        )
-                                                                    }
-                                                                    className="block px-4 py-2 hover:bg-gray-100"
-                                                                    role="menuitem"
-                                                                >
-                                                                    Nhập hàng
-                                                                </Link>
-                                                            </li>
-                                                        </ul>
-                                                    )}
+                                                            Thêm sản phẩm
+                                                        </button>
+                                                    </Link>
                                                 </li>
                                                 <li role="none">
                                                     <Link
@@ -786,63 +741,7 @@ const Header: React.FC = () => {
                                                         className="block px-4 py-2 hover:bg-gray-100"
                                                         role="menuitem"
                                                     >
-                                                        Tất cả đơn hàng
-                                                    </Link>
-                                                </li>
-                                                <li role="none">
-                                                    <Link
-                                                        to="/admin/orders/pending"
-                                                        onClick={() =>
-                                                            setShowSideMenu(
-                                                                false,
-                                                            )
-                                                        }
-                                                        className="block px-4 py-2 hover:bg-gray-100"
-                                                        role="menuitem"
-                                                    >
-                                                        Đơn hàng chờ xử lý
-                                                    </Link>
-                                                </li>
-                                                <li role="none">
-                                                    <Link
-                                                        to="/admin/orders/shipping"
-                                                        onClick={() =>
-                                                            setShowSideMenu(
-                                                                false,
-                                                            )
-                                                        }
-                                                        className="block px-4 py-2 hover:bg-gray-100"
-                                                        role="menuitem"
-                                                    >
-                                                        Đơn hàng đang giao
-                                                    </Link>
-                                                </li>
-                                                <li role="none">
-                                                    <Link
-                                                        to="/admin/orders/completed"
-                                                        onClick={() =>
-                                                            setShowSideMenu(
-                                                                false,
-                                                            )
-                                                        }
-                                                        className="block px-4 py-2 hover:bg-gray-100"
-                                                        role="menuitem"
-                                                    >
-                                                        Đơn hàng đã hoàn thành
-                                                    </Link>
-                                                </li>
-                                                <li role="none">
-                                                    <Link
-                                                        to="/admin/orders/cancelled"
-                                                        onClick={() =>
-                                                            setShowSideMenu(
-                                                                false,
-                                                            )
-                                                        }
-                                                        className="block px-4 py-2 hover:bg-gray-100"
-                                                        role="menuitem"
-                                                    >
-                                                        Đơn hàng đã hủy
+                                                        Quản lý đơn hàng
                                                     </Link>
                                                 </li>
                                             </ul>
@@ -885,20 +784,6 @@ const Header: React.FC = () => {
                                                         role="menuitem"
                                                     >
                                                         Danh sách người dùng
-                                                    </Link>
-                                                </li>
-                                                <li role="none">
-                                                    <Link
-                                                        to="/admin/users/add"
-                                                        onClick={() =>
-                                                            setShowSideMenu(
-                                                                false,
-                                                            )
-                                                        }
-                                                        className="block px-4 py-2 hover:bg-gray-100"
-                                                        role="menuitem"
-                                                    >
-                                                        Thêm người dùng mới
                                                     </Link>
                                                 </li>
                                             </ul>
