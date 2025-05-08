@@ -1,5 +1,7 @@
 import './App.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import Header from './component/Header';
 import Home from './pages/Home';
@@ -22,6 +24,8 @@ import AppointmentPage from './pages/AppointmentPage';
 import OrderList from './pages/admin/orders/OrderList';
 import OrderApproval from './pages/admin/orders/OrderApproval';
 import OrderDetail from './pages/admin/orders/OrderDetail';
+import UserList from './pages/admin/users/UserList';
+import EditUser from './pages/admin/users/EditUser';
 
 function App() {
     return (
@@ -54,9 +58,14 @@ function App() {
                     <Route path="/admin/orders" element={<OrderList />} />
                     <Route path="/admin/orders/:id" element={<OrderDetail />} />
                     <Route path="/admin/orders/approval" element={<OrderApproval />} />
+                    
+                    {/* Routes cho quản lý người dùng */}
+                    <Route path="/admin/users" element={<UserList />} />
+                    <Route path="/admin/users/edit/:userId" element={<EditUser />} />
                 </Routes>
 
                 <Footer />
+                <ToastContainer />
             </Router>
         </CartProvider>
     );
