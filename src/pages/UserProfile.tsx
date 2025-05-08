@@ -1,0 +1,718 @@
+import { useState, useEffect } from 'react';
+import {
+    Edit,
+    User,
+    MapPin,
+    Mail,
+    Phone,
+    Calendar,
+    X,
+    Eye,
+    EyeOff,
+} from 'lucide-react';
+import { Link } from 'react-router-dom';
+import axios from 'axios';
+
+// Định nghĩa kiểu dữ liệu cho User
+type User = {
+    _id: string;
+    user_id: number;
+    name: string;
+    birthDate: string;
+    email: string;
+    phone: string;
+    address: string;
+    isAdmin: boolean;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export default function UserProfile() {
+    const [user, setUser] = useState<User | null>(null);
+    const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [formData, setFormData] = useState<Partial<User>>({});
+    const [passwordData, setPasswordData] = useState({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+    });
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    // // Giả lập dữ liệu người dùng
+    // useEffect(() => {
+    //     // Trong thực tế, bạn sẽ gọi API của mình ở đây
+    //     const mockUserData: User = {
+    //         _id: '60d21b5967d0d8992e610c85',
+    //         user_id: 1001,
+    //         name: 'Nguyễn Văn An',
+    //         birthDate: '1992-05-15T00:00:00.000Z',
+    //         email: 'nguyenvanan@example.com',
+    //         phone: '0912345678',
+    //         address: '23 Nguyễn Du, Quận 1, TP. Hồ Chí Minh',
+    //         isAdmin: false,
+    //         createdAt: '2023-10-01T08:30:00.000Z',
+    //         updatedAt: '2023-10-01T08:30:00.000Z',
+    //     };
+
+    //     setUser(mockUserData);
+    //     setFormData(mockUserData);
+    // }, []);
+    useEffect(() => {
+        const checkUserSession = async () => {
+            try {
+                console.log('Kiểm tra session từ server...');
+                const apiBaseUrl =
+                    import.meta.env.VITE_API_BASE_URL ||
+                    'http://localhost:3000';
+                const response = await fetch(
+                    `${apiBaseUrl}/api/users/check-session`,
+                    {
+                        method: 'GET',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    },
+                );
+
+                if (response.ok) {
+                    const userData = await response.json();
+                    if (userData.authenticated) {
+                        console.log('Session hợp lệ:', userData.user);
+                        setUser(userData.user);
+                        localStorage.setItem(
+                            'user',
+                            JSON.stringify(userData.user),
+                        );
+                    } else {
+                        console.log('Session không hợp lệ:', userData.message);
+                        setUser(null);
+                        localStorage.removeItem('user');
+                    }
+                } else {
+                    console.log(
+                        'Lỗi response từ check-session:',
+                        await response.text(),
+                    );
+                    const savedUser = localStorage.getItem('user');
+                    if (savedUser) {
+                        try {
+                            const parsedUser: User = JSON.parse(savedUser);
+                            setUser(parsedUser);
+                            console.log(
+                                'Sử dụng user từ localStorage:',
+                                parsedUser,
+                            );
+                        } catch (parseError) {
+                            console.error(
+                                'Lỗi khi parse user từ localStorage:',
+                                parseError,
+                            );
+                            localStorage.removeItem('user');
+                            setUser(null);
+                        }
+                    } else {
+                        localStorage.removeItem('user');
+                        setUser(null);
+                    }
+                }
+            } catch (error) {
+                console.error('Lỗi khi kiểm tra session:', error);
+                const savedUser = localStorage.getItem('user');
+                if (savedUser) {
+                    try {
+                        const parsedUser: User = JSON.parse(savedUser);
+                        setUser(parsedUser);
+                        console.log(
+                            'Sử dụng user từ localStorage:',
+                            parsedUser,
+                        );
+                    } catch (parseError) {
+                        console.error(
+                            'Lỗi khi parse user từ localStorage:',
+                            parseError,
+                        );
+                        localStorage.removeItem('user');
+                        setUser(null);
+                    }
+                } else {
+                    setUser(null);
+                }
+            }
+        };
+
+        checkUserSession();
+    }, []);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+    };
+
+    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setPasswordData({ ...passwordData, [name]: value });
+  };
+
+    const handleSaveChanges = async () => {
+        try {
+            // Kiểm tra dữ liệu cần cập nhật
+            const apiBaseUrl =
+                import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+            const userId = localStorage.getItem('userId') || user?._id;
+
+            if (!userId) {
+                console.error('Không tìm thấy userId');
+                return;
+            }
+
+            // Gửi yêu cầu PUT cập nhật thông tin người dùng
+            const response = await fetch(`${apiBaseUrl}/api/users/${userId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData), // Truyền formData vào body của yêu cầu
+                credentials: 'include', // Nếu bạn cần gửi session hoặc cookie
+            });
+
+            // Xử lý phản hồi từ server
+            if (response.ok) {
+                const result = await response.json();
+                console.log('Cập nhật thành công:', result);
+
+                // Cập nhật dữ liệu người dùng và đóng dialog
+                setUser(formData); // Cập nhật state người dùng
+              setIsEditDialogOpen(false); // Đóng hộp thoại chỉnh sửa
+              
+                 window.location.reload();
+            } else {
+                const error = await response.json();
+                // Kiểm tra xem error.message có tồn tại không, nếu không, dùng thông báo mặc định
+                const errorMessage =
+                    error.message || 'Đã xảy ra lỗi, vui lòng thử lại sau.';
+                alert(`Cập nhật không thành công: ${errorMessage}`);
+            }
+        } catch (error) {
+            console.error('Lỗi khi gửi yêu cầu:', error);
+        }
+    };
+
+   const handlePasswordSave = async () => {
+       try {
+           // Kiểm tra mật khẩu mới và mật khẩu xác nhận có trùng khớp không
+           if (passwordData.newPassword !== passwordData.confirmPassword) {
+               alert('Mật khẩu mới và mật khẩu xác nhận không trùng khớp.');
+               return;
+           }
+
+           const apiBaseUrl =
+               import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+
+           try {
+               const response = await fetch(
+                   `${apiBaseUrl}/api/users/change-password`,
+                   {
+                       method: 'PUT',
+                       headers: {
+                           'Content-Type': 'application/json',
+                       },
+                       credentials: 'include', // Gửi cookie session
+                       body: JSON.stringify({
+                           currentPassword: passwordData.currentPassword,
+                           newPassword: passwordData.newPassword,
+                       }),
+                   },
+               );
+
+               if (response.ok) {
+                   alert('Mật khẩu đã được thay đổi thành công.');
+               } else {
+                   const errorData = await response.json();
+                   alert(
+                       `Thay đổi mật khẩu không thành công: ${errorData.message}`,
+                   );
+               }
+           } catch (error) {
+               console.error('Lỗi khi thay đổi mật khẩu:', error);
+               alert('Có lỗi xảy ra, vui lòng thử lại.');
+           }
+
+           setIsPasswordDialogOpen(false);
+
+           // Reset form
+           setPasswordData({
+               currentPassword: '',
+               newPassword: '',
+               confirmPassword: '',
+           });
+       } catch (err) {
+           console.error('Lỗi khi đổi mật khẩu:', err);
+       }
+   };
+
+    const formatDate = (dateString: string) => {
+        return new Date(dateString).toLocaleDateString('vi-VN');
+    };
+
+    const formatMemberSince = (dateString: string) => {
+        const date = new Date(dateString);
+        return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+    };
+
+    return (
+        <div className="max-w-4xl mx-auto p-4 mt-10">
+            {/* Card chính */}
+            <div className="bg-white rounded-md shadow-sm border border-gray-100 overflow-hidden">
+                {/* Header với avatar và thông tin cơ bản */}
+                <div className="p-6 bg-gray-50 flex items-center">
+                    <div className="flex-shrink-0 mr-4">
+                        <div className="h-24 w-24 rounded-full bg-gray-900 flex items-center justify-center text-white text-3xl font-bold">
+                            {user?.name?.charAt(0) || 'N'}
+                        </div>
+                    </div>
+                    <div className="flex-1">
+                        <h1 className="text-2xl font-medium text-gray-900">
+                            {user?.name}
+                        </h1>
+                        {/* <p className="text-gray-500">
+                            Thành viên từ{' '}
+                            {user?.createdAt
+                                ? formatMemberSince(user.createdAt)
+                                : ''}
+                        </p> */}
+                    </div>
+                    <button
+                        onClick={() => setIsEditDialogOpen(true)}
+                        className="px-4 py-2 flex items-center text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition"
+                    >
+                        <Edit className="w-4 h-4 mr-2" />
+                        Chỉnh sửa thông tin
+                    </button>
+                </div>
+
+                {/* Thông tin cá nhân */}
+                <div className="p-6">
+                    <h2 className="text-lg font-medium mb-6">
+                        Thông tin cá nhân
+                    </h2>
+
+                    <div className="flex">
+                        {/* Cột bên trái */}
+                        <div className="flex-1 pr-8 border-r border-gray-200">
+                            <div className="space-y-6">
+                                <div className="flex items-start">
+                                    <div className="text-gray-400 mt-0.5 mr-3">
+                                        <User className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-gray-500 text-sm">
+                                            Họ và tên
+                                        </p>
+                                        <p className="font-medium">
+                                            {user?.name}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-start">
+                                    <div className="text-gray-400 mt-0.5 mr-3">
+                                        <Calendar className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-gray-500 text-sm">
+                                            Ngày sinh
+                                        </p>
+                                        <p className="font-medium">
+                                            {user?.birthDate
+                                                ? formatDate(user.birthDate)
+                                                : ''}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-start">
+                                    <div className="text-gray-400 mt-0.5 mr-3">
+                                        <Mail className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-gray-500 text-sm">
+                                            Email
+                                        </p>
+                                        <p className="font-medium">
+                                            {user?.email}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Cột bên phải */}
+                        <div className="flex-1 pl-8">
+                            <div className="space-y-6">
+                                <div className="flex items-start">
+                                    <div className="text-gray-400 mt-0.5 mr-3">
+                                        <Phone className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-gray-500 text-sm">
+                                            Số điện thoại
+                                        </p>
+                                        <p className="font-medium">
+                                            {user?.phone}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-start">
+                                    <div className="text-gray-400 mt-0.5 mr-3">
+                                        <MapPin className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-gray-500 text-sm">
+                                            Địa chỉ
+                                        </p>
+                                        <p className="font-medium">
+                                            {user?.address}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-start">
+                                    <div className="text-gray-400 mt-0.5 mr-3">
+                                        <User className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-gray-500 text-sm">
+                                            ID Tài khoản
+                                        </p>
+                                        <p className="font-medium">
+                                            #{user?.user_id}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-8 flex justify-end space-x-4">
+                        <button
+                            onClick={() => setIsPasswordDialogOpen(true)}
+                            className="px-4 py-2 text-gray-700 border border-gray-300 rounded hover:bg-gray-50 transition"
+                        >
+                            Đổi mật khẩu
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Card lịch sử mua hàng và sản phẩm yêu thích */}
+            <div className="mt-8 grid md:grid-cols-1 gap-6">
+                <div className="bg-white rounded-md shadow-sm border border-gray-100 p-6">
+                    <h2 className="text-lg font-medium mb-4">
+                        Lịch sử mua hàng
+                    </h2>
+                    <p className="text-gray-500 mb-4">
+                        Xem lịch sử đơn hàng và trạng thái giao hàng của bạn.
+                    </p>
+                    <Link to="/orders">
+                        <button className="w-full py-2 border border-gray-300 rounded text-center hover:bg-gray-50 transition">
+                            Xem đơn hàng
+                        </button>
+                    </Link>
+                </div>
+
+                {/* <div className="bg-white rounded-md shadow-sm border border-gray-100 p-6">
+                    <h2 className="text-lg font-medium mb-4">
+                        Sản phẩm yêu thích
+                    </h2>
+                    <p className="text-gray-500 mb-4">
+                        Xem danh sách sản phẩm bạn đã lưu để mua sau.
+                    </p>
+                    <button className="w-full py-2 border border-gray-300 rounded text-center hover:bg-gray-50 transition">
+                        Xem danh sách
+                    </button>
+                </div> */}
+            </div>
+
+            {/* Dialog đổi mật khẩu */}
+            {isPasswordDialogOpen && (
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-30 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg max-w-md w-full p-6">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-lg font-medium">
+                                Đổi mật khẩu
+                            </h3>
+                            <button
+                                onClick={() => setIsPasswordDialogOpen(false)}
+                                className="text-gray-500 hover:text-gray-700"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label
+                                    htmlFor="currentPassword"
+                                    className="block text-sm font-medium text-gray-700 mb-1"
+                                >
+                                    Mật khẩu hiện tại
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type={
+                                            showCurrentPassword
+                                                ? 'text'
+                                                : 'password'
+                                        }
+                                        id="currentPassword"
+                                        name="currentPassword"
+                                        value={passwordData.currentPassword}
+                                        onChange={handlePasswordChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                    />
+                                    <button
+                                        type="button"
+                                        className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                                        onClick={() =>
+                                            setShowCurrentPassword(
+                                                !showCurrentPassword,
+                                            )
+                                        }
+                                    >
+                                        {showCurrentPassword ? (
+                                            <EyeOff className="w-5 h-5" />
+                                        ) : (
+                                            <Eye className="w-5 h-5" />
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label
+                                    htmlFor="newPassword"
+                                    className="block text-sm font-medium text-gray-700 mb-1"
+                                >
+                                    Mật khẩu mới
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type={
+                                            showNewPassword
+                                                ? 'text'
+                                                : 'password'
+                                        }
+                                        id="newPassword"
+                                        name="newPassword"
+                                        value={passwordData.newPassword}
+                                        onChange={handlePasswordChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                    />
+                                    <button
+                                        type="button"
+                                        className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                                        onClick={() =>
+                                            setShowNewPassword(!showNewPassword)
+                                        }
+                                    >
+                                        {showNewPassword ? (
+                                            <EyeOff className="w-5 h-5" />
+                                        ) : (
+                                            <Eye className="w-5 h-5" />
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label
+                                    htmlFor="confirmPassword"
+                                    className="block text-sm font-medium text-gray-700 mb-1"
+                                >
+                                    Xác nhận mật khẩu mới
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type={
+                                            showConfirmPassword
+                                                ? 'text'
+                                                : 'password'
+                                        }
+                                        id="confirmPassword"
+                                        name="confirmPassword"
+                                        value={passwordData.confirmPassword}
+                                        onChange={handlePasswordChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                    />
+                                    <button
+                                        type="button"
+                                        className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                                        onClick={() =>
+                                            setShowConfirmPassword(
+                                                !showConfirmPassword,
+                                            )
+                                        }
+                                    >
+                                        {showConfirmPassword ? (
+                                            <EyeOff className="w-5 h-5" />
+                                        ) : (
+                                            <Eye className="w-5 h-5" />
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-6 flex justify-end space-x-3">
+                            <button
+                                onClick={() => setIsPasswordDialogOpen(false)}
+                                className="px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50"
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                onClick={handlePasswordSave}
+                                className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
+                            >
+                                Lưu thay đổi
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Dialog chỉnh sửa thông tin */}
+
+            {isEditDialogOpen && (
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-30 backdrop-blur-5xl z-50 flex items-center justify-center overflow-y-auto">
+                    <div className="bg-white rounded-lg max-w-lg w-full p-6">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-lg font-medium">
+                                Chỉnh sửa thông tin
+                            </h3>
+                            <button
+                                onClick={() => setIsEditDialogOpen(false)}
+                                className="text-gray-500 hover:text-gray-700"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label
+                                    htmlFor="name"
+                                    className="block text-sm font-medium text-gray-700 mb-1"
+                                >
+                                    Họ và tên
+                                </label>
+                                <input
+                                    type="text"
+                                    id="name"
+                                    name="name"
+                                    value={formData.name || ''}
+                                    onChange={handleInputChange}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                />
+                            </div>
+
+                            <div>
+                                <label
+                                    htmlFor="phone"
+                                    className="block text-sm font-medium text-gray-700 mb-1"
+                                >
+                                    Số điện thoại
+                                </label>
+                                <input
+                                    type="tel"
+                                    id="phone"
+                                    name="phone"
+                                    value={formData.phone || ''}
+                                    onChange={handleInputChange}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                />
+                            </div>
+
+                            <div>
+                                <label
+                                    htmlFor="email"
+                                    className="block text-sm font-medium text-gray-700 mb-1"
+                                >
+                                    Email
+                                </label>
+                                <input
+                                    type="email"
+                                    id="email"
+                                    name="email"
+                                    value={formData.email || ''}
+                                    onChange={handleInputChange}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                />
+                            </div>
+
+                            <div>
+                                <label
+                                    htmlFor="birthDate"
+                                    className="block text-sm font-medium text-gray-700 mb-1"
+                                >
+                                    Ngày sinh
+                                </label>
+                                <input
+                                    type="date"
+                                    id="birthDate"
+                                    name="birthDate"
+                                    value={
+                                        formData.birthDate
+                                            ? new Date(formData.birthDate)
+                                                  .toISOString()
+                                                  .split('T')[0]
+                                            : ''
+                                    }
+                                    onChange={handleInputChange}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                />
+                            </div>
+
+                            <div className="md:col-span-2">
+                                <label
+                                    htmlFor="address"
+                                    className="block text-sm font-medium text-gray-700 mb-1"
+                                >
+                                    Địa chỉ
+                                </label>
+                                <input
+                                    type="text"
+                                    id="address"
+                                    name="address"
+                                    value={formData.address || ''}
+                                    onChange={handleInputChange}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="mt-6 flex justify-end space-x-3">
+                            <button
+                                onClick={() => setIsEditDialogOpen(false)}
+                                className="px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50"
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                onClick={handleSaveChanges}
+                                className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
+                            >
+                                Lưu thay đổi
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}

@@ -21,11 +21,15 @@ import { CartProvider } from './context/CartContext';
 import RevenuePage from './pages/dashboard/revenue/RevenuePage';
 import BestSellingPage from './pages/dashboard/best-selling/BestSellingPage';
 import AppointmentPage from './pages/AppointmentPage';
+
 import OrderList from './pages/admin/orders/OrderList';
 import OrderApproval from './pages/admin/orders/OrderApproval';
 import OrderDetail from './pages/admin/orders/OrderDetail';
 import UserList from './pages/admin/users/UserList';
 import EditUser from './pages/admin/users/EditUser';
+
+import UserProfile from './pages/UserProfile';
+
 
 function App() {
     return (
@@ -44,7 +48,16 @@ function App() {
                     <Route path="/cart" element={<Cart />} />
                     <Route path="/orders" element={<Orders />} />
                     <Route path="/productPage" element={<ProductPage />} />
+
                     <Route path="/admin/revenuePage" element={<RevenuePage />} />
+
+                    <Route path="/userProfile" element={<UserProfile />} />
+                    {/* <Route path="/adminChat" element={<AdminChat />} /> */}
+                    <Route
+                        path="/admin/revenuePage"
+                        element={<RevenuePage />}
+                    />{' '}
+
                     <Route
                         path="/admin/bestSellingPage"
                         element={<BestSellingPage />}

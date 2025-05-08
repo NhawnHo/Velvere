@@ -4,6 +4,8 @@ import mongoose from 'mongoose';
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import type { Session, SessionData } from 'express-session';
+import bcrypt from 'bcryptjs';
+
 
 // Type definitions for express-session
 declare module 'express-serve-static-core' {
@@ -614,4 +616,61 @@ export default {
     checkAuth,
     checkAdmin,
     checkSession,
+};
+
+
+export const changePassword = async (
+    req: Request,
+    res: Response,
+): Promise<void> => {
+    const authResult = await checkAuth(req); // 👈 Kiểm tra xác thực session
+    console.log('Auth Result:', authResult); // Thêm log để kiểm tra
+
+    if (!authResult.authenticated) {
+        res.status(401).json({ message: authResult.message });
+        return;
+    }
+
+    const userId = authResult.user?._id; // 👈 Lấy userId từ session hợp lệ
+    console.log('User ID:', userId); // Thêm log để kiểm tra
+    if (!userId) {
+        res.status(400).json({
+            message: 'Không tìm thấy thông tin người dùng.',
+        });
+        return;
+    }
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+        res.status(400).json({
+            message: 'Vui lòng cung cấp mật khẩu cũ và mật khẩu mới.',
+        });
+        return;
+    }
+
+    try {
+        const user = await User.findById(userId);
+
+        if (!user) {
+            res.status(404).json({ message: 'Không tìm thấy người dùng.' });
+            return;
+        }
+
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            res.status(401).json({ message: 'Mật khẩu cũ không chính xác.' });
+            return;
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedNewPassword = await bcrypt.hash(newPassword, salt);
+
+        user.password = hashedNewPassword;
+        await user.save();
+
+        res.status(200).json({ message: 'Đổi mật khẩu thành công.' });
+    } catch (error) {
+        console.error('Lỗi khi đổi mật khẩu:', error);
+        res.status(500).json({ message: 'Đã xảy ra lỗi khi đổi mật khẩu.' });
+    }
 };
