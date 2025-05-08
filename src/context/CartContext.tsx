@@ -121,15 +121,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
 
     const syncCart = async (updated: CartItem[]) => {
         if (!isAuthenticated) {
-            console.warn('User not authenticated, cannot sync cart');
-            return;
+            console.warn('User not authenticated, cannot sync cart'); // Instead of throwing an error, maybe handle this more gracefully in the UI // throw new Error('Please log in to sync cart');
+            return; // Exit if not authenticated
         }
-
-        // Đảm bảo tất cả product_id là string
-        const sanitizedItems = updated.map((item) => ({
-            ...item,
-            product_id: String(item.product_id), // Chuyển product_id thành string
-        }));
 
         setIsLoading(true);
         try {
@@ -139,13 +133,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
                     'Content-Type': 'application/json',
                 },
                 credentials: 'include',
-                body: JSON.stringify({ items: sanitizedItems }),
+                body: JSON.stringify({ items: updated }),
             });
 
             if (!res.ok) {
                 const errorData = await res.json();
                 if (res.status === 401) {
-                    setIsAuthenticated(false);
+                    setIsAuthenticated(false); // Consider showing a message to the user to log in
                     console.error('Session expired, please log in again');
                 }
                 throw new Error(errorData.message || 'Failed to sync cart');
@@ -154,12 +148,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
             const data = await res.json();
             setCartItems(data.items);
         } catch (err) {
-            console.error('Failed to sync cart:', err);
+            console.error('Failed to sync cart:', err); // Re-throw the error so components using syncCart can handle it (e.g., show error message)
             throw err;
         } finally {
             setIsLoading(false);
         }
-    }; // newItem should already contain the correct product_id (string ObjectId) // newItem should already contain the correct product_id (string ObjectId)
+    }; // newItem should already contain the correct product_id (string ObjectId)
 
     const addToCart = async (newItem: Omit<CartItem, '_id'>) => {
         if (!isAuthenticated) {
@@ -173,46 +167,27 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
             newItem.color,
         );
 
-        // const updated = exists
-        //     ? cartItems.map(
-        //           (
-        //               item, // Update existing item based on product_id, size, and color
-        //           ) =>
-        //               item.product_id === newItem.product_id &&
-        //               item.size === newItem.size &&
-        //               item.color === newItem.color
-        //                   ? {
-        //                         ...item,
-        //                         quantity: item.quantity + newItem.quantity,
-        //                     }
-        //                   : item,
-        //       )
-        //     : // Add new item if it doesn't exist
-        //       [...cartItems, newItem as CartItem]; // Cast newItem to CartItem as _id is removed
+        const updated = exists
+            ? cartItems.map(
+                  (
+                      item, // Update existing item based on product_id, size, and color
+                  ) =>
+                      item.product_id === newItem.product_id &&
+                      item.size === newItem.size &&
+                      item.color === newItem.color
+                          ? {
+                                ...item,
+                                quantity: item.quantity + newItem.quantity,
+                            }
+                          : item,
+              )
+            : // Add new item if it doesn't exist
+              [...cartItems, newItem as CartItem]; // Cast newItem to CartItem as _id is removed
 
         try {
-            const updated = exists
-                ? cartItems.map(
-                      (
-                          item, // Update existing item based on product_id, size, and color
-                      ) =>
-                          item.product_id === newItem.product_id &&
-                          item.size === newItem.size &&
-                          item.color === newItem.color
-                              ? {
-                                    ...item,
-                                    quantity: item.quantity + newItem.quantity,
-                                }
-                              : item,
-                  )
-                : // Add new item if it doesn't exist
-                  [...cartItems, newItem as CartItem]; // Cast newItem to CartItem as _id is removed
             await syncCart(updated);
         } catch (err) {
-            // console.error('Failed to add item to cart:', err); // Handle error in UI, e.g., show a dialog
-            console.error('Failed to add item to cart:', err);
-            // Hiện thông báo lỗi cho người dùng
-            throw err;
+            console.error('Failed to add item to cart:', err); // Handle error in UI, e.g., show a dialog
         }
     };
 
@@ -228,35 +203,20 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         }
         if (quantity < 1) return;
 
-        // const updated = cartItems.map(
-        //     (
-        //         item, // Find item based on product_id, size, and color
-        //     ) =>
-        //         item.product_id === productId &&
-        //         item.size === size &&
-        //         item.color === color
-        //             ? { ...item, quantity }
-        //             : item,
-        // );
-        // Tìm sản phẩm trong giỏ hàng để lấy số lượng hiện tại
-        const currentItem = findCartItem(productId, size, color);
-        if (!currentItem) return;
+        const updated = cartItems.map(
+            (
+                item, // Find item based on product_id, size, and color
+            ) =>
+                item.product_id === productId &&
+                item.size === size &&
+                item.color === color
+                    ? { ...item, quantity }
+                    : item,
+        );
         try {
-            // Không cập nhật số lượng tồn kho tại đây, chỉ khi thanh toán
-            const updated = cartItems.map(
-                (
-                    item, // Find item based on product_id, size, and color
-                ) =>
-                    item.product_id === productId &&
-                    item.size === size &&
-                    item.color === color
-                        ? { ...item, quantity }
-                        : item,
-            );
             await syncCart(updated);
         } catch (err) {
-          console.error('Failed to update quantity:', err);
-          throw err;// Handle error in UI
+            console.error('Failed to update quantity:', err); // Handle error in UI
         }
     };
 
@@ -268,16 +228,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         if (!isAuthenticated) {
             console.warn('User not authenticated, cannot remove item');
             return;
-        }
-
-        // Tìm sản phẩm trong giỏ hàng để lấy số lượng hiện tại trước khi xóa
-        const currentItem = findCartItem(productId, size, color);
-        if (!currentItem) return;
-
-        // Khi xóa sản phẩm khỏi giỏ hàng, không cần cập nhật số lượng tồn kho vì
-        // số lượng đã được trừ khi thêm vào giỏ hàng
-
-        // Filter out the item based on product_id, size, and color
+        } // Filter out the item based on product_id, size, and color
         const updated = cartItems.filter(
             (item) =>
                 !(
@@ -352,7 +303,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
                 logout,
             }}
         >
-            {children}
+           {children}
         </CartContext.Provider>
     );
 };

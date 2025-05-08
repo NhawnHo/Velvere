@@ -247,7 +247,7 @@ function Orders() {
             selectedOrder.items.forEach((item) => {
                 addToCart({
                     // SỬA LỖI: Sử dụng trực tiếp item.product_id (chuỗi ObjectId)
-                    product_id: item.product_id,
+                    product_id: item._id,
                     product_name: item.product_name,
                     image: item.image,
                     price: item.price,
