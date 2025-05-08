@@ -21,6 +21,7 @@ router.get('/', getAllUsers);
 router.get('/:id', getUserById);
 router.post('/', createUser);
 router.put('/:id', updateUser);
+router.patch('/:id', updateUser); // Thêm route PATCH để cập nhật một phần thông tin người dùng
 router.delete('/:id', deleteUser);
 router.put('/change-password', changePassword);
 

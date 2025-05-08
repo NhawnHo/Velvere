@@ -173,27 +173,31 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
             newItem.color,
         );
 
-        const updated = exists
-            ? cartItems.map(
-                  (
-                      item, // Update existing item based on product_id, size, and color
-                  ) =>
-                      item.product_id === newItem.product_id &&
-                      item.size === newItem.size &&
-                      item.color === newItem.color
-                          ? {
-                                ...item,
-                                quantity: item.quantity + newItem.quantity,
-                            }
-                          : item,
-              )
-            : // Add new item if it doesn't exist
-              [...cartItems, newItem as CartItem]; // Cast newItem to CartItem as _id is removed
-
         try {
+            // Không cập nhật số lượng tồn kho tại đây, chỉ khi thanh toán
+
+            const updated = exists
+                ? cartItems.map(
+                      (
+                          item, // Update existing item based on product_id, size, and color
+                      ) =>
+                          item.product_id === newItem.product_id &&
+                          item.size === newItem.size &&
+                          item.color === newItem.color
+                              ? {
+                                    ...item,
+                                    quantity: item.quantity + newItem.quantity,
+                                }
+                              : item,
+                  )
+                : // Add new item if it doesn't exist
+                  [...cartItems, newItem as CartItem]; // Cast newItem to CartItem as _id is removed
+
             await syncCart(updated);
         } catch (err) {
-            console.error('Failed to add item to cart:', err); // Handle error in UI, e.g., show a dialog
+            console.error('Failed to add item to cart:', err);
+            // Hiện thông báo lỗi cho người dùng
+            throw err;
         }
     };
 
@@ -209,20 +213,26 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         }
         if (quantity < 1) return;
 
-        const updated = cartItems.map(
-            (
-                item, // Find item based on product_id, size, and color
-            ) =>
-                item.product_id === productId &&
-                item.size === size &&
-                item.color === color
-                    ? { ...item, quantity }
-                    : item,
-        );
+        // Tìm sản phẩm trong giỏ hàng để lấy số lượng hiện tại
+        const currentItem = findCartItem(productId, size, color);
+        if (!currentItem) return;
+        
         try {
+            // Không cập nhật số lượng tồn kho tại đây, chỉ khi thanh toán
+            const updated = cartItems.map(
+                (
+                    item, // Find item based on product_id, size, and color
+                ) =>
+                    item.product_id === productId &&
+                    item.size === size &&
+                    item.color === color
+                        ? { ...item, quantity }
+                        : item,
+            );
             await syncCart(updated);
         } catch (err) {
-            console.error('Failed to update quantity:', err); // Handle error in UI
+            console.error('Failed to update quantity:', err);
+            throw err; // Đảm bảo lỗi được truyền lên để người dùng nhận được thông báo
         }
     };
 
@@ -234,7 +244,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         if (!isAuthenticated) {
             console.warn('User not authenticated, cannot remove item');
             return;
-        } // Filter out the item based on product_id, size, and color
+        } 
+        
+        // Tìm sản phẩm trong giỏ hàng để lấy số lượng hiện tại trước khi xóa
+        const currentItem = findCartItem(productId, size, color);
+        if (!currentItem) return;
+
+        // Khi xóa sản phẩm khỏi giỏ hàng, không cần cập nhật số lượng tồn kho vì 
+        // số lượng đã được trừ khi thêm vào giỏ hàng
+
+        // Filter out the item based on product_id, size, and color
         const updated = cartItems.filter(
             (item) =>
                 !(
