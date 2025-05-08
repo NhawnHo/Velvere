@@ -152,7 +152,7 @@ export default function AppointmentModal() {
                 onClick={() => setOpen(true)}
                 className="bg-black hover:bg-gray-900 text-white font-medium px-6 py-3 rounded-3xl"
             >
-                Book an Appointment Now
+                Đặt lịch hẹn
             </button>
 
             {/* Overlay - Thay đổi từ bg-black bg-opacity-50 thành bg-opacity-30 để có hiệu ứng mờ hơn */}
@@ -175,7 +175,7 @@ export default function AppointmentModal() {
                                         <span className="sr-only">Đóng</span>
                                     </button>
                                     <h2 className="text-2xl font-light tracking-wide text-center">
-                                        BOOK AN APPOINTMENT
+                                        Đặt lịch hẹn
                                     </h2>
                                     <p className="text-gray-300 mt-2 text-sm text-center">
                                         Đặt lịch hẹn để được tư vấn trực tiếp về
