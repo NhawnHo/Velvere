@@ -89,6 +89,57 @@ function Cart() {
         try {
             const user = JSON.parse(userJSON);
 
+            // Cập nhật số lượng tồn kho trước khi tạo đơn hàng
+            try {
+                // Chuẩn bị danh sách các sản phẩm cần cập nhật số lượng tồn kho
+                const stockUpdates = cartItems.map(item => ({
+                    productId: item.product_id,
+                    size: item.size,
+                    color: item.color,
+                    quantity: item.quantity
+                }));
+
+                // Gọi API cập nhật số lượng tồn kho cho nhiều sản phẩm
+                const stockResponse = await axios.post(
+                    'http://localhost:3000/api/products/update-multiple-stock',
+                    { items: stockUpdates },
+                    { withCredentials: true }
+                );
+
+                // Kiểm tra xem có sản phẩm nào không đủ số lượng tồn kho không
+                if (stockResponse.status === 207) {
+                    const failedItems = stockResponse.data.results.filter(result => !result.success);
+                    if (failedItems.length > 0) {
+                        const errorMessages = failedItems.map(item => 
+                            `Sản phẩm "${cartItems.find(c => c.product_id === item.productId)?.product_name}" ${item.message}`
+                        );
+                        
+                        setDialog({
+                            isOpen: true,
+                            title: 'Không thể hoàn tất thanh toán',
+                            description: 'Một số sản phẩm trong giỏ hàng không đủ số lượng tồn kho: ' + errorMessages.join(', '),
+                            type: 'error',
+                        });
+                        setIsProcessing(false);
+                        return;
+                    }
+                }
+            } catch (stockError) {
+                console.error('Lỗi khi cập nhật số lượng tồn kho:', stockError);
+                const axiosStockError = stockError as {
+                    response?: { data?: { message?: string } };
+                };
+                
+                setDialog({
+                    isOpen: true,
+                    title: 'Lỗi cập nhật số lượng tồn kho',
+                    description: axiosStockError.response?.data?.message || 'Có lỗi xảy ra khi cập nhật số lượng tồn kho. Vui lòng thử lại.',
+                    type: 'error',
+                });
+                setIsProcessing(false);
+                return;
+            }
+
             const newOrderId = generateOrderId();
             const orderDate = new Date().toLocaleDateString('vi-VN');
             const estimatedDelivery = getEstimatedDelivery();

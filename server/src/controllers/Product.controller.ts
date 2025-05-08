@@ -276,12 +276,9 @@ export const updateProductStock = async (
             return;
         }
 
-        if (!mongoose.Types.ObjectId.isValid(productId)) {
-            res.status(400).json({ message: 'ID sản phẩm không hợp lệ' });
-            return;
-        }
-
-        const product = await Product.findById(productId);
+        // Tìm sản phẩm bằng product_id thay vì _id
+        const product = await Product.findOne({ product_id: productId });
+        
         if (!product) {
             res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
             return;
@@ -366,18 +363,9 @@ export const updateMultipleProductsStock = async (
                 continue;
             }
 
-            if (!mongoose.Types.ObjectId.isValid(productId)) {
-                updateResults.push({
-                    productId,
-                    success: false,
-                    message: 'ID sản phẩm không hợp lệ',
-                });
-                hasError = true;
-                continue;
-            }
-
             try {
-                const product = await Product.findById(productId);
+                // Tìm sản phẩm bằng product_id thay vì _id
+                const product = await Product.findOne({ product_id: productId });
                 if (!product) {
                     updateResults.push({
                         productId,
