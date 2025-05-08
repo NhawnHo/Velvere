@@ -1,11 +1,10 @@
 'use client';
 
-import type React from 'react';
-import { useEffect, useRef, useState } from 'react';
-import { useLocation, Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import UserDropdownMenu from './UserDropdownMenu';
 import { useCart } from '../context/CartContext';
+import UserDropdownMenu from './UserDropdownMenu';
 
 // Định nghĩa interface cho User
 export interface User {
@@ -76,7 +75,9 @@ const Header: React.FC = () => {
         const checkUserSession = async () => {
             try {
                 console.log('Kiểm tra session từ server...');
-                const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+                const apiBaseUrl =
+                    import.meta.env.VITE_API_BASE_URL ||
+                    'http://localhost:3000';
                 const response = await fetch(
                     `${apiBaseUrl}/api/users/check-session`,
                     {
@@ -166,27 +167,29 @@ const Header: React.FC = () => {
 
         setIsSearching(true);
         try {
-            const response = await fetch(
-                `http://localhost:3000/api/products?search=${encodeURIComponent(
-                    query,
-                )}`,
-                {
-                    credentials: 'include',
-                },
-            );
-
+            const response = await fetch(`http://localhost:3000/api/products`);
             if (!response.ok) throw new Error('Network response was not ok');
 
             const products: Product[] = await response.json();
-            const filteredProducts = products.filter((product) =>
-                product.product_name
-                    .toLowerCase()
-                    .includes(query.toLowerCase()),
+
+            // Lọc sản phẩm dựa trên query
+            const filteredProducts = products.filter(
+                (product) =>
+                    product.product_name
+                        .toLowerCase()
+                        .includes(query.toLowerCase()) ||
+                    product.description
+                        .toLowerCase()
+                        .includes(query.toLowerCase()) ||
+                    product.chatLieu
+                        .toLowerCase()
+                        .includes(query.toLowerCase()) ||
+                    product.xuatXu.toLowerCase().includes(query.toLowerCase()),
             );
 
             setSearchResults(filteredProducts);
         } catch (error) {
-            console.error('Lỗi khi tìm kiếm sản phẩm:', error);
+            console.error('Error searching products:', error);
             setSearchResults([]);
         } finally {
             setIsSearching(false);
@@ -262,8 +265,6 @@ const Header: React.FC = () => {
     const toggleMenu = (menu: string) => {
         setExpandedMenu((prev) => (prev === menu ? null : menu));
     };
-
-  
 
     return (
         <>
@@ -650,72 +651,27 @@ const Header: React.FC = () => {
                                                 id="products-submenu"
                                             >
                                                 <li role="none">
-                                                    <button
-                                                        onClick={() =>
-                                                            setExpandedSubMenu(
-                                                                (prev) =>
-                                                                    prev ===
-                                                                    'products-add'
-                                                                        ? null
-                                                                        : 'products-add',
-                                                            )
-                                                        }
-                                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex justify-between items-center"
-                                                        aria-expanded={
-                                                            expandedSubMenu ===
-                                                            'products-add'
-                                                        }
-                                                        aria-controls="products-add-submenu"
-                                                    >
-                                                        Thêm sản phẩm
-                                                        <i
-                                                            className={`ml-2 fa-solid ${
+                                                    <Link to="/admin/products/add">
+                                                        <button
+                                                            onClick={() =>
+                                                                setExpandedSubMenu(
+                                                                    (prev) =>
+                                                                        prev ===
+                                                                        'products-add'
+                                                                            ? null
+                                                                            : 'products-add',
+                                                                )
+                                                            }
+                                                            className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex justify-between items-center"
+                                                            aria-expanded={
                                                                 expandedSubMenu ===
                                                                 'products-add'
-                                                                    ? 'fa-chevron-up'
-                                                                    : 'fa-chevron-down'
-                                                            }`}
-                                                            aria-hidden="true"
-                                                        />
-                                                    </button>
-                                                    {expandedSubMenu ===
-                                                        'products-add' && (
-                                                        <ul
-                                                            className="pl-4 text-sm text-gray-700"
-                                                            role="menu"
-                                                            id="products-add-submenu"
+                                                            }
+                                                            aria-controls="products-add-submenu"
                                                         >
-                                                            <li role="none">
-                                                                <Link
-                                                                    to="/admin/products/add"
-                                                                    onClick={() =>
-                                                                        setShowSideMenu(
-                                                                            false,
-                                                                        )
-                                                                    }
-                                                                    className="block px-4 py-2 hover:bg-gray-100"
-                                                                    role="menuitem"
-                                                                >
-                                                                    Thêm sản
-                                                                    phẩm mới
-                                                                </Link>
-                                                            </li>
-                                                            <li role="none">
-                                                                <Link
-                                                                    to="/admin/products/import"
-                                                                    onClick={() =>
-                                                                        setShowSideMenu(
-                                                                            false,
-                                                                        )
-                                                                    }
-                                                                    className="block px-4 py-2 hover:bg-gray-100"
-                                                                    role="menuitem"
-                                                                >
-                                                                    Nhập hàng
-                                                                </Link>
-                                                            </li>
-                                                        </ul>
-                                                    )}
+                                                            Thêm sản phẩm
+                                                        </button>
+                                                    </Link>
                                                 </li>
                                                 <li role="none">
                                                     <Link
@@ -784,6 +740,7 @@ const Header: React.FC = () => {
                                                         className="block px-4 py-2 hover:bg-gray-100"
                                                         role="menuitem"
                                                     >
+
                                                         Xem đơn hàng 
                                                     </Link>
                                                 </li>
@@ -799,6 +756,7 @@ const Header: React.FC = () => {
                                                         role="menuitem"
                                                     >
                                                         Duyệt đơn hàng
+
                                                     </Link>
                                                 </li>
                                             </ul>
@@ -843,7 +801,7 @@ const Header: React.FC = () => {
                                                         Danh sách người dùng
                                                     </Link>
                                                 </li>
-                                              
+
                                             </ul>
                                         )}
                                     </li>
