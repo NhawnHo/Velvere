@@ -193,15 +193,19 @@ function Orders() {
 
         try {
             setProcessingAction(true);
+            console.log(`Đang gửi yêu cầu hủy đơn hàng ID: ${selectedOrder._id}`);
+            console.log(`Lý do hủy: ${cancelReason}`);
 
             // Gọi API để hủy đơn hàng với lý do và thêm withCredentials
-            await axios.put(
+            const response = await axios.post(
                 `http://localhost:3000/api/orders/${selectedOrder._id}/cancel`,
-                { cancellationReason: cancelReason },
+                { reason: cancelReason },
                 {
                     withCredentials: true, // Đảm bảo gửi cookie (bao gồm XSRF-TOKEN)
                 },
             );
+
+            console.log('Phản hồi từ server khi hủy đơn hàng:', response.data);
 
             // Làm mới danh sách đơn hàng
             await refreshOrders();
@@ -216,9 +220,10 @@ function Orders() {
             setShowCancelInput(false); // Đóng input lý do hủy
             setCancelReason(''); // Xóa lý do hủy
         } catch (error) {
-            console.error('Lỗi khi hủy đơn hàng:', error);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            console.error('Lỗi chi tiết khi hủy đơn hàng:', error);
             const axiosError = error as any;
+            console.log('Dữ liệu phản hồi lỗi:', axiosError.response?.data);
+            
             const errorMessage =
                 axiosError.response?.data?.message ||
                 'Đã xảy ra lỗi khi hủy đơn hàng. Vui lòng thử lại sau.';

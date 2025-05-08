@@ -784,12 +784,12 @@ const Header: React.FC = () => {
                                                         className="block px-4 py-2 hover:bg-gray-100"
                                                         role="menuitem"
                                                     >
-                                                        Tất cả đơn hàng
+                                                        Xem đơn hàng (lọc đơn hàng)
                                                     </Link>
                                                 </li>
                                                 <li role="none">
                                                     <Link
-                                                        to="/admin/orders/pending"
+                                                        to="/admin/orders/approval"
                                                         onClick={() =>
                                                             setShowSideMenu(
                                                                 false,
@@ -798,49 +798,7 @@ const Header: React.FC = () => {
                                                         className="block px-4 py-2 hover:bg-gray-100"
                                                         role="menuitem"
                                                     >
-                                                        Đơn hàng chờ xử lý
-                                                    </Link>
-                                                </li>
-                                                <li role="none">
-                                                    <Link
-                                                        to="/admin/orders/shipping"
-                                                        onClick={() =>
-                                                            setShowSideMenu(
-                                                                false,
-                                                            )
-                                                        }
-                                                        className="block px-4 py-2 hover:bg-gray-100"
-                                                        role="menuitem"
-                                                    >
-                                                        Đơn hàng đang giao
-                                                    </Link>
-                                                </li>
-                                                <li role="none">
-                                                    <Link
-                                                        to="/admin/orders/completed"
-                                                        onClick={() =>
-                                                            setShowSideMenu(
-                                                                false,
-                                                            )
-                                                        }
-                                                        className="block px-4 py-2 hover:bg-gray-100"
-                                                        role="menuitem"
-                                                    >
-                                                        Đơn hàng đã hoàn thành
-                                                    </Link>
-                                                </li>
-                                                <li role="none">
-                                                    <Link
-                                                        to="/admin/orders/cancelled"
-                                                        onClick={() =>
-                                                            setShowSideMenu(
-                                                                false,
-                                                            )
-                                                        }
-                                                        className="block px-4 py-2 hover:bg-gray-100"
-                                                        role="menuitem"
-                                                    >
-                                                        Đơn hàng đã hủy
+                                                        Duyệt đơn hàng
                                                     </Link>
                                                 </li>
                                             </ul>

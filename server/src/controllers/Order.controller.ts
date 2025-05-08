@@ -245,6 +245,7 @@ export const cancelOrder = async (
 ): Promise<void> => {
     try {
         const { id } = req.params;
+        const { reason } = req.body; // Lấy lý do hủy từ request body
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
             res.status(400).json({ message: 'ID đơn hàng không hợp lệ' });
@@ -285,6 +286,8 @@ export const cancelOrder = async (
 
         // Cập nhật trạng thái đơn hàng thành 'cancelled'
         order.status = 'cancelled';
+        order.cancellationReason = reason || 'Không có lý do được cung cấp';
+        order.cancelledAt = new Date();
         await order.save();
 
         // Nếu đơn hàng đã được giao, không hoàn lại số lượng vào kho
@@ -350,6 +353,48 @@ export const cancelOrder = async (
     
 };
 
+// Lấy tất cả đơn hàng cho admin
+export const getAllOrders = async (
+    req: Request,
+    res: Response,
+): Promise<void> => {
+    try {
+        // Lấy các tham số query nếu có
+        const { status, startDate, endDate } = req.query;
+        
+        // Xây dựng bộ lọc
+        const filter: Record<string, any> = {};
+        
+        // Lọc theo trạng thái nếu có
+        if (status && status !== 'all') {
+            filter.status = status;
+        }
+        
+        // Lọc theo khoảng thời gian nếu có
+        if (startDate || endDate) {
+            filter.orderDate = {};
+            
+            if (startDate) {
+                filter.orderDate.$gte = new Date(startDate as string);
+            }
+            
+            if (endDate) {
+                filter.orderDate.$lte = new Date(endDate as string);
+            }
+        }
+        
+        // Thực hiện truy vấn và sắp xếp theo ngày đặt hàng mới nhất
+        const orders = await Order.find(filter).sort({ orderDate: -1 });
+        
+        res.status(200).json(orders);
+    } catch (err) {
+        console.error('Lỗi server khi lấy danh sách đơn hàng:', err);
+        res.status(500).json({
+            message: 'Lỗi server khi lấy danh sách đơn hàng',
+            error: err,
+        });
+    }
+};
 
 //Thống kê doanh thu
 export async function getRevenueStats(req: Request, res: Response) {

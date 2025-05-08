@@ -19,6 +19,8 @@ import { CartProvider } from './context/CartContext';
 import RevenuePage from './pages/dashboard/revenue/RevenuePage';
 import BestSellingPage from './pages/dashboard/best-selling/BestSellingPage';
 import AppointmentPage from './pages/AppointmentPage';
+import OrderList from './pages/admin/orders/OrderList';
+import OrderApproval from './pages/admin/orders/OrderApproval';
 
 function App() {
     return (
@@ -37,7 +39,7 @@ function App() {
                     <Route path="/cart" element={<Cart />} />
                     <Route path="/orders" element={<Orders />} />
                     <Route path="/productPage" element={<ProductPage />} />
-                    <Route path="/admin/revenuePage" element={<RevenuePage />} />{' '}
+                    <Route path="/admin/revenuePage" element={<RevenuePage />} />
                     <Route
                         path="/admin/bestSellingPage"
                         element={<BestSellingPage />}
@@ -46,6 +48,10 @@ function App() {
                         path="/appointmentPage"
                         element={<AppointmentPage />}
                     />
+                    
+                    {/* Thêm routes mới cho quản lý đơn hàng */}
+                    <Route path="/admin/orders" element={<OrderList />} />
+                    <Route path="/admin/orders/approval" element={<OrderApproval />} />
                 </Routes>
 
                 <Footer />
