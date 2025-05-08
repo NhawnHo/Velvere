@@ -26,11 +26,13 @@ function Footer() {
             <div className="bg-gray-100 pt-20 pb-10">
                 <div className=" max-w-sm mx-auto text-center">
                     <h2 className="uppercase tracking-widest font-semibold text-gray-800 text-xl">
-                        Newsletter
+                        Bản tin độc quyền
                     </h2>
-                    <p className="mt-5 text-gray-700">
-                        Our newsletter keeps you updated on all our news, <br />
-                        collections and access to exclusive offers.
+                    <p className="mt-5 text-gray-700 ">
+                        Đăng ký bản tin để không bỏ lỡ bất kỳ tin tức quan
+                        trọng, chiêm ngưỡng sớm nhất các bộ sưu tập và là người
+                        đầu tiên tiếp cận những chương trình ưu đãi đặc biệt
+                        dành riêng cho thành viên.
                     </p>
 
                     <form
@@ -53,7 +55,7 @@ function Footer() {
                             peer-placeholder-shown:top-5 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 
                             peer-focus:top-1 peer-focus:text-sm peer-focus:text-gray-400"
                             >
-                                Email address *
+                                Email  *
                             </label>
 
                             <div className="mt-2 h-5  mb-2">
