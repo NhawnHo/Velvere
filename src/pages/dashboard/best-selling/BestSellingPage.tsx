@@ -60,9 +60,25 @@ const formatCurrency = (value: number) => {
 };
 
 export default function BestSellingPage() {
-  const [products, setProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
-  const [categoryData, setCategoryData] = useState([]);
+  interface Product {
+    id: string;
+    name: string;
+    category: string;
+    price: number;
+    sold: number;
+    revenue: number;
+    stock: number;
+    image?: string;
+  }
+
+  interface Category {
+    name: string;
+    value: number;
+  }
+
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [categoryData, setCategoryData] = useState<Category[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [timeRange, setTimeRange] = useState('month');
@@ -216,14 +232,9 @@ export default function BestSellingPage() {
     const top10Products = sortedProducts.slice(0, 10);
 
     // Tính phân bố danh mục
-    const categoryDistribution = {};
+    const categoryDistribution: Record<string, { count: number; revenue: number }> = {};
     sortedProducts.forEach(product => {
-      if (!categoryDistribution[product.category]) {
-        categoryDistribution[product.category] = {
-          count: 0,
-          revenue: 0
-        };
-      }
+      categoryDistribution[product.category] ??= { count: 0, revenue: 0 };
       categoryDistribution[product.category].count += 1;
       categoryDistribution[product.category].revenue += product.revenue;
     });

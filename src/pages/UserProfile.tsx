@@ -185,7 +185,7 @@ export default function UserProfile() {
                 console.log('Cập nhật thành công:', result);
 
                 // Cập nhật dữ liệu người dùng và đóng dialog
-                setUser(formData); // Cập nhật state người dùng
+                setUser(formData as User); // Cập nhật state người dùng
               setIsEditDialogOpen(false); // Đóng hộp thoại chỉnh sửa
               
                  window.location.reload();

@@ -121,10 +121,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
 
     const syncCart = async (updated: CartItem[]) => {
         if (!isAuthenticated) {
-            console.warn('User not authenticated, cannot sync cart'); // Instead of throwing an error, maybe handle this more gracefully in the UI // throw new Error('Please log in to sync cart');
-            return; // Exit if not authenticated
+            console.warn('User not authenticated, cannot sync cart');
+            return;
         }
-
+ 
+        // Đảm bảo tất cả product_id là string
+        const sanitizedItems = updated.map((item) => ({
+            ...item,
+            product_id: String(item.product_id), // Chuyển product_id thành string
+        }));
+ 
         setIsLoading(true);
         try {
             const res = await fetch('http://localhost:3000/api/cart', {
@@ -133,27 +139,27 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
                     'Content-Type': 'application/json',
                 },
                 credentials: 'include',
-                body: JSON.stringify({ items: updated }),
+                body: JSON.stringify({ items: sanitizedItems }),
             });
-
+ 
             if (!res.ok) {
                 const errorData = await res.json();
                 if (res.status === 401) {
-                    setIsAuthenticated(false); // Consider showing a message to the user to log in
+                    setIsAuthenticated(false);
                     console.error('Session expired, please log in again');
                 }
                 throw new Error(errorData.message || 'Failed to sync cart');
             }
-
+ 
             const data = await res.json();
             setCartItems(data.items);
         } catch (err) {
-            console.error('Failed to sync cart:', err); // Re-throw the error so components using syncCart can handle it (e.g., show error message)
+            console.error('Failed to sync cart:', err);
             throw err;
         } finally {
             setIsLoading(false);
         }
-    }; // newItem should already contain the correct product_id (string ObjectId)
+    };// newItem should already contain the correct product_id (string ObjectId)
 
     const addToCart = async (newItem: Omit<CartItem, '_id'>) => {
         if (!isAuthenticated) {
@@ -288,22 +294,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         }
     };
 
+    const contextValue = React.useMemo(() => ({
+        cartItems,
+        addToCart,
+        updateQuantity,
+        removeFromCart,
+        clearCart,
+        isLoading,
+        totalItems,
+        totalPrice,
+        isAuthenticated,
+        logout,
+    }), [cartItems, addToCart, updateQuantity, removeFromCart, clearCart, isLoading, totalItems, totalPrice, isAuthenticated, logout]);
+
     return (
-        <CartContext.Provider
-            value={{
-                cartItems,
-                addToCart,
-                updateQuantity,
-                removeFromCart,
-                clearCart,
-                isLoading,
-                totalItems,
-                totalPrice,
-                isAuthenticated,
-                logout,
-            }}
-        >
-           {children}
+        <CartContext.Provider value={contextValue}>
+            {children}
         </CartContext.Provider>
     );
 };

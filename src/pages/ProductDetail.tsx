@@ -161,7 +161,7 @@ function ProductDetail() {
             // Thêm sản phẩm vào giỏ hàng
             // Sử dụng product.product_id (string ObjectId)
             await addToCart({
-                product_id: product.product_id,
+                product_id: String(product.product_id),
                 product_name: product.product_name,
                 image: imageToUse,
                 price: product.price,
@@ -227,7 +227,7 @@ function ProductDetail() {
             // Thêm sản phẩm vào giỏ hàng
             // Sử dụng product.product_id (string ObjectId)
             await addToCart({
-                product_id: product.product_id,
+                product_id: String(product.product_id),
                 product_name: product.product_name,
                 image: imageToUse,
                 price: product.price,

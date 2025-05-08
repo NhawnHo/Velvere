@@ -166,7 +166,7 @@ export const updateMultipleProductsStock = async (
                 )) as ProductDocument | null; // Cast to ProductDocument
                 if (!product) {
                     updateResults.push({
-                        productId: productId,
+                        productId: String(productId),
                         success: false,
                         message: 'Không tìm thấy sản phẩm',
                     });

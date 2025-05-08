@@ -10,7 +10,7 @@ const variantSchema = new mongoose.Schema(
 );
 
 const productSchema = new mongoose.Schema({
-    product_id: { type: Number, required: true },
+    product_id: { type: String, required: true },
     product_name: { type: String, required: true },
     description: { type: String },
     category_id: { type: String },
