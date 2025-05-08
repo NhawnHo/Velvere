@@ -310,7 +310,7 @@ const OrderList: React.FC = () => {
                         }}
                         className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md mr-2"
                     >
-                        Đặt lại
+                        Làm Mới 
                     </button>
                     
                     <button

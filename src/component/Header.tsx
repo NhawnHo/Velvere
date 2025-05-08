@@ -784,7 +784,7 @@ const Header: React.FC = () => {
                                                         className="block px-4 py-2 hover:bg-gray-100"
                                                         role="menuitem"
                                                     >
-                                                        Xem đơn hàng (lọc đơn hàng)
+                                                        Xem đơn hàng 
                                                     </Link>
                                                 </li>
                                                 <li role="none">
@@ -843,20 +843,7 @@ const Header: React.FC = () => {
                                                         Danh sách người dùng
                                                     </Link>
                                                 </li>
-                                                <li role="none">
-                                                    <Link
-                                                        to="/admin/users/add"
-                                                        onClick={() =>
-                                                            setShowSideMenu(
-                                                                false,
-                                                            )
-                                                        }
-                                                        className="block px-4 py-2 hover:bg-gray-100"
-                                                        role="menuitem"
-                                                    >
-                                                        Thêm người dùng mới
-                                                    </Link>
-                                                </li>
+                                              
                                             </ul>
                                         )}
                                     </li>
