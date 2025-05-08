@@ -2,12 +2,11 @@ import { Request, Response } from 'express';
 import Product from '../models/Product.model';
 import Order from '../models/Order.model';
 import mongoose from 'mongoose';
-import { ProductDocument } from '../models/ProductDocument ';
+import { ProductDocument } from '../models/ProductDocument.model ';
 
 export const getAllProducts = async (req: Request, res: Response) => {
     try {
       const products = await Product.find();
-      console.log(products);
       res.json(products);
       
     } catch (err) {
