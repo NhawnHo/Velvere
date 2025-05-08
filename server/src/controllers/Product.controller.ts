@@ -490,11 +490,13 @@ export const getBestSellingProduct = async (
                 startDate.setMonth(now.getMonth() - 1);
         }
         
+        // Fetch valid orders within the time range, excluding cancelled orders
         const orders = await Order.find({
             orderDate: { $gte: startDate, $lte: now },
             status: { $nin: ['cancelled'] },
         }).lean();
 
+        // Build product query based on category and search parameters
         const productQuery: Record<string, any> = {};
         if (category !== 'all') {
             productQuery.category_id = category;
@@ -506,57 +508,76 @@ export const getBestSellingProduct = async (
             ];
         }
 
+        // Fetch all products matching the query
         const products = await Product.find(productQuery).lean();
-
-        const enrichedProducts = await Promise.all(
-            products.map(async (product: any) => {
-                const id = product.product_id?.toString() || 
-                          (product._id as string).toString();
+        
+        // Create a map of product IDs for faster lookups
+        const productMap = new Map();
+        
+        // Add all products to the map with both _id and product_id as keys
+        products.forEach(product => {
+            const objectIdString = product._id.toString();
+            productMap.set(objectIdString, product);
+            
+            if (product.product_id) {
+                productMap.set(product.product_id, product);
+            }
+        });
+        
+        // Process all order items to build revenue data by product
+        const productStats = new Map(); // Map to store aggregated stats
+        
+        orders.forEach(order => {
+            order.items?.forEach(item => {
+                // Try to match the product using product_id
+                const productId = item.product_id;
+                if (!productId) return;
                 
-                const stats = await Order.aggregate([
-                    { $match: { 'items.product_id': id } },
-                    { $unwind: '$items' },
-                    { $match: { 'items.product_id': id } },
-                    {
-                        $group: {
-                            _id: '$items.product_id',
-                            totalQuantity: { $sum: '$items.quantity' },
-                            totalRevenue: {
-                                $sum: {
-                                    $multiply: [
-                                        '$items.quantity',
-                                        '$items.price',
-                                    ],
-                                },
-                            },
-                        },
-                    },
-                ]);
+                // Initialize stats object if first occurrence
+                if (!productStats.has(productId)) {
+                    productStats.set(productId, {
+                        totalQuantity: 0,
+                        totalRevenue: 0
+                    });
+                }
+                
+                // Update stats
+                const stats = productStats.get(productId);
+                stats.totalQuantity += item.quantity;
+                stats.totalRevenue += (item.quantity * item.price);
+            });
+        });
+        
+        // Enrich products with sales data
+        const enrichedProducts = products.map(product => {
+            const id = product._id.toString();
+            const productId = product.product_id || id;
+            
+            // Get stats for this product (might be undefined if no sales)
+            const stats = productStats.get(productId) || productStats.get(id) || {
+                totalQuantity: 0,
+                totalRevenue: 0
+            };
+            
+            return {
+                id,
+                name: product.product_name,
+                category: product.category_id,
+                price: product.price,
+                sold: stats.totalQuantity,
+                revenue: stats.totalRevenue,
+                stock: product.variants.reduce(
+                    (sum: number, v: { stock?: number }) => sum + (v.stock || 0),
+                    0
+                ),
+                image: getImage(product.images),
+            } as BestSellingProduct;
+        });
 
-                const statsResult =
-                    stats.length > 0
-                        ? stats[0]
-                        : { totalQuantity: 0, totalRevenue: 0 };
-
-                return {
-                    id,
-                    name: product.product_name,
-                    category: product.category_id,
-                    price: product.price,
-                    sold: statsResult.totalQuantity,
-                    revenue: statsResult.totalRevenue,
-                    stock: product.variants.reduce(
-                        (sum: number, v: { stock?: number }) =>
-                            sum + (v.stock || 0),
-                        0,
-                    ),
-                    image: getImage(product.images),
-                } as BestSellingProduct;
-            }),
-        );
-
+        // Sort products by sales (best-selling first)
         enrichedProducts.sort((a, b) => b.sold - a.sold);
 
+        // Generate category statistics
         const categoryStats = enrichedProducts.reduce(
             (acc: Record<string, CategoryStat>, p: BestSellingProduct) => {
                 if (!acc[p.category]) {
@@ -565,19 +586,18 @@ export const getBestSellingProduct = async (
                 acc[p.category].value += p.sold;
                 return acc;
             },
-            {},
+            {}
         );
+        
         const categoryData = Object.values(categoryStats).sort(
-            (a, b) => b.value - a.value,
+            (a, b) => b.value - a.value
         );
 
+        // Calculate summary statistics
         const summary: SummaryStats = {
             totalProducts: products.length,
             totalSold: enrichedProducts.reduce((sum, p) => sum + p.sold, 0),
-            totalRevenue: enrichedProducts.reduce(
-                (sum, p) => sum + p.revenue,
-                0,
-            ),
+            totalRevenue: enrichedProducts.reduce((sum, p) => sum + p.revenue, 0),
             totalCategories: categoryData.length,
         };
 

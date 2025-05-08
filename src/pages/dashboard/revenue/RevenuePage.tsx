@@ -102,7 +102,7 @@ export default function RevenuePage() {
             }
 
             const response = await fetch(
-                `http://localhost:3000/api/orders?${params.toString()}`,
+                `http://localhost:3000/api/orders/revenue?${params.toString()}`,
             );
 
             if (!response.ok) {

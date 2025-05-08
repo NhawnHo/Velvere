@@ -399,12 +399,10 @@ export const getAllOrders = async (
 //Thống kê doanh thu
 export async function getRevenueStats(req: Request, res: Response) {
     try {
-      const fullUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`
-      const { searchParams } = new URL(fullUrl)
-  
-      const period = searchParams.get("period") || "daily"
-      const startDate = searchParams.get("startDate")
-      const endDate = searchParams.get("endDate")
+      // Sử dụng req.query trực tiếp thay vì parse URL
+      const period = req.query.period as string || "daily"
+      const startDate = req.query.startDate as string
+      const endDate = req.query.endDate as string
   
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const dateFilter: any = {}
