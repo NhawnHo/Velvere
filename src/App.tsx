@@ -21,6 +21,7 @@ import BestSellingPage from './pages/dashboard/best-selling/BestSellingPage';
 import AppointmentPage from './pages/AppointmentPage';
 import OrderList from './pages/admin/orders/OrderList';
 import OrderApproval from './pages/admin/orders/OrderApproval';
+import OrderDetail from './pages/admin/orders/OrderDetail';
 
 function App() {
     return (
@@ -51,6 +52,7 @@ function App() {
                     
                     {/* Thêm routes mới cho quản lý đơn hàng */}
                     <Route path="/admin/orders" element={<OrderList />} />
+                    <Route path="/admin/orders/:id" element={<OrderDetail />} />
                     <Route path="/admin/orders/approval" element={<OrderApproval />} />
                 </Routes>
 
