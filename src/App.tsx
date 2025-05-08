@@ -37,7 +37,6 @@ import UserProfile from './pages/UserProfile';
 function App() {
     return (
         <CartProvider>
-            <ChatProvider>
                 <Router>
                     <ScrollToTop />
                     <Header />
@@ -78,11 +77,9 @@ function App() {
                         <Route path="/admin/users/edit/:userId" element={<EditUser />} />
                     </Routes>
 
-                    <ChatLauncher />
                     <Footer />
                     <ToastContainer />
                 </Router>
-            </ChatProvider>
         </CartProvider>
     );
 }
