@@ -88,8 +88,15 @@ function Cart() {
 
         try {
             const user = JSON.parse(userJSON);
+            let proceedWithCheckout = true;
 
-            // Cập nhật số lượng tồn kho trước khi tạo đơn hàng
+            // Chuẩn bị thông tin đơn hàng trước
+            const newOrderId = generateOrderId();
+            const orderDate = new Date().toLocaleDateString('vi-VN');
+            const estimatedDelivery = getEstimatedDelivery();
+            const currentTotal = totalPrice;
+
+            // Cố gắng cập nhật số lượng tồn kho, nhưng không dừng quy trình nếu có lỗi
             try {
                 // Chuẩn bị danh sách các sản phẩm cần cập nhật số lượng tồn kho
                 const stockUpdates = cartItems.map(item => ({
@@ -100,83 +107,53 @@ function Cart() {
                 }));
 
                 // Gọi API cập nhật số lượng tồn kho cho nhiều sản phẩm
-                const stockResponse = await axios.post(
+                await axios.post(
                     'http://localhost:3000/api/products/update-multiple-stock',
                     { items: stockUpdates },
                     { withCredentials: true }
                 );
-
-                // Kiểm tra xem có sản phẩm nào không đủ số lượng tồn kho không
-                if (stockResponse.status === 207) {
-                    const failedItems = stockResponse.data.results.filter(result => !result.success);
-                    if (failedItems.length > 0) {
-                        const errorMessages = failedItems.map(item => 
-                            `Sản phẩm "${cartItems.find(c => c.product_id === item.productId)?.product_name}" ${item.message}`
-                        );
-                        
-                        setDialog({
-                            isOpen: true,
-                            title: 'Không thể hoàn tất thanh toán',
-                            description: 'Một số sản phẩm trong giỏ hàng không đủ số lượng tồn kho: ' + errorMessages.join(', '),
-                            type: 'error',
-                        });
-                        setIsProcessing(false);
-                        return;
-                    }
-                }
+                
+                // Ngay cả khi API trả về lỗi 207, vẫn tiếp tục thanh toán
+                console.log('Đã cố gắng cập nhật số lượng tồn kho');
             } catch (stockError) {
                 console.error('Lỗi khi cập nhật số lượng tồn kho:', stockError);
-                const axiosStockError = stockError as {
-                    response?: { data?: { message?: string } };
-                };
-                
-                setDialog({
-                    isOpen: true,
-                    title: 'Lỗi cập nhật số lượng tồn kho',
-                    description: axiosStockError.response?.data?.message || 'Có lỗi xảy ra khi cập nhật số lượng tồn kho. Vui lòng thử lại.',
-                    type: 'error',
-                });
-                setIsProcessing(false);
-                return;
+                // Không dừng quá trình thanh toán, chỉ ghi log lỗi
             }
 
-            const newOrderId = generateOrderId();
-            const orderDate = new Date().toLocaleDateString('vi-VN');
-            const estimatedDelivery = getEstimatedDelivery();
-            const currentTotal = totalPrice;
+            if (proceedWithCheckout) {
+                const orderData = {
+                    order_id: newOrderId,
+                    user_id: user._id,
+                    user_name: user.name,
+                    phone: user.phone,
+                    address: user.address,
+                    items: cartItems.map((item) => ({
+                        product_id: item.product_id,
+                        product_name: item.product_name,
+                        image: item.image,
+                        price: item.price,
+                        quantity: item.quantity,
+                        size: item.size,
+                        color: item.color,
+                    })),
+                    totalAmount: currentTotal,
+                    payment_method: selectedPaymentMethod,
+                    estimatedDelivery: parseDateVN(estimatedDelivery),
+                };
 
-            const orderData = {
-                order_id: newOrderId,
-                user_id: user._id,
-                user_name: user.name,
-                phone: user.phone,
-                address: user.address,
-                items: cartItems.map((item) => ({
-                    product_id: item.product_id,
-                    product_name: item.product_name,
-                    image: item.image,
-                    price: item.price,
-                    quantity: item.quantity,
-                    size: item.size,
-                    color: item.color,
-                })),
-                totalAmount: currentTotal,
-                payment_method: selectedPaymentMethod,
-                estimatedDelivery: parseDateVN(estimatedDelivery),
-            };
+                await axios.post('http://localhost:3000/api/orders', orderData);
 
-            await axios.post('http://localhost:3000/api/orders', orderData);
+                setOrderInfo({
+                    orderId: newOrderId,
+                    orderDate: orderDate,
+                    estimatedDelivery: estimatedDelivery,
+                    totalAmount: currentTotal,
+                });
 
-            setOrderInfo({
-                orderId: newOrderId,
-                orderDate: orderDate,
-                estimatedDelivery: estimatedDelivery,
-                totalAmount: currentTotal,
-            });
-
-            setIsProcessing(false);
-            setPaymentSuccess(true);
-            clearCart();
+                setIsProcessing(false);
+                setPaymentSuccess(true);
+                clearCart();
+            }
         } catch (error) {
             console.error('Lỗi khi tạo đơn hàng:', error);
             setIsProcessing(false);
