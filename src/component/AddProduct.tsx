@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ProductPage from '../pages/ProductPage';
+import MessageDialog from '../component/MessageDialog'; // Điều chỉnh đường dẫn nếu cần
 
 // Define interfaces for type safety
 interface Variant {
@@ -42,6 +43,17 @@ function AddProduct() {
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(true);
+    const [dialog, setDialog] = useState({
+        isOpen: false,
+        title: '',
+        description: '',
+        type: '' as 'success' | 'error' | '',
+    }); // State for dialog
+
+    // Cuộn lên đầu trang khi component mount
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []); // Chạy một lần khi component được mount
 
     // Fetch product data for edit mode
     useEffect(() => {
@@ -228,14 +240,35 @@ function AddProduct() {
                 throw new Error(errorData.message || 'Lỗi khi lưu sản phẩm');
             }
 
-            navigate('/admin/productPage');
-            // eslint-disable-next-line
+            // Hiển thị dialog thành công
+            setDialog({
+                isOpen: true,
+                title: isEditMode ? 'Cập nhật thành công' : 'Thêm thành công',
+                description: isEditMode
+                    ? 'Sản phẩm đã được cập nhật thành công.'
+                    : 'Sản phẩm đã được thêm thành công.',
+                type: 'success',
+            });
+          // eslint-disable-next-line
         } catch (err: any) {
             console.error('Error submitting product:', err); // Detailed error log
             setError(err.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
+            // Hiển thị dialog lỗi
+            setDialog({
+                isOpen: true,
+                title: 'Lỗi',
+                description: err.message || 'Có lỗi xảy ra. Vui lòng thử lại.',
+                type: 'error',
+            });
         } finally {
             setLoading(false);
         }
+    };
+
+    // Handle dialog close
+    const handleCloseDialog = () => {
+        setDialog({ isOpen: false, title: '', description: '', type: '' });
+        navigate('/admin/productPage', { replace: true }); // Chuyển hướng với scroll to top
     };
 
     // Render loading state for edit mode
@@ -272,7 +305,7 @@ function AddProduct() {
 
     // Main form UI
     return (
-        <div className="container mx-auto p-4 md:p-6">
+        <div className="max-w-[65vw] mx-auto p-4 md:p-6">
             <h1 className="text-5xl font-serif my-20 text-center">
                 {isEditMode ? 'Cập nhật Sản Phẩm' : 'Thêm Sản Phẩm Mới'}
             </h1>
@@ -312,7 +345,7 @@ function AddProduct() {
                             value={formData.product_name}
                             onChange={handleInputChange}
                             className="w-full p-2 border border-gray-300 rounded-md"
-                            placeholder="Áo len cashmere màu đen"
+                            placeholder="Nhập tên sản phẩm...."
                             required
                         />
                     </div>
@@ -326,7 +359,7 @@ function AddProduct() {
                             value={formData.xuatXu}
                             onChange={handleInputChange}
                             className="w-full p-2 border border-gray-300 rounded-md"
-                            placeholder="Ý, Việt Nam, v.v."
+                            placeholder="Nhập xuất xứ..."
                             required
                         />
                     </div>
@@ -342,7 +375,7 @@ function AddProduct() {
                         onChange={handleInputChange}
                         className="w-full p-2 border border-gray-300 rounded-md h-50"
                         rows={3}
-                        placeholder="Chiếc áo len là hiện thân của sự thanh lịch..."
+                        placeholder="Nhập mô tả sản phẩm..."
                         required
                     />
                 </div>
@@ -358,7 +391,7 @@ function AddProduct() {
                             value={formData.chatLieu}
                             onChange={handleInputChange}
                             className="w-full p-2 border border-gray-300 rounded-md"
-                            placeholder="Len, Cotton, Jean..."
+                            placeholder="Nhập chất liệu..."
                             required
                         />
                     </div>
@@ -658,7 +691,9 @@ function AddProduct() {
                 <div className="flex justify-end space-x-3">
                     <button
                         type="button"
-                        onClick={() => navigate('/admin/products')}
+                        onClick={() =>
+                            navigate('/admin/productPage', { replace: true })
+                        }
                         className="px-6 py-3 border border-black rounded-full hover:bg-black hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={loading}
                     >
@@ -698,6 +733,16 @@ function AddProduct() {
                     </button>
                 </div>
             </form>
+
+            {/* Thêm MessageDialog vào đây */}
+            <MessageDialog
+                isOpen={dialog.isOpen}
+                title={dialog.title}
+                description={dialog.description}
+                type={dialog.type}
+                onClose={handleCloseDialog}
+            />
+
             <ProductPage />
         </div>
     );
