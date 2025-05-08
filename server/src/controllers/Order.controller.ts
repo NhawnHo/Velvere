@@ -366,7 +366,7 @@ export async function getRevenueStats(req: Request, res: Response) {
       if (startDate) dateFilter.orderDate = { $gte: new Date(startDate) }
       if (endDate) dateFilter.orderDate = { ...dateFilter.orderDate, $lte: new Date(endDate) }
   
-      const statusFilter = { status: { $ne: "cancelled" } }
+      const statusFilter = { status: { $ne: "Cancelled" } }
   
       const filter = {
         ...dateFilter,

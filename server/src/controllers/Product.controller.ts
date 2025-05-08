@@ -313,6 +313,7 @@ export const getBestSellingProduct = async (req: Request, res: Response) => {
             const stats = await Order.aggregate([
                 {
                     $match: {
+                        status: { $ne: 'cancelled' },
                         'items.product_id': id, // Dùng product_id thay vì product_name
                     },
                 },
