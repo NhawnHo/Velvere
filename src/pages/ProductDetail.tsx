@@ -60,7 +60,7 @@ function ProductDetail() {
         if (userJSON) {
             try {
                 const user: User = JSON.parse(userJSON);
-              setIsAdmin(user.isAdmin === true);
+                setIsAdmin(user.isAdmin === true);
             } catch (error) {
                 console.error('Error parsing user JSON:', error);
                 setIsAdmin(false);
@@ -71,6 +71,7 @@ function ProductDetail() {
     }, []);
 
     useEffect(() => {
+        console.log('Fetching product with id:', id); // Debug id
         fetch(`http://localhost:3000/api/products/${id}`)
             .then((res) => {
                 if (!res.ok) {
@@ -79,6 +80,7 @@ function ProductDetail() {
                 return res.json();
             })
             .then((data) => {
+                console.log('Product data:', data); // Debug dữ liệu trả về
                 setProduct(data);
                 if (data.images && data.images.length > 0) {
                     setMainImage(data.images[0]);
@@ -88,11 +90,13 @@ function ProductDetail() {
             })
             .catch((err) => {
                 console.error('Error fetching product:', err);
+                const errorMessage =
+                    err.message ||
+                    'Không thể tải thông tin sản phẩm. Vui lòng thử lại.';
                 setDialog({
                     isOpen: true,
                     title: 'Lỗi tải sản phẩm',
-                    description:
-                        'Không thể tải thông tin sản phẩm. Vui lòng thử lại.',
+                    description: errorMessage,
                     type: 'error',
                 });
             });
@@ -171,7 +175,7 @@ function ProductDetail() {
 
         try {
             await addToCart({
-                product_id: product.product_id,
+                product_id: product._id,
                 product_name: product.product_name,
                 image: imageToUse,
                 price: product.price,
@@ -229,7 +233,7 @@ function ProductDetail() {
 
         try {
             await addToCart({
-                product_id: product.product_id,
+                product_id: product._id,
                 product_name: product.product_name,
                 image: imageToUse,
                 price: product.price,

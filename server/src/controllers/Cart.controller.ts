@@ -9,7 +9,7 @@ const validateCartItems = (items: any[]): boolean => {
     return items.every(
         (item) =>
             item.product_id &&
-            typeof item.product_id === 'number' &&
+            typeof item.product_id === 'string' &&
             item.product_name &&
             typeof item.product_name === 'string' &&
             item.image &&
@@ -73,7 +73,7 @@ export const updateCart = async (
         }
 
         interface CartItem {
-            product_id: number;
+            product_id: string;
             product_name: string;
             image: string;
             price: number;

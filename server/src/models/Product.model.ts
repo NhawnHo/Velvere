@@ -56,8 +56,5 @@ const productSchema = new Schema<ProductDocument>(
     },
 );
 
-// Index for product_id
-productSchema.index({ product_id: 1 }, { unique: true });
-
 // Export the model
 export default mongoose.model<ProductDocument>('Product', productSchema);

@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import Order from '../models/Order.model';
 import mongoose from 'mongoose';
 import axios from 'axios';
+import Product from '../models/Product.model'; // Import the Product model
+
 
 // Định nghĩa interface cho item trong đơn hàng
 interface OrderItem {
@@ -82,6 +84,9 @@ export const createOrder = async (
     req: Request,
     res: Response,
 ): Promise<void> => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
         const {
             order_id,
@@ -105,10 +110,29 @@ export const createOrder = async (
             !items ||
             !totalAmount
         ) {
-            res.status(400).json({
-                message: 'Vui lòng điền đầy đủ thông tin đơn hàng',
-            });
-            return;
+            throw new Error('Vui lòng điền đầy đủ thông tin đơn hàng');
+        }
+
+        // Kiểm tra số lượng tồn kho trước khi tạo đơn hàng
+        for (const item of items) {
+            const product = await Product.findById(item.product_id).session(session);
+            if (!product) {
+                throw new Error(`Sản phẩm ${item.product_name} không tồn tại`);
+            }
+            const variant = product.variants.find(
+                (v: { size: string; color: string; stock: number }) =>
+                    v.size === item.size && v.color === item.color,
+            );
+            if (!variant) {
+                throw new Error(
+                    `Biến thể size ${item.size}, color ${item.color} của sản phẩm ${item.product_name} không tồn tại`,
+                );
+            }
+            if (variant.stock < item.quantity) {
+                throw new Error(
+                    `Sản phẩm ${item.product_name} không đủ số lượng (còn ${variant.stock})`,
+                );
+            }
         }
 
         // Tạo đơn hàng mới
@@ -127,52 +151,26 @@ export const createOrder = async (
         });
 
         // Lưu đơn hàng vào database
-        await newOrder.save();
+        await newOrder.save({ session });
 
-        // Chuẩn bị dữ liệu để cập nhật số lượng sản phẩm trong kho
-        const productItems: StockUpdateItem[] = items.map(
-            (item: OrderItem) => ({
-                productId: item.product_id,
-                size: item.size,
-                color: item.color,
-                quantity: item.quantity,
-            }),
-        );
-
-        try {
-            // Gọi API để cập nhật số lượng sản phẩm trong kho
-            await axios.put(
-                'http://localhost:3000/api/products/update-multiple-stock',
-                {
-                    items: productItems,
-                },
+        // Cập nhật số lượng tồn kho
+        for (const item of items) {
+            const product = await Product.findById(item.product_id).session(session);
+            const variant = product!.variants.find(
+                (v: { size: string; color: string; stock: number }) =>
+                    v.size === item.size && v.color === item.color,
             );
-
-            // Trả về thông tin đơn hàng đã tạo
-            res.status(201).json({
-                message:
-                    'Đơn hàng đã được tạo và số lượng sản phẩm đã được cập nhật',
-                order: newOrder,
-            });
-        } catch (error) {
-            console.error('Lỗi khi cập nhật số lượng sản phẩm:', error);
-
-            // Xử lý lỗi và trích xuất thông tin từ axios
-            const stockErr = error as Error;
-            const axiosError = error as { response?: { data?: unknown } };
-
-            // Mặc dù có lỗi khi cập nhật stock, đơn hàng vẫn được tạo thành công
-            res.status(201).json({
-                message:
-                    'Đơn hàng đã được tạo nhưng có lỗi khi cập nhật số lượng sản phẩm',
-                order: newOrder,
-                stockError:
-                    axiosError.response?.data ||
-                    stockErr.message ||
-                    'Lỗi cập nhật số lượng',
-            });
+            variant!.stock -= item.quantity;
+            await product!.save({ session });
         }
+
+        await session.commitTransaction();
+        res.status(201).json({
+            message: 'Đơn hàng đã được tạo và số lượng sản phẩm đã được cập nhật',
+            order: newOrder,
+        });
     } catch (err) {
+        await session.abortTransaction();
         console.error('Lỗi server khi tạo đơn hàng:', err);
         interface MongoError extends Error {
             code?: number;
@@ -185,14 +183,16 @@ export const createOrder = async (
         ) {
             res.status(409).json({
                 message: 'Mã đơn hàng đã tồn tại',
-                error: err,
+                error: err instanceof Error ? err.message : 'Unknown error',
             });
         } else {
-            res.status(500).json({
-                message: 'Lỗi server khi tạo đơn hàng',
-                error: err,
+            res.status(400).json({
+                message: err instanceof Error ? err.message : 'Lỗi server khi tạo đơn hàng',
+                error: err instanceof Error ? err.message : 'Unknown error',
             });
         }
+    } finally {
+        session.endSession();
     }
 };
 
