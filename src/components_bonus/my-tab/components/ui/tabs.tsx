@@ -3,7 +3,9 @@
 import * as React from "react"
 import * as TabsPrimitive from "@radix-ui/react-tabs"
 
-import { cn } from "@/lib/utils"
+import clsx from 'clsx';
+
+const cn = clsx;
 
 function Tabs({
   className,

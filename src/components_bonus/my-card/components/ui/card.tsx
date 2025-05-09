@@ -1,7 +1,7 @@
 import * as React from "react"
+import clsx from "clsx";
 
-import { cn } from '../../lib/utils';
-
+const cn = clsx;
 
 function Card({ className, ...props }: React.ComponentProps<"div">) {
   return (

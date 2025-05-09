@@ -27,14 +27,6 @@ interface Order {
     orderDate: string;
     estimatedDelivery: string;
 }
-// eslint-disable-next-line
-interface RevenueResponse {
-    orders: Order[];
-    summary?: {
-        totalOrders: number;
-        totalRevenue: number;
-    };
-}
 
 const OrderList: React.FC = () => {
     const navigate = useNavigate();
@@ -42,90 +34,106 @@ const OrderList: React.FC = () => {
     const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    
+
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [dateFilter, setDateFilter] = useState<string>('');
     const [searchQuery, setSearchQuery] = useState<string>('');
-    
+
     useEffect(() => {
         const fetchOrders = async () => {
             try {
                 setLoading(true);
-                const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
-                console.log("API URL:", `${apiBaseUrl}/api/orders/all`);
-                
+                const apiBaseUrl =
+                    import.meta.env.VITE_API_BASE_URL ||
+                    'http://localhost:3000';
+                console.log('API URL:', `${apiBaseUrl}/api/orders/all`);
+
                 const response = await fetch(`${apiBaseUrl}/api/orders/all`, {
-                    credentials: 'include'
+                    credentials: 'include',
                 });
-                
+
                 if (!response.ok) {
-                    throw new Error(`Không thể tải danh sách đơn hàng: ${response.status} ${response.statusText}`);
+                    throw new Error(
+                        `Không thể tải danh sách đơn hàng: ${response.status} ${response.statusText}`,
+                    );
                 }
-                
+
                 const data = await response.json();
-                console.log("Raw data from API:", data);
-                
+                console.log('Raw data from API:', data);
+
                 let ordersList: Order[] = [];
-                
+
                 if (Array.isArray(data)) {
-                    console.log("Data is an array");
+                    console.log('Data is an array');
                     ordersList = data;
                 } else if (data.orders && Array.isArray(data.orders)) {
-                    console.log("Data contains orders array");
+                    console.log('Data contains orders array');
                     ordersList = data.orders;
                 } else if (data.data && Array.isArray(data.data)) {
-                    console.log("Data is wrapped in data property");
+                    console.log('Data is wrapped in data property');
                     ordersList = data.data;
                 } else {
-                    console.error("Không thể xác định cấu trúc dữ liệu đơn hàng:", data);
+                    console.error(
+                        'Không thể xác định cấu trúc dữ liệu đơn hàng:',
+                        data,
+                    );
                 }
-                
-                console.log("Processed orders list:", ordersList);
-                
+
+                console.log('Processed orders list:', ordersList);
+
                 if (ordersList.length > 0) {
                     const sampleOrder = ordersList[0];
-                    console.log("Sample order structure:", sampleOrder);
+                    console.log('Sample order structure:', sampleOrder);
                 }
-                
+
                 setOrders(ordersList);
                 setFilteredOrders(ordersList);
                 setLoading(false);
             } catch (err) {
                 console.error('Lỗi khi tải danh sách đơn hàng:', err);
-                setError(err instanceof Error ? err.message : 'Đã xảy ra lỗi khi tải dữ liệu');
+                setError(
+                    err instanceof Error
+                        ? err.message
+                        : 'Đã xảy ra lỗi khi tải dữ liệu',
+                );
                 setLoading(false);
             }
         };
-        
+
         fetchOrders();
     }, []);
-    
+
     useEffect(() => {
         let result = [...orders];
-        
+
         if (statusFilter !== 'all') {
-            result = result.filter(order => order.status === statusFilter);
+            result = result.filter((order) => order.status === statusFilter);
         }
-        
+
         if (dateFilter) {
             const filterDate = new Date(dateFilter);
-            result = result.filter(order => {
+            result = result.filter((order) => {
                 const orderDate = new Date(order.orderDate);
                 return orderDate.toDateString() === filterDate.toDateString();
             });
         }
-        
+
         if (searchQuery) {
-            result = result.filter(order => 
-                (order.user_name && order.user_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-                (order.order_id && order.order_id.toString().includes(searchQuery)) ||
-                (order.phone && order.phone.includes(searchQuery))
+            result = result.filter(
+                (order) =>
+                    (order.user_name &&
+                        order.user_name
+                            .toLowerCase()
+                            .includes(searchQuery.toLowerCase())) ||
+                    (order.order_id &&
+                        order.order_id.toString().includes(searchQuery)) ||
+                    (order.phone && order.phone.includes(searchQuery)),
             );
         }
-        
+
         setFilteredOrders(result);
     }, [orders, statusFilter, dateFilter, searchQuery]);
-    
+
     const handleExportExcel = () => {
         try {
             // Chuẩn bị dữ liệu để xuất Excel
@@ -159,7 +167,9 @@ const OrderList: React.FC = () => {
                 (acc, row) => {
                     Object.keys(row).forEach((k) => {
                         // Ensure row[k] is treated as a string before accessing length
-                        const length = String((row as Record<string, string>)[k] || '').length;
+                        const length = String(
+                            (row as Record<string, string>)[k] || '',
+                        ).length;
                         acc[k] = Math.max(acc[k] || 0, length);
                     });
                     return acc;
@@ -185,48 +195,48 @@ const OrderList: React.FC = () => {
             alert('Có lỗi xảy ra khi xuất Excel!');
         }
     };
-    
+
     const formatDate = (dateString: string | null | undefined) => {
         if (!dateString) return 'Không xác định';
-        
+
         try {
             const date = new Date(dateString);
-            
+
             if (isNaN(date.getTime())) {
                 console.warn('Định dạng ngày không hợp lệ:', dateString);
                 return 'Không xác định';
             }
-            
+
             return new Intl.DateTimeFormat('vi-VN', {
                 day: '2-digit',
                 month: '2-digit',
                 year: 'numeric',
                 hour: '2-digit',
-                minute: '2-digit'
+                minute: '2-digit',
             }).format(date);
         } catch (error) {
             console.error('Lỗi khi định dạng ngày tháng:', dateString, error);
             return 'Không xác định';
         }
     };
-    
+
     const formatCurrency = (amount: number | null | undefined) => {
         if (amount === null || amount === undefined || isNaN(amount)) {
             console.warn('Giá trị tiền không hợp lệ:', amount);
             return '0 ₫';
         }
-        
+
         try {
             return new Intl.NumberFormat('vi-VN', {
                 style: 'currency',
-                currency: 'VND'
+                currency: 'VND',
             }).format(amount);
         } catch (error) {
             console.error('Lỗi khi định dạng tiền tệ:', amount, error);
             return '0 ₫';
         }
     };
-    
+
     const getStatusClass = (status: string) => {
         switch (status) {
             case 'pending':
@@ -243,7 +253,7 @@ const OrderList: React.FC = () => {
                 return 'bg-gray-100 text-gray-800';
         }
     };
-    
+
     const getStatusText = (status: string) => {
         switch (status) {
             case 'pending':
@@ -260,12 +270,12 @@ const OrderList: React.FC = () => {
                 return status || 'Không xác định';
         }
     };
-    
+
     return (
         <div className="container mx-auto px-4 py-8">
             <ScrollToTop />
             <h1 className="text-3xl font-semibold mb-6">Quản lý đơn hàng</h1>
-            
+
             <div className="bg-white p-4 rounded-lg shadow-md mb-6">
                 <h2 className="text-xl font-semibold mb-4">Bộ lọc</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -286,7 +296,7 @@ const OrderList: React.FC = () => {
                             <option value="cancelled">Đã hủy</option>
                         </select>
                     </div>
-                    
+
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Ngày đặt hàng
@@ -298,7 +308,7 @@ const OrderList: React.FC = () => {
                             onChange={(e) => setDateFilter(e.target.value)}
                         />
                     </div>
-                    
+
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Tìm kiếm
@@ -312,7 +322,7 @@ const OrderList: React.FC = () => {
                         />
                     </div>
                 </div>
-                
+
                 <div className="mt-4 flex justify-end">
                     <button
                         onClick={() => {
@@ -322,9 +332,9 @@ const OrderList: React.FC = () => {
                         }}
                         className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md mr-2"
                     >
-                        Làm Mới 
+                        Làm Mới
                     </button>
-                    
+
                     <button
                         onClick={handleExportExcel}
                         className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
@@ -333,11 +343,14 @@ const OrderList: React.FC = () => {
                     </button>
                 </div>
             </div>
-            
+
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
                 {loading ? (
                     <div className="p-8 text-center">
-                        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent text-blue-600 motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status">
+                        <div
+                            className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent text-blue-600 motion-reduce:animate-[spin_1.5s_linear_infinite]"
+                            role="status"
+                        >
                             <span className="sr-only">Đang tải...</span>
                         </div>
                         <p className="mt-2">Đang tải dữ liệu...</p>
@@ -361,54 +374,94 @@ const OrderList: React.FC = () => {
                         <table className="min-w-full divide-y divide-gray-200 table-fixed">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    <th scope="col" className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
+                                    <th
+                                        scope="col"
+                                        className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50"
+                                    >
                                         Mã đơn hàng
                                     </th>
-                                    <th scope="col" className="w-1/5 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
+                                    <th
+                                        scope="col"
+                                        className="w-1/5 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50"
+                                    >
                                         Khách hàng
                                     </th>
-                                    <th scope="col" className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
+                                    <th
+                                        scope="col"
+                                        className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50"
+                                    >
                                         Ngày đặt
                                     </th>
-                                    <th scope="col" className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
+                                    <th
+                                        scope="col"
+                                        className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50"
+                                    >
                                         Tổng tiền
                                     </th>
-                                    <th scope="col" className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
+                                    <th
+                                        scope="col"
+                                        className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50"
+                                    >
                                         Trạng thái
                                     </th>
-                                    <th scope="col" className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
+                                    <th
+                                        scope="col"
+                                        className="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50"
+                                    >
                                         Hành động
                                     </th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
                                 {filteredOrders.map((order) => (
-                                    <tr key={order._id} className="hover:bg-gray-50 transition-colors">
+                                    <tr
+                                        key={order._id}
+                                        className="hover:bg-gray-50 transition-colors"
+                                    >
                                         <td className="px-6 py-4 whitespace-nowrap w-1/6">
                                             <div className="text-sm font-medium text-gray-900">
-                                                {order.order_id ? `#${order.order_id}` : '#'}
+                                                {order.order_id
+                                                    ? `#${order.order_id}`
+                                                    : '#'}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap w-1/5">
-                                            <div className="text-sm text-gray-900">{order.user_name || 'Không xác định'}</div>
-                                            <div className="text-xs text-gray-500">{order.phone || ''}</div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap w-1/6">
-                                            <div className="text-sm text-gray-500">{formatDate(order.orderDate)}</div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap w-1/6">
-                                            <div className="text-sm font-semibold text-gray-900">
-                                                {formatCurrency(order.totalAmount)}
+                                            <div className="text-sm text-gray-900">
+                                                {order.user_name ||
+                                                    'Không xác định'}
+                                            </div>
+                                            <div className="text-xs text-gray-500">
+                                                {order.phone || ''}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap w-1/6">
-                                            <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusClass(order.status || '')}`}>
+                                            <div className="text-sm text-gray-500">
+                                                {formatDate(order.orderDate)}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap w-1/6">
+                                            <div className="text-sm font-semibold text-gray-900">
+                                                {formatCurrency(
+                                                    order.totalAmount,
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap w-1/6">
+                                            <span
+                                                className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusClass(
+                                                    order.status || '',
+                                                )}`}
+                                            >
                                                 {getStatusText(order.status)}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium w-1/6">
                                             <button
-                                                onClick={() => navigate(`/admin/orders/${order._id}`)}
+                                                onClick={() =>
+                                                    navigate(
+                                                        `/admin/orders/${order._id}`,
+                                                    )
+                                                }
                                                 className="text-blue-600 hover:text-blue-900 mr-3"
                                             >
                                                 Chi tiết
