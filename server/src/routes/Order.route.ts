@@ -6,13 +6,15 @@ import {
     updateOrderStatus,
     cancelOrder,
     getRevenueStats,
-    getMinMaxOrderTotalAmount
+    getMinMaxOrderTotalAmount,
+    getAllOrders
 } from '../controllers/Order.controller';
 
 const router = Router();
 
 // Routes quản lý đơn hàng
-router.get("/", getRevenueStats)                   // GET     /api/orders
+router.get("/", getRevenueStats)
+router.get('/all', getAllOrders); // GET     /api/orders
 router.get('/min-max-total', getMinMaxOrderTotalAmount);
 router.get('/user/:userId', getOrdersByUserId);    // GET     /api/orders/user/:userId
 router.get('/:id', getOrderById);                  // GET     /api/orders/:id

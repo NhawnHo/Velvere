@@ -15,10 +15,15 @@ import ScrollToTop from './component/ScrollToTop';
 import ProductPage from './pages/ProductPage';
 import { CartProvider } from './context/CartContext';
 import ProductSearch from './pages/ProductSearch';
-import AddProduct from './component/AddProduct';
+import AddProduct from './pages/AddProduct';
 import RevenuePage from './pages/dashboard/revenue/RevenuePage';
 import BestSellingPage from './pages/dashboard/best-selling/BestSellingPage';
 import UserProfile from './pages/UserProfile';
+import OrderList from './pages/admin/orders/OrderList';
+import OrderDetail from './pages/admin/orders/OrderDetail';
+import OrderApproval from './pages/admin/orders/OrderApproval';
+import UserList from './pages/admin/users/UserList';
+import EditUser from './pages/admin/users/EditUser';
 
 function App() {
     return (
@@ -43,7 +48,6 @@ function App() {
                         element={<ProductPage />}
                     />
                     <Route path="/products" element={<ProductSearch />} />
-                    <Route path="/admin/users" element={<User />} />
                     <Route path="admin/products/add" element={<AddProduct />} />
                     <Route
                         path="/admin/products/update/:id"
@@ -56,6 +60,19 @@ function App() {
                     <Route
                         path="/admin/bestSellingPage"
                         element={<BestSellingPage />}
+                    />
+                    {/* Admin order management */}
+                    <Route path="/admin/orders" element={<OrderList />} />
+                    <Route path="/admin/orders/:id" element={<OrderDetail />} />
+                    <Route
+                        path="/admin/orders/approval"
+                        element={<OrderApproval />}
+                    />
+                    {/* Admin user management */}
+                    <Route path="/admin/users" element={<UserList />} />
+                    <Route
+                        path="/admin/users/edit/:userId"
+                        element={<EditUser />}
                     />
                 </Routes>
 

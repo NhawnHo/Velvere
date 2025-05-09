@@ -36,7 +36,7 @@ app.use(
             }
         },
         credentials: true, // Quan trọng: cho phép gửi cookies qua CORS
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
     }),
 );

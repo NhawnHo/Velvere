@@ -275,7 +275,7 @@ export const logoutUser = async (
     });
 };
 
-// Các hàm khác giữ nguyên
+// Lấy danh sách tất cả người dùng (có hỗ trợ phân trang và tìm kiếm)
 export const getAllUsers = async (
     req: Request,
     res: Response,
@@ -293,12 +293,45 @@ export const getAllUsers = async (
             return;
         }
 
-        const users = await User.find().select('-password -currentSessionId');
-        res.status(200).json(users);
+        // Xử lý phân trang và tìm kiếm
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const search = (req.query.search as string) || '';
+
+        const skip = (page - 1) * limit;
+
+        // Tạo điều kiện tìm kiếm
+        const searchQuery = search
+            ? {
+                  $or: [
+                      { name: { $regex: search, $options: 'i' } },
+                      { email: { $regex: search, $options: 'i' } },
+                      { phone: { $regex: search, $options: 'i' } },
+                  ],
+              }
+            : {};
+
+        // Đếm tổng số người dùng thỏa mãn điều kiện tìm kiếm
+        const total = await User.countDocuments(searchQuery);
+
+        // Lấy danh sách người dùng với phân trang và tìm kiếm
+        const users = await User.find(searchQuery)
+            .select('-password -currentSessionId')
+            .sort({ user_id: 1 })
+            .skip(skip)
+            .limit(limit);
+
+        res.status(200).json({
+            users,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+        });
     } catch (err) {
-        console.error('Lỗi server khi lấy người dùng:', err);
+        console.error('Lỗi server khi lấy danh sách người dùng:', err);
         res.status(500).json({
-            message: 'Lỗi server khi lấy người dùng',
+            message: 'Lỗi server khi lấy danh sách người dùng',
             error: err,
         });
     }
@@ -413,10 +446,10 @@ export const createUser = async (
                 error: err,
             });
         } else if (err instanceof mongoose.Error.ValidationError) {
-          const messages = Object.values(err.errors).map(
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (val: any) => val.message,
-          );
+            const messages = Object.values(err.errors).map(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (val: any) => val.message,
+            );
             res.status(400).json({
                 message: 'Dữ liệu gửi lên không hợp lệ.',
                 errors: err.errors,
@@ -495,10 +528,10 @@ export const updateUser = async (
                 error: err,
             });
         } else if (err instanceof mongoose.Error.ValidationError) {
-          const messages = Object.values(err.errors).map(
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (val: any) => val.message,
-          );
+            const messages = Object.values(err.errors).map(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (val: any) => val.message,
+            );
             res.status(400).json({
                 message: 'Dữ liệu gửi lên không hợp lệ.',
                 errors: err.errors,
@@ -552,8 +585,8 @@ export const deleteUser = async (
             });
         }
 
-      res.status(200).json({ message: 'Xoá người dùng thành công' });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        res.status(200).json({ message: 'Xoá người dùng thành công' });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
         console.error('Lỗi server khi xoá người dùng:', err);
         res.status(500).json({
