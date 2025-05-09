@@ -23,8 +23,6 @@ import AddProduct from './component/AddProduct';
 import RevenuePage from './pages/dashboard/revenue/RevenuePage';
 import BestSellingPage from './pages/dashboard/best-selling/BestSellingPage';
 import AppointmentPage from './pages/AppointmentPage';
-import { ChatProvider } from './context/ChatContext';
-import ChatLauncher from './component/ChatLauncher';
 
 // Admin routes
 import OrderList from './pages/admin/orders/OrderList';

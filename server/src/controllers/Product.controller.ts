@@ -537,7 +537,7 @@ export const getBestSellingProduct = async (
         }).lean();
 
         // Build product query based on category and search parameters
-        const productQuery: Record<string, any> = {};
+        const productQuery: Record<string, unknown> = {};
         if (category !== 'all') {
             productQuery.category_id = category;
         }
