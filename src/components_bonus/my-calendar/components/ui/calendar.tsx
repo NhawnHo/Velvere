@@ -2,9 +2,12 @@
 import * as React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { DayPicker } from 'react-day-picker';
+import { clsx } from 'clsx'; // Importing clsx as a utility function
 
-import { cn } from '@/lib/utils';
 import { buttonVariants } from '../ui/button';
+
+// Alias clsx to cn for consistency with the existing code
+const cn = clsx;
 
 function Calendar({
     className,

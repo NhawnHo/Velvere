@@ -2,8 +2,9 @@
 
 import * as React from "react"
 import * as PopoverPrimitive from "@radix-ui/react-popover"
+import clsx from 'clsx';
 
-import { cn } from "@/lib/utils"
+const cn = clsx;
 
 function Popover({
   ...props

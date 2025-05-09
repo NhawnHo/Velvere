@@ -62,13 +62,6 @@ function formatDate(input: string, type: string) {
     }
 }
 
-const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND',
-    }).format(value);
-};
-
 export default function RevenuePage() {
     const [activeTab, setActiveTab] = useState('daily');
     const [startDate, setStartDate] = useState<Date | undefined>(undefined);
@@ -393,7 +386,7 @@ export default function RevenuePage() {
                                 { text: 'Số đơn hàng', style: 'tableHeader' },
                                 { text: 'TB/Đơn hàng', style: 'tableHeader' },
                             ],
-                            ...revenueData.map((item, index) => [
+                            ...revenueData.map((item) => [
                                 { text: item.date, style: 'tableCell' },
                                 {
                                     text: formatCurrency(item.revenue),
@@ -415,7 +408,7 @@ export default function RevenuePage() {
                     layout: {
                         hLineWidth: function (
                             i: number,
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
                             node: { table: { body: string | any[] } },
                         ) {
                             return i === 0 ||
@@ -424,12 +417,12 @@ export default function RevenuePage() {
                                 ? 1
                                 : 0.5;
                         },
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        vLineWidth: function (i: any) {
+
+                        vLineWidth: function () {
                             return 0;
                         },
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        hLineColor: function (i: number, node: any) {
+
+                        hLineColor: function (i: number) {
                             return i === 0 || i === 1
                                 ? primaryColor
                                 : borderColor;
@@ -440,20 +433,20 @@ export default function RevenuePage() {
                             }
                             return rowIndex % 2 === 0 ? '#f8f9fa' : null;
                         },
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        paddingLeft: function (i: any) {
+
+                        paddingLeft: function () {
                             return 10;
                         },
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        paddingRight: function (i: any) {
+
+                        paddingRight: function () {
                             return 10;
                         },
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        paddingTop: function (i: any) {
+
+                        paddingTop: function () {
                             return 8;
                         },
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        paddingBottom: function (i: any) {
+
+                        paddingBottom: function () {
                             return 8;
                         },
                     },
