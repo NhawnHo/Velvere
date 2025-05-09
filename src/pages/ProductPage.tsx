@@ -28,8 +28,13 @@ export default function ProductPage() {
 
     useEffect(() => {
         const fetchProducts = async () => {
-            try {
-                const res = await fetch('http://localhost:3000/api/products');
+          try {
+              const apiBaseUrl =
+                    import.meta.env.VITE_API_BASE_URL ||
+                    'http://localhost:3000';
+
+              
+                const res = await fetch(`${apiBaseUrl}/api/products`);
                 const data: Product[] = await res.json();
 
                 // Lọc sản phẩm theo giới tính và danh mục nếu có

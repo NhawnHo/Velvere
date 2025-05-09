@@ -274,7 +274,7 @@ const UserList: React.FC = () => {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-6">Quản Lý Người Dùng</h1>
+            <h1 className="text-4xl mt-10 text-center font-serif mb-10">Quản Lý Người Dùng</h1>
 
             {/* Search and Filter */}
             <div className="mb-6">

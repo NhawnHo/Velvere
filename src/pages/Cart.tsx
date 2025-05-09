@@ -113,8 +113,10 @@ function Cart() {
                 payment_method: selectedPaymentMethod,
                 estimatedDelivery: parseDateVN(estimatedDelivery),
             };
+            const apiBaseUrl =
+                import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
-            await axios.post('http://localhost:3000/api/orders', orderData);
+            await axios.post(`${apiBaseUrl}/api/orders`, orderData);
 
             setOrderInfo({
                 orderId: newOrderId,
@@ -427,7 +429,7 @@ function Cart() {
                                         }
                                         className="mr-2"
                                     />
-                                    Thanh toán khi nhận hàng (COD) 
+                                    Thanh toán khi nhận hàng (COD)
                                 </label>
                                 <label className="flex items-center">
                                     <input
@@ -461,34 +463,27 @@ function Cart() {
                                         }
                                         className="mr-2"
                                     />
-                                   VNPAY 
-                                  
+                                    VNPAY
                                 </label>
-                             
                             </div>
-                         
                         </div>
-                     
+
                         <div className="flex justify-between font-semibold text-lg mb-6">
-                           <span>Tổng cộng:</span>
-                            
+                            <span>Tổng cộng:</span>
+
                             <span>{totalPrice.toLocaleString()}₫</span>
-                            
                         </div>
-                       
+
                         <button
                             onClick={handleCheckout}
                             className="w-full py-3 bg-black text-white rounded-full hover:bg-gray-800 transition"
                         >
-                          Thanh toán 
+                            Thanh toán
                         </button>
-                       
                     </div>
-                    
                 </div>
-              
             </div>
-          
+
             <MessageDialog
                 isOpen={dialog.isOpen}
                 title={dialog.title}
@@ -496,7 +491,6 @@ function Cart() {
                 type={dialog.type}
                 onClose={handleCloseDialog}
             />
-        
         </div>
     );
 }

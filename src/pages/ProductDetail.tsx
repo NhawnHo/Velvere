@@ -60,7 +60,7 @@ function ProductDetail() {
         if (userJSON) {
             try {
                 const user: User = JSON.parse(userJSON);
-              setIsAdmin(user.isAdmin === true);
+                setIsAdmin(user.isAdmin === true);
             } catch (error) {
                 console.error('Error parsing user JSON:', error);
                 setIsAdmin(false);
@@ -71,7 +71,10 @@ function ProductDetail() {
     }, []);
 
     useEffect(() => {
-        fetch(`http://localhost:3000/api/products/${id}`)
+        const apiBaseUrl =
+            import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+
+        fetch(`${apiBaseUrl}/api/products/${id}`)
             .then((res) => {
                 if (!res.ok) {
                     throw new Error(`HTTP error! status: ${res.status}`);
