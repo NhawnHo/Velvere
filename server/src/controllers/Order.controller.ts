@@ -138,8 +138,14 @@ export const createOrder = async (
             // Gửi từng item riêng lẻ
             for (const item of productItems) {
                 console.log('Sending to update-variant-stock:', item); // Log dữ liệu gửi
+                const backendUrl =
+                    process.env.REACT_APP_BACKEND_URL ||
+                    'http://localhost:3000'; // Ví dụ cho Create React App
+                // Hoặc:
+                // const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'; // Ví dụ cho Next.js
+
                 const response = await axios.put(
-                    'http://localhost:3000/api/products/update-variant-stock',
+                    `${backendUrl}/api/products/update-variant-stock`, // Sử dụng template string để nối URL
                     item,
                 );
                 console.log(
@@ -301,8 +307,11 @@ export const cancelOrder = async (
             );
 
             // Gọi API để cập nhật số lượng sản phẩm trong kho (tăng lại số lượng)
+            const backendUrl =
+                process.env.REACT_APP_BACKEND_URL || 'http://localhost:3000'; // Thay REACT_APP_BACKEND_URL nếu bạn dùng tiền tố khác (ví dụ: NEXT_PUBLIC_BACKEND_URL)
+
             await axios.put(
-                'http://localhost:3000/api/products/update-multiple-stock',
+                `${backendUrl}/api/products/update-multiple-stock`, // Sử dụng template string để nối URL
                 {
                     items: productItems,
                 },

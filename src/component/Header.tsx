@@ -77,6 +77,7 @@ const Header: React.FC = () => {
                 const apiBaseUrl =
                     import.meta.env.VITE_API_BASE_URL ||
                     'http://localhost:3000';
+
                 const response = await fetch(
                     `${apiBaseUrl}/api/users/check-session`,
                     {
@@ -87,6 +88,7 @@ const Header: React.FC = () => {
                         },
                     },
                 );
+
 
                 if (response.ok) {
                     const userData = await response.json();
@@ -166,7 +168,10 @@ const Header: React.FC = () => {
 
         setIsSearching(true);
         try {
-            const response = await fetch(`http://localhost:3000/api/products`);
+          const response = await fetch(
+              `${import.meta.env.VITE_API_BASE_URL}/api/products`,
+          );
+
             if (!response.ok) throw new Error('Network response was not ok');
 
             const products: Product[] = await response.json();
@@ -387,7 +392,6 @@ const Header: React.FC = () => {
                             role="dialog"
                             aria-modal="true"
                         >
-                            
                             <div className="p-6 flex flex-col gap-4 h-[calc(100%-65px)] overflow-auto">
                                 <div className="flex items-center border-b pb-2">
                                     <i
@@ -647,7 +651,7 @@ const Header: React.FC = () => {
                                                                     false,
                                                                 ); // đóng menu tại đây
                                                             }}
-                                                            className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex justify-between items-center"
+                                                            className="w-full text-left px-4 py-2 hover:bg-gray-100 flex justify-between items-center"
                                                             aria-expanded={
                                                                 expandedSubMenu ===
                                                                 'products-add'
@@ -871,7 +875,7 @@ const Header: React.FC = () => {
                                                                         : 'men-ao',
                                                             )
                                                         }
-                                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex justify-between items-center"
+                                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100  justify-between items-center"
                                                         aria-expanded={
                                                             expandedSubMenu ===
                                                             'men-ao'
@@ -980,7 +984,7 @@ const Header: React.FC = () => {
                                                                         : 'men-phukien',
                                                             )
                                                         }
-                                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex justify-between items-center"
+                                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 justify-between items-center"
                                                         aria-expanded={
                                                             expandedSubMenu ===
                                                             'men-phukien'
@@ -1145,7 +1149,7 @@ const Header: React.FC = () => {
                                                                         : 'women-ao',
                                                             )
                                                         }
-                                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex justify-between items-center"
+                                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100  justify-between items-center"
                                                         aria-expanded={
                                                             expandedSubMenu ===
                                                             'women-ao'

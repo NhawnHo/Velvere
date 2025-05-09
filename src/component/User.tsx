@@ -21,9 +21,11 @@ function User() {
     const usersPerPage = 5;
 
     // Fetch users from API
-    useEffect(() => {
+  useEffect(() => {
+       const backendUrl =
+           import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
         setLoading(true);
-        fetch('http://localhost:3000/api/users', {
+        fetch(`${backendUrl}/api/users`, {
             method: 'GET',
             credentials: 'include',
             headers: {
