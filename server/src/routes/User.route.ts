@@ -5,14 +5,23 @@ import {
     createUser,
     updateUser,
     deleteUser,
+    loginUser,
+    logoutUser,
+    checkSession,
 } from '../controllers/User.controller';
 
 const router = Router();
 
-router.get('/', getAllUsers); // GET    /api/users
-router.get('/:id', getUserById); // GET    /api/users/:id
-router.post('/', createUser); // POST   /api/users
-router.put('/:id', updateUser); // PUT    /api/users/:id
-router.delete('/:id', deleteUser); // DELETE /api/users/:id
+// User management routes
+router.get('/check-session', checkSession);
+router.post('/login', loginUser);
+router.post('/logout', logoutUser);
+router.get('/', getAllUsers);
+router.get('/:id', getUserById);
+router.post('/', createUser);
+router.put('/:id', updateUser);
+router.patch('/:id', updateUser); // Thêm route PATCH để cập nhật một phần thông tin người dùng
+router.delete('/:id', deleteUser);
+
 
 export default router;
