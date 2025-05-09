@@ -19,7 +19,7 @@ import ScrollToTop from './component/ScrollToTop';
 import ProductPage from './pages/ProductPage';
 import { CartProvider } from './context/CartContext';
 import ProductSearch from './pages/ProductSearch';
-import AddProduct from './component/AddProduct';
+import AddProduct from './pages/AddProduct';
 import RevenuePage from './pages/dashboard/revenue/RevenuePage';
 import BestSellingPage from './pages/dashboard/best-selling/BestSellingPage';
 import AppointmentPage from './pages/AppointmentPage';
@@ -58,6 +58,7 @@ function App() {
                         <Route path="/signin" element={<Signin />} />
                         <Route path="/user" element={<User />} />
                         <Route path="/userProfile" element={<UserProfile />} />
+                        <Route path="/profile" element={<UserProfile />} />
                         
                         {/* Admin routes */}
                         <Route path="/admin/revenuePage" element={<RevenuePage />} />

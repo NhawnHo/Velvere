@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import type React from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import UserDropdownMenu from './UserDropdownMenu';
@@ -388,24 +389,7 @@ const Header: React.FC = () => {
                             role="dialog"
                             aria-modal="true"
                         >
-                            <div className="flex items-center justify-between p-4 border-b">
-                                <button
-                                    onClick={() => {
-                                        setShowSearchPanel(false);
-                                        setSearchQuery('');
-                                        setSearchResults([]);
-                                    }}
-                                    className="text-gray-700 hover:text-black"
-                                    aria-label="Đóng ô tìm kiếm"
-                                >
-                                    <i className="fa-solid fa-xmark mr-2"></i>
-                                    Đóng
-                                </button>
-                                <i
-                                    className="fa-solid fa-magnifying-glass text-gray-500"
-                                    aria-hidden="true"
-                                />
-                            </div>
+                            
                             <div className="p-6 flex flex-col gap-4 h-[calc(100%-65px)] overflow-auto">
                                 <div className="flex items-center border-b pb-2">
                                     <i
@@ -653,15 +637,18 @@ const Header: React.FC = () => {
                                                 <li role="none">
                                                     <Link to="/admin/products/add">
                                                         <button
-                                                            onClick={() =>
+                                                            onClick={() => {
                                                                 setExpandedSubMenu(
                                                                     (prev) =>
                                                                         prev ===
                                                                         'products-add'
                                                                             ? null
                                                                             : 'products-add',
-                                                                )
-                                                            }
+                                                                );
+                                                                setShowSideMenu(
+                                                                    false,
+                                                                ); // đóng menu tại đây
+                                                            }}
                                                             className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex justify-between items-center"
                                                             aria-expanded={
                                                                 expandedSubMenu ===
@@ -675,7 +662,7 @@ const Header: React.FC = () => {
                                                 </li>
                                                 <li role="none">
                                                     <Link
-                                                        to="/admin/bestSellingPage"
+                                                        to="/admin/productPage"
                                                         onClick={() =>
                                                             setShowSideMenu(
                                                                 false,
@@ -684,21 +671,7 @@ const Header: React.FC = () => {
                                                         className="block px-4 py-2 hover:bg-gray-100"
                                                         role="menuitem"
                                                     >
-                                                        Thống kê sản phẩm
-                                                    </Link>
-                                                </li>
-                                                <li role="none">
-                                                    <Link
-                                                        to="/admin/categories"
-                                                        onClick={() =>
-                                                            setShowSideMenu(
-                                                                false,
-                                                            )
-                                                        }
-                                                        className="block px-4 py-2 hover:bg-gray-100"
-                                                        role="menuitem"
-                                                    >
-                                                        Quản lý danh mục
+                                                        Danh sách sản phẩm
                                                     </Link>
                                                 </li>
                                             </ul>
@@ -865,19 +838,6 @@ const Header: React.FC = () => {
                                                 </li>
                                             </ul>
                                         )}
-                                    </li>
-
-                                    <li role="none">
-                                        <Link
-                                            to="/admin/settings"
-                                            onClick={() =>
-                                                setShowSideMenu(false)
-                                            }
-                                            className="block w-full px-6 py-3 text-left hover:bg-gray-100"
-                                            role="menuitem"
-                                        >
-                                            Cài đặt hệ thống
-                                        </Link>
                                     </li>
                                 </ul>
                             ) : (

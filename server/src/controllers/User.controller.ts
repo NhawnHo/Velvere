@@ -448,10 +448,10 @@ export const createUser = async (
                 error: err,
             });
         } else if (err instanceof mongoose.Error.ValidationError) {
-          const messages = Object.values(err.errors).map(
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (val: any) => val.message,
-          );
+            const messages = Object.values(err.errors).map(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (val: any) => val.message,
+            );
             res.status(400).json({
                 message: 'Dữ liệu gửi lên không hợp lệ.',
                 errors: err.errors,
@@ -530,10 +530,10 @@ export const updateUser = async (
                 error: err,
             });
         } else if (err instanceof mongoose.Error.ValidationError) {
-          const messages = Object.values(err.errors).map(
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (val: any) => val.message,
-          );
+            const messages = Object.values(err.errors).map(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (val: any) => val.message,
+            );
             res.status(400).json({
                 message: 'Dữ liệu gửi lên không hợp lệ.',
                 errors: err.errors,
@@ -587,8 +587,8 @@ export const deleteUser = async (
             });
         }
 
-      res.status(200).json({ message: 'Xoá người dùng thành công' });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        res.status(200).json({ message: 'Xoá người dùng thành công' });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
         console.error('Lỗi server khi xoá người dùng:', err);
         res.status(500).json({

@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import ProductPage from '../pages/ProductPage';
+// Import the MessageDialog component
+import MessageDialog from '../component/MessageDialog'; // Make sure this path is correct
+
+// Assuming ProductPage is meant for preview or is included in the same route,
+// otherwise, you might not need to import/render it here.
+// import ProductPage from './ProductPage';
 
 // Define interfaces for type safety
 interface Variant {
@@ -32,74 +37,137 @@ function AddProduct() {
     const [formData, setFormData] = useState<Product>({
         product_name: '',
         description: '',
-        category_id: 'Áo len',
+        category_id: 'aothun', // Changed default to lowercase slug for consistency
         sex: 'Nam',
         images: ['', '', ''],
         price: 0,
         xuatXu: '',
         chatLieu: '',
-        variants: [{ size: 'S', color: 'Đen', stock: 1000 }],
+        variants: [{ size: 'S', color: 'Đen', stock: 0 }], // Changed default stock
     });
-    const [error, setError] = useState('');
+    const [formError, setFormError] = useState(''); // Use a separate state for form validation errors
     const [loading, setLoading] = useState(true);
+
+    // State for Message Dialog
+    const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false);
+    const [messageDialogTitle, setMessageDialogTitle] = useState('');
+    const [messageDialogDescription, setMessageDialogDescription] =
+        useState('');
+    const [messageDialogType, setMessageDialogType] = useState<
+        'success' | 'error' | ''
+    >('');
 
     // Fetch product data for edit mode
     useEffect(() => {
-        if (id) {
-            setIsEditMode(true);
-            setLoading(true);
-            fetch(`http://localhost:3000/api/products/${id}`)
-                .then((res) => {
-                    if (!res.ok)
-                        throw new Error('Không thể tải thông tin sản phẩm');
-                    return res.json();
-                })
-                .then((data: Product) => {
-                    const images = data.images?.length
-                        ? [...data.images]
-                        : ['', '', ''];
-                    while (images.length < 3) images.push('');
-                    setFormData({
-                        ...data,
-                        product_id: data.product_id || '',
-                        product_name: data.product_name || '',
-                        description: data.description || '',
-                        category_id: data.category_id || 'Áo len',
-                        sex: data.sex || 'Nam',
-                        images,
-                        price: data.price || 0,
-                        xuatXu: data.xuatXu || '',
-                        chatLieu: data.chatLieu || '',
-                        variants: data.variants?.length
-                            ? data.variants
-                            : [{ size: 'S', color: 'Đen', stock: 1000 }],
-                    });
-                    setError('');
-                })
-                .catch((err) => {
-                    setError(
-                        'Không thể tải dữ liệu sản phẩm. Vui lòng thử lại.',
-                    );
-                    console.error('Error fetching product:', err);
-                })
-                .finally(() => setLoading(false));
-        } else {
+        // Reset form data when ID changes or is removed
+        if (!id) {
             setIsEditMode(false);
             setFormData({
                 product_name: '',
                 description: '',
-                category_id: 'Áo len',
+                category_id: 'aothun',
                 sex: 'Nam',
                 images: ['', '', ''],
                 price: 0,
                 xuatXu: '',
                 chatLieu: '',
-                variants: [{ size: 'S', color: 'Đen', stock: 1000 }],
+                variants: [{ size: 'S', color: 'Đen', stock: 0 }],
             });
-            setError('');
+            setFormError(''); // Clear form error on page change
             setLoading(false);
+            // Close any open message dialog when navigating away or to add mode
+            setIsMessageDialogOpen(false);
+            return; // Exit early if not in edit mode
         }
-    }, [id]);
+
+        setIsEditMode(true);
+        setLoading(true);
+        console.log(`Workspaceing product with ID: ${id}`);
+        const apiBaseUrl =
+            import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+
+        fetch(`${apiBaseUrl}/api/products/${id}`)
+            .then((res) => {
+                if (!res.ok) {
+                    // Attempt to read error message from response body
+                    return res.json().then((err) => {
+                        throw new Error(
+                            err.message || 'Không thể tải thông tin sản phẩm',
+                        );
+                    });
+                }
+                return res.json();
+            })
+            .then((data: Product) => {
+                console.log('Fetched product data:', data);
+                // Ensure images array has at least 3 elements for the inputs, filling with empty strings
+                const images = data.images ? [...data.images] : [];
+                while (images.length < 3) images.push('');
+
+                // Ensure variants array has at least 1 element
+                const variants = data.variants?.length
+                    ? data.variants
+                    : [{ size: 'S', color: 'Đen', stock: 0 }];
+
+                setFormData({
+                    ...data,
+                    // Use default values if data properties are missing
+                    product_id: data.product_id || '',
+                    product_name: data.product_name || '',
+                    description: data.description || '',
+                    category_id: data.category_id || 'aothun', // Default category
+                    sex: data.sex || 'Nam', // Default sex
+                    images, // Use the processed images array
+                    price: data.price || 0,
+                    xuatXu: data.xuatXu || '',
+                    chatLieu: data.chatLieu || '',
+                    variants: variants.map((v) => ({
+                        // Ensure stock is treated as number
+                        ...v,
+                        stock: Number(v.stock) || 0,
+                    })),
+                });
+                setFormError(''); // Clear any previous errors
+            })
+            .catch((err) => {
+                console.error('Error fetching product:', err);
+                // Set the error message to display within the form
+                setFormError(
+                    err.message ||
+                        'Không thể tải dữ liệu sản phẩm. Vui lòng thử lại.',
+                );
+                // Optionally, you could also show a dialog here for critical fetch errors
+                // showMessageDialog('Lỗi', err.message || 'Không thể tải dữ liệu sản phẩm.', 'error');
+            })
+            .finally(() => setLoading(false));
+    }, [id]); // Dependency array includes 'id' so effect reruns when ID changes
+
+    // Helper function to show the message dialog
+    const showMessageDialog = (
+        title: string,
+        description: string,
+        type: 'success' | 'error',
+    ) => {
+        setMessageDialogTitle(title);
+        setMessageDialogDescription(description);
+        setMessageDialogType(type);
+        setIsMessageDialogOpen(true);
+    };
+
+    // Handler to close the message dialog
+    const handleCloseMessageDialog = () => {
+        const type = messageDialogType;
+        setIsMessageDialogOpen(false);
+        setMessageDialogTitle('');
+        setMessageDialogDescription('');
+        setMessageDialogType('');
+
+        // If it was a success message, navigate after closing
+        if (type === 'success') {
+            navigate('/admin/productPage'); 
+        }
+        // For error messages, the dialog just closes, no navigation
+    };
 
     // Handle input changes
     const handleInputChange = (
@@ -129,14 +197,26 @@ function AddProduct() {
     };
 
     const handleRemoveImage = (index: number) => {
-        if (formData.images.length <= 1) {
-            setFormData((prev) => ({ ...prev, images: [''] }));
+        const currentImages = formData.images.filter(
+            (img) => img.trim() !== '',
+        );
+        const imageToRemove = formData.images[index].trim();
+
+        if (currentImages.length <= 1 && imageToRemove !== '') {
+            setFormError('Sản phẩm phải có ít nhất một ảnh.');
             return;
         }
-        setFormData((prev) => ({
-            ...prev,
-            images: prev.images.filter((_, i) => i !== index),
-        }));
+
+        if (formData.images.length <= 1) {
+            setFormData((prev) => ({ ...prev, images: [''] })); // Reset to one empty image field
+        } else {
+            setFormData((prev) => ({
+                ...prev,
+                images: prev.images.filter((_, i) => i !== index),
+            }));
+        }
+
+        setFormError(''); // Clear form error if it was related to min images
     };
 
     // Handle variant changes
@@ -158,64 +238,83 @@ function AddProduct() {
     const handleAddVariant = () => {
         setFormData((prev) => ({
             ...prev,
-            variants: [...prev.variants, { size: 'S', color: 'Đen', stock: 0 }],
+            variants: [...prev.variants, { size: '', color: '', stock: 0 }], // Start with empty size/color for new variants
         }));
     };
 
     const handleRemoveVariant = (index: number) => {
         if (formData.variants.length <= 1) {
-            setError('Sản phẩm phải có ít nhất một biến thể.');
+            setFormError('Sản phẩm phải có ít nhất một biến thể.');
             return;
         }
         setFormData((prev) => ({
             ...prev,
             variants: prev.variants.filter((_, i) => i !== index),
         }));
-        setError('');
+        setFormError(''); // Clear form error if it was related to min variants
     };
 
     // Handle form submission
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError('');
+        setFormError(''); // Clear previous form errors
 
         // Validation
+        const cleanedImages = formData.images.filter(
+            (img) => img.trim() !== '',
+        );
+        const cleanedVariants = formData.variants.map((v) => ({
+            ...v,
+            stock: Number(v.stock), // Ensure stock is a number for validation
+        }));
+
         if (
             !formData.product_name.trim() ||
             !formData.description.trim() ||
             !formData.category_id ||
             !formData.sex ||
             formData.price <= 0 ||
+            isNaN(formData.price) || // Validate price
             !formData.xuatXu.trim() ||
             !formData.chatLieu.trim() ||
-            formData.variants.length === 0 ||
-            formData.variants.some((v) => !v.size || !v.color || v.stock < 0) ||
-            formData.images.filter((img) => img.trim() !== '').length === 0
+            cleanedVariants.length === 0 || // Check cleaned variants
+            cleanedVariants.some(
+                (v) =>
+                    !v.size?.trim() ||
+                    !v.color?.trim() ||
+                    v.stock < 0 ||
+                    isNaN(v.stock),
+            ) || // Validate variants (check if size/color are empty after trim)
+            cleanedImages.length === 0 // Check cleaned images
         ) {
-            setError(
-                'Vui lòng điền đầy đủ thông tin, thêm ít nhất một ảnh và đảm bảo các biến thể hợp lệ.',
+            setFormError(
+                'Vui lòng điền đầy đủ thông tin, thêm ít nhất một ảnh, và đảm bảo các biến thể (kích cỡ, màu, số lượng >= 0) hợp lệ.',
             );
             return;
         }
 
         setLoading(true);
         try {
+            const apiBaseUrl =
+                import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
             const url = isEditMode
-                ? `http://localhost:3000/api/products/${id}`
-                : 'http://localhost:3000/api/products';
+                ? `${apiBaseUrl}/api/products/${id}`
+                : `${apiBaseUrl}/api/products`;
             const method = isEditMode ? 'PUT' : 'POST';
 
             const dataToSend = {
                 ...formData,
-                images: formData.images.filter((img) => img.trim() !== ''),
+                images: cleanedImages, // Send only non-empty image URLs
                 price: Number(formData.price),
-                variants: formData.variants.map((v) => ({
-                    ...v,
-                    stock: Number(v.stock),
-                })),
+                variants: cleanedVariants, // Send validated variants
             };
 
-            if (!isEditMode) delete dataToSend._id;
+            // On create, the server should generate the _id, so remove it if present
+            if (!isEditMode) {
+                // delete dataToSend._id; // Mongoose handles _id creation
+                // Optionally, you might also not send product_id on create if the server generates it
+                delete dataToSend.product_id;
+            }
 
             const response = await fetch(url, {
                 method,
@@ -225,21 +324,45 @@ function AddProduct() {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Lỗi khi lưu sản phẩm');
+                throw new Error(
+                    errorData.message ||
+                        `Lỗi khi ${
+                            isEditMode ? 'cập nhật' : 'thêm mới'
+                        } sản phẩm`,
+                );
             }
 
-            navigate('/admin/productPage');
-            // eslint-disable-next-line
+            // Success! Show success message dialog
+            showMessageDialog(
+                'Thành công',
+                `Sản phẩm đã được ${
+                    isEditMode ? 'cập nhật' : 'thêm mới'
+                } thành công!`,
+                'success',
+            );
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             console.error('Error submitting product:', err); // Detailed error log
-            setError(err.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
+            // Show error message dialog
+            showMessageDialog(
+                'Lỗi',
+                err.message ||
+                    `Có lỗi xảy ra khi ${
+                        isEditMode ? 'cập nhật' : 'thêm mới'
+                    } sản phẩm. Vui lòng thử lại.`,
+                'error',
+            );
+            // Also set form error state for display below the form (optional, but good for visibility)
+            setFormError(err.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
         } finally {
             setLoading(false);
         }
     };
 
-    // Render loading state for edit mode
-    if (loading && isEditMode) {
+    // Render loading state for edit mode fetch
+    if (loading && isEditMode && !formData.product_name) {
+        // Only show full page loading if fetching data for edit
         return (
             <div className="container mx-auto my-20 py-8 px-4 text-center">
                 <div className="flex flex-col items-center justify-center">
@@ -252,15 +375,18 @@ function AddProduct() {
         );
     }
 
-    // Render error state for failed fetch
-    if (!loading && error && isEditMode) {
+    // Render error state for failed initial fetch in edit mode
+    if (!loading && formError && isEditMode && !formData.product_name) {
+        // Only show full page error if fetch failed
         return (
             <div className="container mx-auto my-20 py-8 px-4 text-center">
                 <div className="p-4 bg-red-100 text-red-700 rounded-lg max-w-md mx-auto">
-                    <h2 className="text-xl font-semibold mb-2">Lỗi</h2>
-                    <p>{error}</p>
+                    <h2 className="text-xl font-semibold mb-2">
+                        Lỗi tải dữ liệu
+                    </h2>
+                    <p>{formError}</p>
                     <button
-                        onClick={() => navigate('/admin/productPage')}
+                        onClick={() => navigate('/admin/products')} // Navigating to /admin/products
                         className="mt-4 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
                     >
                         Quay lại danh sách sản phẩm
@@ -273,13 +399,16 @@ function AddProduct() {
     // Main form UI
     return (
         <div className="container mx-auto p-4 md:p-6">
-            <h1 className="text-5xl font-serif my-20 text-center">
+            <h1 className="text-5xl font-serif my-10 md:my-20 text-center">
+                {' '}
+                {/* Adjusted margin */}
                 {isEditMode ? 'Cập nhật Sản Phẩm' : 'Thêm Sản Phẩm Mới'}
             </h1>
 
-            {error && !loading && (
+            {/* Form validation error message displayed within the form */}
+            {formError && (
                 <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg">
-                    {error}
+                    {formError}
                 </div>
             )}
 
@@ -340,7 +469,7 @@ function AddProduct() {
                         name="description"
                         value={formData.description}
                         onChange={handleInputChange}
-                        className="w-full p-2 border border-gray-300 rounded-md h-50"
+                        className="w-full p-2 border border-gray-300 rounded-md h-32 md:h-40" // Adjusted height
                         rows={3}
                         placeholder="Chiếc áo len là hiện thân của sự thanh lịch..."
                         required
@@ -361,6 +490,68 @@ function AddProduct() {
                             placeholder="Len, Cotton, Jean..."
                             required
                         />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Giá (VNĐ)
+                        </label>
+                        <input
+                            type="number"
+                            name="price"
+                            value={formData.price}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border border-gray-300 rounded-md"
+                            placeholder="9000000"
+                            required
+                            min="0"
+                        />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Danh mục
+                        </label>
+                        <select
+                            name="category_id"
+                            value={formData.category_id}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border border-gray-300 rounded-md"
+                            required
+                        >
+                            {/* Use actual category IDs/values that your backend expects */}
+                            <option value="aothun">Áo thun</option>
+                            <option value="aosomi">Áo sơ mi</option>
+                            <option value="aokhoac">Áo khoác</option>
+                            <option value="aolen">Áo len</option>
+                            <option value="vest">Áo vest</option>
+                            <option value="damcongso">Đầm công sở</option>
+                            <option value="damdahoi">Đầm dạ hội</option>
+                            <option value="dambody">Đầm body</option>
+                            <option value="vay">Váy</option>
+                            <option value="hat">Mũ</option>
+                            <option value="belt">Thắt lưng</option>
+                            <option value="khanchoang">Khăn choàng</option>
+                            <option value="quanau">Quần âu</option>
+                            <option value="quanjean">Quần jean</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Giới tính
+                        </label>
+                        <select
+                            name="sex"
+                            value={formData.sex}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border border-gray-300 rounded-md"
+                            required
+                        >
+                            <option value="Nam">Nam</option>
+                            <option value="Nữ">Nữ</option>
+                            <option value="Unisex">Unisex</option>
+                        </select>
                     </div>
                 </div>
 
@@ -403,13 +594,33 @@ function AddProduct() {
                                     }
                                     className="flex-grow p-2 border border-gray-300 rounded-md"
                                     placeholder={`URL hình ảnh ${index + 1}`}
-                                    required={index === 0}
+                                    // Require the first image input if no images are added yet
+                                    required={
+                                        formData.images.filter(
+                                            (img) => img.trim() !== '',
+                                        ).length === 0 && index === 0
+                                    }
                                 />
-                                {formData.images.length > 1 && (
+                                {formData.images.length > 1 ||
+                                (formData.images.length === 1 &&
+                                    formData.images[0].trim() !== '') ? ( // Allow removing if there's more than one input field or if the only field is not empty
                                     <button
                                         type="button"
                                         onClick={() => handleRemoveImage(index)}
-                                        className="p-2 border border-black text-red-600 rounded-md hover:bg-red-100"
+                                        className={`p-2 border border-black text-red-600 rounded-md hover:bg-red-100 ${
+                                            formData.images.filter(
+                                                (img) => img.trim() !== '',
+                                            ).length <= 1 &&
+                                            formData.images[index].trim() !== ''
+                                                ? 'opacity-50 cursor-not-allowed'
+                                                : ''
+                                        }`}
+                                        disabled={
+                                            formData.images.filter(
+                                                (img) => img.trim() !== '',
+                                            ).length <= 1 &&
+                                            formData.images[index].trim() !== ''
+                                        } // Disable if trying to remove the last non-empty image
                                     >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -424,10 +635,12 @@ function AddProduct() {
                                             />
                                         </svg>
                                     </button>
-                                )}
+                                ) : null}{' '}
+                                {/* Don't render remove button if only one empty input remains */}
                             </div>
                         ))}
                     </div>
+                    {/* Image previews */}
                     {formData.images.filter((img) => img.trim() !== '').length >
                         0 && (
                         <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
@@ -436,16 +649,19 @@ function AddProduct() {
                                 .map((image, index) => (
                                     <div
                                         key={`preview-${index}`}
-                                        className="relative h-full bg-gray-100 rounded overflow-hidden"
+                                        className="relative w-full h-32 bg-gray-100 rounded overflow-hidden flex items-center justify-center" // Added flex for centering placeholder
                                     >
                                         <img
-                                            src={image || '/placeholder.svg'}
+                                            src={image}
                                             alt={`Image preview ${index + 1}`}
                                             className="h-full w-full object-cover"
                                             onError={(e) => {
                                                 (
                                                     e.target as HTMLImageElement
-                                                ).src = '/placeholder.svg';
+                                                ).src = '/placeholder.svg'; // Use a local placeholder if image fails
+                                                (
+                                                    e.target as HTMLImageElement
+                                                ).classList.add('p-4'); // Add padding to placeholder
                                             }}
                                         />
                                     </div>
@@ -454,72 +670,10 @@ function AddProduct() {
                     )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Danh mục
-                        </label>
-                        <select
-                            name="category_id"
-                            value={formData.category_id}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border border-gray-300 rounded-md"
-                            required
-                        >
-                            <option value="aothun">Áo thun</option>
-                            <option value="aosomi">Áo sơ mi</option>
-                            <option value="aokhoac">Áo khoác</option>
-                            <option value="aolen">Áo len</option>
-                            <option value="vest">Áo vest</option>
-                            <option value="damcongso">Đầm công sở</option>
-                            <option value="damdahoi">Đầm dạ hội</option>
-                            <option value="dambody">Đầm body</option>
-                            <option value="vay">Váy</option>
-                            <option value="hat">Mũ</option>
-                            <option value="belt">Thắt lưng</option>
-                            <option value="khanchoang">Khăn choàng</option>
-                            <option value="quanau">Quần âu</option>
-                            <option value="quanjean">Quần jean</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Giới tính
-                        </label>
-                        <select
-                            name="sex"
-                            value={formData.sex}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border border-gray-300 rounded-md"
-                            required
-                        >
-                            <option value="Nam">Nam</option>
-                            <option value="Nữ">Nữ</option>
-                            <option value="Unisex">Unisex</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Giá (VNĐ)
-                    </label>
-                    <input
-                        type="number"
-                        name="price"
-                        value={formData.price}
-                        onChange={handleInputChange}
-                        className="w-full p-2 border border-gray-300 rounded-md"
-                        placeholder="9000000"
-                        required
-                        min="0"
-                    />
-                </div>
-
                 <div>
                     <div className="flex items-center justify-between mb-3">
                         <h3 className="text-lg font-medium text-gray-900">
-                            Kích thước sản phẩm
+                            Kích thước sản phẩm & Tồn kho
                         </h3>
                         <button
                             type="button"
@@ -538,15 +692,22 @@ function AddProduct() {
                                     clipRule="evenodd"
                                 />
                             </svg>
-                            Thêm size
+                            Thêm biến thể
                         </button>
                     </div>
                     <div className="space-y-4">
                         {formData.variants.map((variant, index) => (
-                            <div key={index} className="border rounded-md p-4">
+                            <div
+                                key={index}
+                                className="border rounded-md p-4 bg-gray-50"
+                            >
+                                {' '}
+                                {/* Added background color */}
                                 <div className="flex items-center justify-between mb-3">
-                                    <h4 className="text-sm font-medium text-gray-700">
-                                        Size {index + 1}
+                                    <h4 className="text-sm font-semibold text-gray-700">
+                                        {' '}
+                                        {/* Bold font */}
+                                        Biến thể {index + 1}
                                     </h4>
                                     {formData.variants.length > 1 && (
                                         <button
@@ -554,7 +715,14 @@ function AddProduct() {
                                             onClick={() =>
                                                 handleRemoveVariant(index)
                                             }
-                                            className="p-1 border border-black text-red-500 rounded-md hover:bg-red-100 text-xs"
+                                            className={`p-1 border border-black text-red-500 rounded-md hover:bg-red-100 text-xs ${
+                                                formData.variants.length <= 1
+                                                    ? 'opacity-50 cursor-not-allowed'
+                                                    : ''
+                                            }`}
+                                            disabled={
+                                                formData.variants.length <= 1
+                                            } // Disable if only one variant remains
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
@@ -571,7 +739,9 @@ function AddProduct() {
                                         </button>
                                     )}
                                 </div>
-                                <div className="grid grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    {' '}
+                                    {/* Responsive grid */}
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
                                             Kích cỡ
@@ -589,6 +759,7 @@ function AddProduct() {
                                             className="w-full p-2 border border-gray-300 rounded-md"
                                             required
                                         >
+                                            {/* Add common sizes. Consider fetching these from an API if they are dynamic. */}
                                             <option value="">
                                                 -- Chọn kích cỡ --
                                             </option>
@@ -597,6 +768,7 @@ function AddProduct() {
                                             <option value="L">L</option>
                                             <option value="XL">XL</option>
                                             <option value="XXL">XXL</option>
+                                            {/* Add more sizes as needed */}
                                         </select>
                                     </div>
                                     <div>
@@ -616,6 +788,7 @@ function AddProduct() {
                                             className="w-full p-2 border border-gray-300 rounded-md"
                                             required
                                         >
+                                            {/* Add common colors. Consider fetching these from an API if they are dynamic. */}
                                             <option value="">
                                                 -- Chọn màu --
                                             </option>
@@ -626,6 +799,7 @@ function AddProduct() {
                                             </option>
                                             <option value="Đỏ">Đỏ</option>
                                             <option value="Xám">Xám</option>
+                                            {/* Add more colors as needed */}
                                         </select>
                                     </div>
                                     <div>
@@ -658,7 +832,7 @@ function AddProduct() {
                 <div className="flex justify-end space-x-3">
                     <button
                         type="button"
-                        onClick={() => navigate('/admin/products')}
+                        onClick={() => navigate('/admin/products')} // Navigating to /admin/products
                         className="px-6 py-3 border border-black rounded-full hover:bg-black hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={loading}
                     >
@@ -666,7 +840,7 @@ function AddProduct() {
                     </button>
                     <button
                         type="submit"
-                        className="px-6 py-3 border border-black rounded-full hover:bg-black hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-6 py-3 border border-black rounded-full bg-black text-white hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed" // Styled submit button
                         disabled={loading}
                     >
                         {loading ? (
@@ -698,7 +872,17 @@ function AddProduct() {
                     </button>
                 </div>
             </form>
-            <ProductPage />
+
+            {/* Render the MessageDialog */}
+            <MessageDialog
+                isOpen={isMessageDialogOpen}
+                title={messageDialogTitle}
+                description={messageDialogDescription}
+                type={messageDialogType}
+                onClose={handleCloseMessageDialog} // Pass the handler to close the dialog and potentially navigate
+            />
+
+            {/* <ProductPage />  -- Remove this if ProductPage is a separate route/component */}
         </div>
     );
 }

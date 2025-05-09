@@ -73,7 +73,7 @@ export const updateCart = async (
         }
 
         interface CartItem {
-            product_id: number;
+            product_id: string;
             product_name: string;
             image: string;
             price: number;

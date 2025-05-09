@@ -41,25 +41,6 @@ export default function UserProfile() {
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    // // Giả lập dữ liệu người dùng
-    // useEffect(() => {
-    //     // Trong thực tế, bạn sẽ gọi API của mình ở đây
-    //     const mockUserData: User = {
-    //         _id: '60d21b5967d0d8992e610c85',
-    //         user_id: 1001,
-    //         name: 'Nguyễn Văn An',
-    //         birthDate: '1992-05-15T00:00:00.000Z',
-    //         email: 'nguyenvanan@example.com',
-    //         phone: '0912345678',
-    //         address: '23 Nguyễn Du, Quận 1, TP. Hồ Chí Minh',
-    //         isAdmin: false,
-    //         createdAt: '2023-10-01T08:30:00.000Z',
-    //         updatedAt: '2023-10-01T08:30:00.000Z',
-    //     };
-
-    //     setUser(mockUserData);
-    //     setFormData(mockUserData);
-    // }, []);
     useEffect(() => {
         const checkUserSession = async () => {
             try {
@@ -83,6 +64,7 @@ export default function UserProfile() {
                     if (userData.authenticated) {
                         console.log('Session hợp lệ:', userData.user);
                         setUser(userData.user);
+                        setFormData(userData.user);
                         localStorage.setItem(
                             'user',
                             JSON.stringify(userData.user),
@@ -102,6 +84,7 @@ export default function UserProfile() {
                         try {
                             const parsedUser: User = JSON.parse(savedUser);
                             setUser(parsedUser);
+                            setFormData(parsedUser);
                             console.log(
                                 'Sử dụng user từ localStorage:',
                                 parsedUser,
@@ -126,6 +109,7 @@ export default function UserProfile() {
                     try {
                         const parsedUser: User = JSON.parse(savedUser);
                         setUser(parsedUser);
+                        setFormData(parsedUser);
                         console.log(
                             'Sử dụng user từ localStorage:',
                             parsedUser,
@@ -155,112 +139,117 @@ export default function UserProfile() {
     const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setPasswordData({ ...passwordData, [name]: value });
-  };
+    };
 
     const handleSaveChanges = async () => {
         try {
-            // Kiểm tra dữ liệu cần cập nhật
             const apiBaseUrl =
                 import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
-            const userId = localStorage.getItem('userId') || user?._id;
+            const userId = user?._id;
 
             if (!userId) {
                 console.error('Không tìm thấy userId');
+                alert('Không thể cập nhật thông tin người dùng.');
                 return;
             }
 
-            // Gửi yêu cầu PUT cập nhật thông tin người dùng
             const response = await fetch(`${apiBaseUrl}/api/users/${userId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData), // Truyền formData vào body của yêu cầu
-                credentials: 'include', // Nếu bạn cần gửi session hoặc cookie
+                body: JSON.stringify(formData),
+                credentials: 'include',
             });
 
-            // Xử lý phản hồi từ server
             if (response.ok) {
-                const result = await response.json();
-                console.log('Cập nhật thành công:', result);
+                const updatedUserData = await response.json();
+                console.log('Cập nhật thành công:', updatedUserData);
 
-                // Cập nhật dữ liệu người dùng và đóng dialog
-                setUser(formData); // Cập nhật state người dùng
-              setIsEditDialogOpen(false); // Đóng hộp thoại chỉnh sửa
-              
-                 window.location.reload();
+                setUser(updatedUserData);
+                localStorage.setItem('user', JSON.stringify(updatedUserData));
+
+                setIsEditDialogOpen(false);
             } else {
                 const error = await response.json();
-                // Kiểm tra xem error.message có tồn tại không, nếu không, dùng thông báo mặc định
                 const errorMessage =
                     error.message || 'Đã xảy ra lỗi, vui lòng thử lại sau.';
                 alert(`Cập nhật không thành công: ${errorMessage}`);
             }
         } catch (error) {
             console.error('Lỗi khi gửi yêu cầu:', error);
+            alert('Có lỗi xảy ra khi cập nhật, vui lòng thử lại.');
         }
     };
 
-   const handlePasswordSave = async () => {
-       try {
-           // Kiểm tra mật khẩu mới và mật khẩu xác nhận có trùng khớp không
-           if (passwordData.newPassword !== passwordData.confirmPassword) {
-               alert('Mật khẩu mới và mật khẩu xác nhận không trùng khớp.');
-               return;
-           }
+    const handlePasswordSave = async () => {
+        try {
+            if (passwordData.newPassword !== passwordData.confirmPassword) {
+                alert('Mật khẩu mới và mật khẩu xác nhận không trùng khớp.');
+                return;
+            }
 
-           const apiBaseUrl =
-               import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+            const apiBaseUrl =
+                import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
-           try {
-               const response = await fetch(
-                   `${apiBaseUrl}/api/users/change-password`,
-                   {
-                       method: 'PUT',
-                       headers: {
-                           'Content-Type': 'application/json',
-                       },
-                       credentials: 'include', // Gửi cookie session
-                       body: JSON.stringify({
-                           currentPassword: passwordData.currentPassword,
-                           newPassword: passwordData.newPassword,
-                       }),
-                   },
-               );
+            const response = await fetch(
+                `${apiBaseUrl}/api/users/change-password`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        currentPassword: passwordData.currentPassword,
+                        newPassword: passwordData.newPassword,
+                    }),
+                },
+            );
 
-               if (response.ok) {
-                   alert('Mật khẩu đã được thay đổi thành công.');
-               } else {
-                   const errorData = await response.json();
-                   alert(
-                       `Thay đổi mật khẩu không thành công: ${errorData.message}`,
-                   );
-               }
-           } catch (error) {
-               console.error('Lỗi khi thay đổi mật khẩu:', error);
-               alert('Có lỗi xảy ra, vui lòng thử lại.');
-           }
-
-           setIsPasswordDialogOpen(false);
-
-           // Reset form
-           setPasswordData({
-               currentPassword: '',
-               newPassword: '',
-               confirmPassword: '',
-           });
-       } catch (err) {
-           console.error('Lỗi khi đổi mật khẩu:', err);
-       }
-   };
-
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('vi-VN');
+            if (response.ok) {
+                alert('Mật khẩu đã được thay đổi thành công.');
+                setPasswordData({
+                    currentPassword: '',
+                    newPassword: '',
+                    confirmPassword: '',
+                });
+            } else {
+                const errorData = await response.json();
+                alert(
+                    `Thay đổi mật khẩu không thành công: ${errorData.message}`,
+                );
+            }
+        } catch (error) {
+            console.error('Lỗi khi thay đổi mật khẩu:', error);
+            alert('Có lỗi xảy ra, vui lòng thử lại.');
+        } finally {
+            setIsPasswordDialogOpen(false);
+        }
     };
 
-    const formatMemberSince = (dateString: string) => {
-        const date = new Date(dateString);
-        return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+    const formatDate = (dateString: string) => {
+        if (!dateString) return '';
+        try {
+            return new Date(dateString).toLocaleDateString('vi-VN');
+        } catch (e) {
+            console.error('Error formatting date:', e);
+            return dateString;
+        }
+    };
+
+    const formatInputDate = (dateString?: string) => {
+        if (!dateString) return '';
+        try {
+            const date = new Date(dateString);
+            if (!isNaN(date.getTime())) {
+                return date.toISOString().split('T')[0];
+            }
+            return '';
+        } catch (e) {
+            console.error('Error formatting date for input:', e);
+            return '';
+        }
     };
 
     return (
@@ -271,25 +260,24 @@ export default function UserProfile() {
                 <div className="p-6 bg-gray-50 flex items-center">
                     <div className="flex-shrink-0 mr-4">
                         <div className="h-24 w-24 rounded-full bg-gray-900 flex items-center justify-center text-white text-3xl font-bold">
-                            {user?.name?.charAt(0) || 'N'}
+                            {user?.name?.charAt(0).toUpperCase() || 'N'}
                         </div>
                     </div>
                     <div className="flex-1">
                         <h1 className="text-2xl font-medium text-gray-900">
                             {user?.name}
                         </h1>
-                        {/* <p className="text-gray-500">
-                            Thành viên từ{' '}
-                            {user?.createdAt
-                                ? formatMemberSince(user.createdAt)
-                                : ''}
-                        </p> */}
                     </div>
                     <button
-                        onClick={() => setIsEditDialogOpen(true)}
-                        className="px-4 py-2 flex items-center text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition"
+                        onClick={() => {
+                            setIsEditDialogOpen(true);
+                            if (user) {
+                                setFormData(user);
+                            }
+                        }}
+                        className="px-4 py-2 flex items-center hover:bg-black hover:text-white disabled:opacity-50 text-gray-600 border border-gray-300 rounded  transition"
                     >
-                        <Edit className="w-4 h-4 mr-2" />
+                        <Edit className="w-4 h-4 mr-2 " />
                         Chỉnh sửa thông tin
                     </button>
                 </div>
@@ -300,9 +288,8 @@ export default function UserProfile() {
                         Thông tin cá nhân
                     </h2>
 
-                    <div className="flex">
-                        {/* Cột bên trái */}
-                        <div className="flex-1 pr-8 border-r border-gray-200">
+                    <div className="flex flex-wrap -mx-4">
+                        <div className="w-full md:w-1/2 px-4 mb-6 md:mb-0">
                             <div className="space-y-6">
                                 <div className="flex items-start">
                                     <div className="text-gray-400 mt-0.5 mr-3">
@@ -349,9 +336,7 @@ export default function UserProfile() {
                                 </div>
                             </div>
                         </div>
-
-                        {/* Cột bên phải */}
-                        <div className="flex-1 pl-8">
+                        <div className="w-full md:w-1/2 px-4">
                             <div className="space-y-6">
                                 <div className="flex items-start">
                                     <div className="text-gray-400 mt-0.5 mr-3">
@@ -401,7 +386,7 @@ export default function UserProfile() {
                     <div className="mt-8 flex justify-end space-x-4">
                         <button
                             onClick={() => setIsPasswordDialogOpen(true)}
-                            className="px-4 py-2 text-gray-700 border border-gray-300 rounded hover:bg-gray-50 transition"
+                            className="px-6 py-3 border border-black rounded-full hover:bg-black hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Đổi mật khẩu
                         </button>
@@ -409,9 +394,8 @@ export default function UserProfile() {
                 </div>
             </div>
 
-            {/* Card lịch sử mua hàng và sản phẩm yêu thích */}
-            <div className="mt-8 grid md:grid-cols-1 gap-6">
-                <div className="bg-white rounded-md shadow-sm border border-gray-100 p-6">
+            {user && !user.isAdmin && (
+                <div className="mt-8 bg-white rounded-md shadow-sm border border-gray-100 p-6">
                     <h2 className="text-lg font-medium mb-4">
                         Lịch sử mua hàng
                     </h2>
@@ -424,19 +408,7 @@ export default function UserProfile() {
                         </button>
                     </Link>
                 </div>
-
-                {/* <div className="bg-white rounded-md shadow-sm border border-gray-100 p-6">
-                    <h2 className="text-lg font-medium mb-4">
-                        Sản phẩm yêu thích
-                    </h2>
-                    <p className="text-gray-500 mb-4">
-                        Xem danh sách sản phẩm bạn đã lưu để mua sau.
-                    </p>
-                    <button className="w-full py-2 border border-gray-300 rounded text-center hover:bg-gray-50 transition">
-                        Xem danh sách
-                    </button>
-                </div> */}
-            </div>
+            )}
 
             {/* Dialog đổi mật khẩu */}
             {isPasswordDialogOpen && (
@@ -587,9 +559,8 @@ export default function UserProfile() {
             )}
 
             {/* Dialog chỉnh sửa thông tin */}
-
             {isEditDialogOpen && (
-                <div className="fixed inset-0 bg-gray-600 bg-opacity-30 backdrop-blur-5xl z-50 flex items-center justify-center overflow-y-auto">
+                <div className="fixed inset-0 bg-black/40 backdrop-filter  flex items-center justify-center z-50 overflow-y-auto">
                     <div className="bg-white rounded-lg max-w-lg w-full p-6">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-lg font-medium">
@@ -666,13 +637,7 @@ export default function UserProfile() {
                                     type="date"
                                     id="birthDate"
                                     name="birthDate"
-                                    value={
-                                        formData.birthDate
-                                            ? new Date(formData.birthDate)
-                                                  .toISOString()
-                                                  .split('T')[0]
-                                            : ''
-                                    }
+                                    value={formatInputDate(formData.birthDate)}
                                     onChange={handleInputChange}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                                 />
@@ -699,13 +664,13 @@ export default function UserProfile() {
                         <div className="mt-6 flex justify-end space-x-3">
                             <button
                                 onClick={() => setIsEditDialogOpen(false)}
-                                className="px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50"
+                                className="px-6 py-2 border border-black rounded-full hover:bg-black hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Hủy
                             </button>
                             <button
                                 onClick={handleSaveChanges}
-                                className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
+                                className="px-6 py-2 border border-black rounded-full hover:bg-black hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Lưu thay đổi
                             </button>

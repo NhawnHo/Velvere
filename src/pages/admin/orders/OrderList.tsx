@@ -131,46 +131,44 @@ const OrderList: React.FC = () => {
             // Chuẩn bị dữ liệu để xuất Excel
             const excelData = filteredOrders.map(order => {
                 return {
-                    'Mã đơn hàng': `#${order.order_id || ''}`,
-                    'Khách hàng': order.user_name || 'Không xác định',
-                    'Số điện thoại': order.phone || '',
+                    'Mã đơn hàng': order.order_id,
+                    'Tên khách hàng': order.user_name,
+                    'Số điện thoại': order.phone,
+                    'Địa chỉ': order.address,
                     'Ngày đặt': formatDate(order.orderDate),
-                    'Tổng tiền': order.totalAmount ? order.totalAmount.toLocaleString('vi-VN') + ' đ' : '0 đ',
                     'Trạng thái': getStatusText(order.status),
-                    'Địa chỉ': order.address || '',
-                    'Phương thức thanh toán': order.payment_method || '',
-                    'Ngày giao hàng dự kiến': formatDate(order.estimatedDelivery)
+                    'Phương thức thanh toán': order.payment_method,
+                    'Tổng tiền': formatCurrency(order.totalAmount)
                 };
             });
-
-            // Tạo một workbook mới
             const worksheet = XLSX.utils.json_to_sheet(excelData);
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Danh sách đơn hàng");
-
-            // Điều chỉnh độ rộng cột
-            const maxWidth = excelData.reduce((acc, row) => {
-                Object.keys(row).forEach(k => {
-                    const length = (row[k] || '').toString().length;
-                    acc[k] = Math.max(acc[k] || 0, length);
-                });
-                return acc;
-            }, {});
-
-            worksheet['!cols'] = Object.keys(maxWidth).map(key => ({ wch: maxWidth[key] + 5 }));
-
-            // Tạo tên file có thời gian hiện tại
-            const dateStr = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-            const fileName = `danh_sach_don_hang_${dateStr}.xlsx`;
-
-            // Xuất file
-            XLSX.writeFile(workbook, fileName);
-
-            // Thông báo thành công
-            alert('Xuất Excel thành công!');
+            XLSX.utils.book_append_sheet(
+                workbook,
+                worksheet,
+                'Danh sách đơn hàng',
+            );
+            const maxWidth = excelData.reduce<Record<string, number>>(
+                (acc, row) => {
+                    Object.entries(row).forEach(([key, value]) => {
+                        const valueStr = String(value);
+                        acc[key] = Math.max(acc[key] || 0, valueStr.length);
+                    });
+                    return acc;
+                },
+                {} as Record<string, number>,
+            );
+            worksheet['!cols'] = Object.keys(maxWidth).map((key) => ({
+                wch: maxWidth[key] + 5,
+            }));
+            const dateStr = new Date()
+                .toISOString()
+                .replace(/[:.]/g, '-')
+                .slice(0, 19);
+            XLSX.writeFile(workbook, `Danh_sach_don_hang_${dateStr}.xlsx`);
         } catch (error) {
-            console.error('Lỗi khi xuất Excel:', error);
-            alert('Có lỗi xảy ra khi xuất Excel!');
+            console.error('Export error:', error);
+            toast.error('Có lỗi xảy ra khi xuất file Excel');
         }
     };
     

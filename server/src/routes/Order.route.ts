@@ -22,6 +22,4 @@ router.post('/', createOrder);                       // POST    /api/orders
 router.put('/:id/status', updateOrderStatus);        // PUT     /api/orders/:id/status
 router.put('/:id/cancel', cancelOrder);              // PUT     /api/orders/:id/cancel
 
-
-
 export default router;
