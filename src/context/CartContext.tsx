@@ -62,9 +62,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         const checkAuthAndLoadCart = async () => {
             if (!isMounted) return;
 
-            try {
+          try {
+              const backendUrl =
+                  import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
                 const res = await fetch(
-                    'http://localhost:3000/api/users/check-session',
+                    `${backendUrl}/api/users/check-session`,
                     {
                         method: 'GET',
                         credentials: 'include',
@@ -76,7 +78,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
                     if (data.authenticated && data.user) {
                         // When loading cart from backend, ensure product_id is the string ObjectId
                         const cartRes = await fetch(
-                            'http://localhost:3000/api/cart',
+                            `${backendUrl}/api/cart`,
                             {
                                 method: 'GET',
                                 credentials: 'include',
@@ -126,8 +128,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         }
 
         setIsLoading(true);
-        try {
-            const res = await fetch('http://localhost:3000/api/cart', {
+      try {
+          const backendUrl =
+              import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+            const res = await fetch(`${backendUrl}/api/cart`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -249,9 +253,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
             console.warn('User not authenticated, cannot clear cart');
             return;
         }
-        try {
+      try {
+          const backendUrl =
+              import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
             setIsLoading(true);
-            const res = await fetch('http://localhost:3000/api/cart', {
+            const res = await fetch(`${backendUrl}/api/cart`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -275,8 +281,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     };
 
     const logout = async () => {
-        try {
-            await fetch('http://localhost:3000/api/users/logout', {
+      try {
+          const backendUrl =
+              import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+            await fetch(`${backendUrl}/api/users/logout`, {
                 method: 'POST',
                 credentials: 'include',
             });

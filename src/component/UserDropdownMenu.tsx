@@ -29,14 +29,13 @@ const UserDropdownMenu: React.FC<Props> = ({
     const navigate = useNavigate();
 
     const handleLogout = async () => {
-        try {
-            const response = await fetch(
-                'http://localhost:3000/api/users/logout',
-                {
-                    method: 'POST',
-                    credentials: 'include',
-                },
-            );
+      try {
+          const backendUrl =
+              import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+            const response = await fetch(`${backendUrl}/api/users/logout`, {
+                method: 'POST',
+                credentials: 'include',
+            });
 
             if (response.ok) {
                 localStorage.removeItem('user');

@@ -19,7 +19,7 @@ const app = express();
 const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:3001',
-    'https://your-production-domain.com',
+    'https://velvere.vercel.app',
 ];
 
 app.use(
@@ -32,7 +32,7 @@ app.use(
                 callback(null, origin);
             } else {
                 console.log(`Origin ${origin} không được phép`);
-                callback(null, allowedOrigins[0]); // Fallback to first allowed origin
+                callback(null, allowedOrigins[2]); // Fallback to first allowed origin
             }
         },
         credentials: true, // Quan trọng: cho phép gửi cookies qua CORS

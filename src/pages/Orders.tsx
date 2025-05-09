@@ -70,8 +70,12 @@ function Orders() {
         const fetchOrders = async () => {
             try {
                 const user = JSON.parse(userJSON);
+                const apiBaseUrl =
+                    import.meta.env.VITE_API_BASE_URL ||
+                    'http://localhost:3000';
+
                 const response = await axios.get(
-                    `http://localhost:3000/api/orders/user/${user._id}`,
+                    `${apiBaseUrl}/api/orders/user/${user._id}`,
                     {
                         withCredentials: true, // Đảm bảo gửi cookie nếu cần
                     },
@@ -112,8 +116,11 @@ function Orders() {
             if (!userJSON) return;
 
             const user = JSON.parse(userJSON);
+            const apiBaseUrl =
+                import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+
             const response = await axios.get(
-                `http://localhost:3000/api/orders/user/${user._id}`,
+                `${apiBaseUrl}/api/orders/user/${user._id}`,
                 {
                     withCredentials: true,
                 },
@@ -193,10 +200,12 @@ function Orders() {
 
         try {
             setProcessingAction(true);
+            const apiBaseUrl =
+                import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
             // Gọi API để hủy đơn hàng với lý do và thêm withCredentials
             await axios.put(
-                `http://localhost:3000/api/orders/${selectedOrder._id}/cancel`,
+                `${apiBaseUrl}/api/orders/${selectedOrder._id}/cancel`,
                 { cancellationReason: cancelReason },
                 {
                     withCredentials: true, // Đảm bảo gửi cookie (bao gồm XSRF-TOKEN)

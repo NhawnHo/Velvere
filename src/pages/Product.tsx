@@ -35,8 +35,11 @@ function Product() {
     // Fetch products on component mount
     useEffect(() => {
         setLoading(true);
+        const apiBaseUrl =
+            import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+
         // Ensure the API endpoint is correct for your backend
-        fetch('http://localhost:3000/api/products')
+        fetch(`${apiBaseUrl}/api/products`)
             .then((res) => {
                 if (!res.ok) {
                     throw new Error(`HTTP error! status: ${res.status}`);

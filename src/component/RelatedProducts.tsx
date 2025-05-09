@@ -29,34 +29,36 @@ function RelatedProducts({
 }: RelatedProductsProps) {
     const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
 
-    useEffect(() => {
-        fetch('http://localhost:3000/api/products')
-            .then((res) => {
-                if (!res.ok) {
-                    throw new Error('Failed to fetch products');
-                }
-                return res.json();
-            })
-            .then((data: Product[]) => {
-                const currentProduct = data.find(
-                    (p) => p._id === currentProductId,
-                );
+  useEffect(() => {
+      const backendUrl =
+          import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+         fetch(`${backendUrl}/api/products`)
+             .then((res) => {
+                 if (!res.ok) {
+                     throw new Error('Failed to fetch products');
+                 }
+                 return res.json();
+             })
+             .then((data: Product[]) => {
+                 const currentProduct = data.find(
+                     (p) => p._id === currentProductId,
+                 );
 
-                if (!currentProduct) {
-                    console.warn('Không tìm thấy sản phẩm hiện tại.');
-                    return;
-                }
+                 if (!currentProduct) {
+                     console.warn('Không tìm thấy sản phẩm hiện tại.');
+                     return;
+                 }
 
-                const filtered = data.filter(
-                    (product) =>
-                        product.category_id === categoryId &&
-                        product.sex === currentProduct.sex &&
-                        product._id !== currentProductId,
-                );
+                 const filtered = data.filter(
+                     (product) =>
+                         product.category_id === categoryId &&
+                         product.sex === currentProduct.sex &&
+                         product._id !== currentProductId,
+                 );
 
-                setRelatedProducts(filtered);
-            })
-            .catch((err) => console.error('Error fetching products:', err));
+                 setRelatedProducts(filtered);
+             })
+             .catch((err) => console.error('Error fetching products:', err));
     }, [categoryId, currentProductId]);
 
     if (relatedProducts.length === 0) {

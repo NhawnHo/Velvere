@@ -78,7 +78,9 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     }, []);
 
     // Hàm này dùng để kiểm tra và tạo phiên chat mới nếu cần
-    const ensureSession = async (): Promise<string> => {
+  const ensureSession = async (): Promise<string> => {
+      const backendUrl =
+          import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
         setIsLoading(true);
         try {
             // Nếu đã có session, trả về session_id
@@ -93,7 +95,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
                 try {
                     // Kiểm tra xem session có còn active không
                     const response = await axios.get(
-                        `http://localhost:3000/api/chat/sessions/${savedSessionId}/messages`,
+                        `${backendUrl}/api/chat/sessions/${savedSessionId}/messages`,
                     );
                     if (response.status === 200) {
                         await fetchSession(savedSessionId);
@@ -131,7 +133,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
             // Tạo phiên chat mới
             console.log('Đang tạo phiên chat mới với dữ liệu:', userData);
             const response = await axios.post(
-                'http://localhost:3000/api/chat/sessions',
+                `${backendUrl}:3000/api/chat/sessions`,
                 userData,
             );
 
@@ -167,9 +169,11 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
 
     // Lấy thông tin phiên chat
     const fetchSession = async (sessionId: string) => {
-        try {
+      try {
+          const backendUrl =
+              import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
             const response = await axios.get(
-                `http://localhost:3000/api/chat/sessions`,
+                `${backendUrl}/api/chat/sessions`,
             );
             const session = response.data.find(
                 (s: ChatSession) => s._id === sessionId,
@@ -188,9 +192,11 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
 
     // Lấy tin nhắn của phiên chat
     const fetchMessages = async (sessionId: string) => {
-        try {
+      try {
+          const backendUrl =
+              import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
             const response = await axios.get(
-                `http://localhost:3000/api/chat/sessions/${sessionId}/messages`,
+                `${backendUrl}/api/chat/sessions/${sessionId}/messages`,
             );
             setMessages(response.data);
         } catch (error) {
@@ -244,9 +250,11 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
                 sender_type: 'user',
                 message,
             });
+          const backendUrl =
+              import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
             const response = await axios.post(
-                'http://localhost:3000/api/chat/messages',
+                `${backendUrl}/api/chat/messages`,
                 {
                     session_id: sessionId,
                     user_id: userId,
@@ -279,9 +287,11 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
 
     // Đánh dấu tin nhắn đã đọc
     const markMessagesAsRead = async (sessionId: string) => {
-        try {
+      try {
+          const backendUrl =
+              import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
             await axios.patch(
-                `http://localhost:3000/api/chat/sessions/${sessionId}/read`,
+                `${backendUrl}/api/chat/sessions/${sessionId}/read`,
                 {
                     sender_type: 'user',
                 },
@@ -303,9 +313,11 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
         const sessionId = localStorage.getItem('chat_session_id');
         if (!sessionId) return;
 
-        try {
+      try {
+          const backendUrl =
+              import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
             const response = await axios.get(
-                `http://localhost:3000/api/chat/sessions/${sessionId}/messages`,
+                `${backendUrl}/api/chat/sessions/${sessionId}/messages`,
             );
             const unreadMessages = response.data.filter(
                 (msg: ChatMessage) => msg.sender_type === 'admin' && !msg.read,
@@ -328,9 +340,11 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     const closeChat = async () => {
         if (!currentSession) return;
 
-        try {
+      try {
+          const backendUrl =
+              import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
             await axios.patch(
-                `http://localhost:3000/api/chat/sessions/${currentSession._id}/close`,
+                `${backendUrl}/api/chat/sessions/${currentSession._id}/close`,
             );
             localStorage.removeItem('chat_session_id');
             setCurrentSession(null);

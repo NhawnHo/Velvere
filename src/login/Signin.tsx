@@ -87,6 +87,8 @@ function Signin() {
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
+        const backendUrl =
+            import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
         e.preventDefault();
 
         if (!validate()) {
@@ -106,12 +108,12 @@ function Signin() {
 
         try {
             // Xóa session cũ trước khi đăng nhập
-            await fetch('http://localhost:3000/api/users/logout', {
+            await fetch(`${backendUrl}/api/users/logout`, {
                 method: 'POST',
                 credentials: 'include',
             });
 
-            const res = await fetch('http://localhost:3000/api/users/login', {
+            const res = await fetch(`${backendUrl}/api/users/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

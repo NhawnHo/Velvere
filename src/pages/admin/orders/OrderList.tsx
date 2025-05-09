@@ -274,7 +274,7 @@ const OrderList: React.FC = () => {
     return (
         <div className="container mx-auto px-4 py-8">
             <ScrollToTop />
-            <h1 className="text-3xl font-semibold mb-6">Quản lý đơn hàng</h1>
+            <h1 className="text-4xl text-center mt-10 font-serif mb-6">Quản lý đơn hàng</h1>
 
             <div className="bg-white p-4 rounded-lg shadow-md mb-6">
                 <h2 className="text-xl font-semibold mb-4">Bộ lọc</h2>
