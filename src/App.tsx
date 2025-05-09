@@ -18,6 +18,7 @@ import ProductSearch from './pages/ProductSearch';
 import AddProduct from './component/AddProduct';
 import RevenuePage from './pages/dashboard/revenue/RevenuePage';
 import BestSellingPage from './pages/dashboard/best-selling/BestSellingPage';
+import UserProfile from './pages/UserProfile';
 
 function App() {
     return (
@@ -27,6 +28,7 @@ function App() {
                 <Header />
                 <Routes>
                     <Route path="/" element={<Home />} />
+                    <Route path="/profile" element={<UserProfile />} />
                     <Route path="/contact" element={<Contact />} />
                     <Route path="/products" element={<Product />} />
                     <Route path="/user" element={<User />} />
@@ -36,7 +38,10 @@ function App() {
                     <Route path="/cart" element={<Cart />} />
                     <Route path="/orders" element={<Orders />} />
                     <Route path="/productPage" element={<ProductPage />} />
-                    <Route path="/admin/productPage" element={<ProductPage />} />
+                    <Route
+                        path="/admin/productPage"
+                        element={<ProductPage />}
+                    />
                     <Route path="/products" element={<ProductSearch />} />
                     <Route path="/admin/users" element={<User />} />
                     <Route path="admin/products/add" element={<AddProduct />} />

@@ -84,12 +84,14 @@ const UserDropdownMenu: React.FC<Props> = ({
                         </Link>
                     )}
 
-                    <button
-                        onClick={handleLogout}
-                        className="block w-full rounded-b-md text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                    >
-                        Đăng xuất
-                    </button>
+                    <Link to="/">
+                        <button
+                            onClick={handleLogout}
+                            className="block w-full rounded-b-md text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                        >
+                            Đăng xuất
+                        </button>
+                    </Link>
                 </>
             ) : (
                 <>
