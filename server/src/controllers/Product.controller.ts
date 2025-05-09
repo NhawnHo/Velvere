@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
-import Product, { ProductDocument } from '../models/Product.model';
+import Product, { ProductDocument } from '../models/Product.model'; // Đảm bảo đường dẫn đúng
 import Order from '../models/Order.model';
 
 // Interface for best-selling product stats
@@ -77,9 +77,11 @@ export const getProductById = async (
             return;
         }
         const product = await Product.findById(id);
-        if (!product) {
-            res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
-            return;
+        if (!product || !product.variants || product.variants.length === 0) {
+            res.status(400).json({
+                message:
+                    'Vui lòng cung cấp đầy đủ thông tin hợp lệ, bao gồm ít nhất một biến thể hợp lệ.',
+            });
         }
         res.status(200).json(product);
     } catch (err: unknown) {
@@ -132,7 +134,7 @@ export const addProduct = async (
         ) {
             res.status(400).json({
                 message:
-                    'Vui lòng cung cấp đầy đủ thông tin hợp lệ, bao gồm ít nhất một ảnh và một biến thể hợp lệ.',
+                    'Vui lòng cung cấp đầy đủ thông tin hợp lệ, bao gồm ít nhất một ảnh và một size hợp lệ.',
             });
             return;
         }
@@ -177,8 +179,11 @@ export const addProduct = async (
 };
 
 // Update an existing product
-// Update an existing product
-export const updateProduct = async (req: Request, res: Response): Promise<void> => {
+
+export const updateProduct = async (
+    req: Request,
+    res: Response,
+): Promise<void> => {
     try {
         const { id } = req.params;
         const {
@@ -206,13 +211,17 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
             !variants ||
             !Array.isArray(variants) ||
             variants.length === 0 ||
-            variants.some((v: { size: string; color: string; stock: number }) => !v.size || !v.color || v.stock < 0) ||
+            variants.some(
+                (v: { size: string; color: string; stock: number }) =>
+                    !v.size || !v.color || v.stock < 0,
+            ) ||
             !images ||
             !Array.isArray(images) ||
             images.filter((img: string) => img.trim() !== '').length === 0
         ) {
             res.status(400).json({
-                message: 'Vui lòng cung cấp đầy đủ thông tin hợp lệ, bao gồm ít nhất một ảnh và một biến thể hợp lệ.',
+                message:
+                    'Vui lòng cung cấp đầy đủ thông tin hợp lệ, bao gồm ít nhất một ảnh và một biến thể hợp lệ.',
             });
             return;
         }
@@ -233,11 +242,13 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
         product.price = Number(price);
         product.xuatXu = xuatXu;
         product.chatLieu = chatLieu;
-        product.variants = variants.map((v: { size: string; color: string; stock: number }) => ({
-            size: v.size,
-            color: v.color,
-            stock: Number(v.stock),
-        }));
+        product.variants = variants.map(
+            (v: { size: string; color: string; stock: number }) => ({
+                size: v.size,
+                color: v.color,
+                stock: Number(v.stock),
+            }),
+        );
 
         // Save the updated product
         const updatedProduct = await product.save();
@@ -251,6 +262,130 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
         res.status(500).json({
             message: 'Lỗi server khi cập nhật sản phẩm',
             error: err instanceof Error ? err.message : 'Unknown error',
+        });
+    }
+};
+export const updateVariantStock = async (
+    req: Request,
+    res: Response,
+): Promise<void> => {
+    try {
+        const { product_id, size, color, quantity } = req.body; // Sử dụng quantity thay vì stock
+
+        // Kiểm tra dữ liệu đầu vào
+        if (!product_id || !size || !color || quantity === undefined) {
+            res.status(400).json({
+                message:
+                    'Vui lòng cung cấp đầy đủ thông tin: product_id, size, color và quantity.',
+            });
+            return;
+        }
+
+        const product = await Product.findOne({ product_id });
+
+        if (!product) {
+            res.status(404).json({
+                message: `Không tìm thấy sản phẩm với product_id: ${product_id}`,
+            });
+            return;
+        }
+
+        const variant = product.variants.find(
+            (v) => v.size === size && v.color === color,
+        );
+
+        if (!variant) {
+            res.status(404).json({
+                message: `Không tìm thấy biến thể với size: ${size} và color: ${color}`,
+            });
+            return;
+        }
+
+        // Kiểm tra số lượng tồn kho
+        if (variant.stock < quantity) {
+            res.status(400).json({
+                message: `Số lượng trong kho không đủ. Còn ${variant.stock} sản phẩm.`,
+            });
+            return;
+        }
+
+        // Giảm số lượng tồn kho
+        variant.stock -= Number(quantity);
+        await product.save();
+
+        res.status(200).json({
+            message: 'Cập nhật số lượng tồn kho thành công',
+            product_id,
+            size,
+            color,
+            stock: variant.stock,
+        });
+    } catch (err) {
+        console.error('Lỗi khi cập nhật số lượng tồn kho:', err);
+        res.status(500).json({
+            message: 'Lỗi server khi cập nhật số lượng tồn kho',
+            error: err instanceof Error ? err.message : 'Unknown error',
+        });
+    }
+};
+
+// Place an order
+export const placeOrder = async (
+    req: Request,
+    res: Response,
+): Promise<void> => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        // eslint-disable-next-line
+        const { items } = req.body; // items: [{ productId, size, color, quantity }]
+        for (const item of req.body.items) {
+            const product = await Product.findById(item.productId);
+
+            if (!product) {
+                res.status(404).json({
+                    message: `Sản phẩm với ID ${item.productId} không tồn tại.`,
+                });
+                return;
+            }
+
+            // Tìm biến thể phù hợp
+            const variant = product.variants.find(
+                (v) => v.size === item.size && v.color === item.color,
+            );
+
+            if (!variant) {
+                res.status(400).json({
+                    message: `Không tìm thấy biến thể với size ${item.size} và color ${item.color}.`,
+                });
+                return;
+            }
+
+            // Kiểm tra tồn kho
+            if (variant.stock < item.quantity) {
+                res.status(400).json({
+                    message: `Sản phẩm ${product.product_name} với size ${item.size} và color ${item.color} không đủ hàng tồn kho.`,
+                });
+                return;
+            }
+
+            // Giảm số lượng tồn kho
+            variant.stock -= item.quantity;
+            await product.save();
+        }
+
+        // Commit transaction
+        await session.commitTransaction();
+        session.endSession();
+
+        res.status(200).json({ message: 'Đặt hàng thành công' });
+    } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
+        res.status(400).json({
+            message:
+                error instanceof Error ? error.message : 'Lỗi không xác định',
         });
     }
 };

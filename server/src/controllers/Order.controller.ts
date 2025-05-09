@@ -95,7 +95,6 @@ export const createOrder = async (
             estimatedDelivery,
         } = req.body;
 
-        // Kiểm tra các trường bắt buộc
         if (
             !order_id ||
             !user_id ||
@@ -111,7 +110,6 @@ export const createOrder = async (
             return;
         }
 
-        // Tạo đơn hàng mới
         const newOrder = new Order({
             order_id,
             user_id,
@@ -123,65 +121,58 @@ export const createOrder = async (
             payment_method: payment_method || 'COD',
             estimatedDelivery:
                 estimatedDelivery ||
-                new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Mặc định 7 ngày
+                new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         });
 
-        // Lưu đơn hàng vào database
         await newOrder.save();
 
-        // Chuẩn bị dữ liệu để cập nhật số lượng sản phẩm trong kho
-        const productItems: StockUpdateItem[] = items.map(
-            (item: OrderItem) => ({
-                productId: item.product_id,
-                size: item.size,
-                color: item.color,
-                quantity: item.quantity,
-            }),
-        );
+        // Chuẩn bị dữ liệu để cập nhật số lượng
+        const productItems = items.map((item: OrderItem) => ({
+            product_id: item.product_id,
+            size: item.size,
+            color: item.color,
+            quantity: item.quantity, // Sử dụng quantity
+        }));
 
         try {
-            // Gọi API để cập nhật số lượng sản phẩm trong kho
-            await axios.put(
-                'http://localhost:3000/api/products/update-multiple-stock',
-                {
-                    items: productItems,
-                },
-            );
+            // Gửi từng item riêng lẻ
+            for (const item of productItems) {
+                console.log('Sending to update-variant-stock:', item); // Log dữ liệu gửi
+                const response = await axios.put(
+                    'http://localhost:3000/api/products/update-variant-stock',
+                    item,
+                );
+                console.log(
+                    'Response from update-variant-stock:',
+                    response.data,
+                );
+            }
 
-            // Trả về thông tin đơn hàng đã tạo
             res.status(201).json({
                 message:
                     'Đơn hàng đã được tạo và số lượng sản phẩm đã được cập nhật',
                 order: newOrder,
             });
         } catch (error) {
-            console.error('Lỗi khi cập nhật số lượng sản phẩm:', error);
-
-            // Xử lý lỗi và trích xuất thông tin từ axios
-            const stockErr = error as Error;
-            const axiosError = error as { response?: { data?: unknown } };
-
-            // Mặc dù có lỗi khi cập nhật stock, đơn hàng vẫn được tạo thành công
+            console.error(
+                'Lỗi khi cập nhật số lượng sản phẩm:',
+                (error as { response?: { data?: unknown }; message?: string }).response?.data || (error as Error).message,
+            );
             res.status(201).json({
                 message:
                     'Đơn hàng đã được tạo nhưng có lỗi khi cập nhật số lượng sản phẩm',
                 order: newOrder,
-                stockError:
-                    axiosError.response?.data ||
-                    stockErr.message ||
-                    'Lỗi cập nhật số lượng',
+                stockError: (error as { response?: { data?: unknown }; message?: string }).response?.data || (error as Error).message,
             });
         }
     } catch (err) {
         console.error('Lỗi server khi tạo đơn hàng:', err);
-        interface MongoError extends Error {
-            code?: number;
-        }
-
         if (
             err instanceof Error &&
             err.name === 'MongoError' &&
-            (err as MongoError).code === 11000
+          'code' in err &&
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (err as any).code === 11000
         ) {
             res.status(409).json({
                 message: 'Mã đơn hàng đã tồn tại',
