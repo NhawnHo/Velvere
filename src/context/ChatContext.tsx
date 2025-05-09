@@ -1,4 +1,11 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+/* eslint-disable */
+import {
+    createContext,
+    useContext,
+    useState,
+    useEffect,
+    ReactNode,
+} from 'react';
 import axios from 'axios';
 
 interface ChatMessage {
@@ -41,7 +48,6 @@ interface ChatProviderProps {
 }
 
 const ChatContext = createContext<ChatContextType | null>(null);
-
 export const useChat = () => {
     const context = useContext(ChatContext);
     if (!context) {
@@ -52,7 +58,9 @@ export const useChat = () => {
 
 export const ChatProvider = ({ children }: ChatProviderProps) => {
     const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
-    const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
+    const [currentSession, setCurrentSession] = useState<ChatSession | null>(
+        null,
+    );
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [unreadCount, setUnreadCount] = useState<number>(0);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -84,7 +92,9 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
             if (savedSessionId) {
                 try {
                     // Kiểm tra xem session có còn active không
-                    const response = await axios.get(`http://localhost:3000/api/chat/sessions/${savedSessionId}/messages`);
+                    const response = await axios.get(
+                        `http://localhost:3000/api/chat/sessions/${savedSessionId}/messages`,
+                    );
                     if (response.status === 200) {
                         await fetchSession(savedSessionId);
                         setIsLoading(false);
@@ -98,10 +108,10 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
             }
 
             // Nếu không có session hoặc session không còn active, tạo mới
-          // Chuẩn bị thông tin người dùng
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // Chuẩn bị thông tin người dùng
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             let userData: any = {
-                user_name: 'Khách'
+                user_name: 'Khách',
             };
 
             // Kiểm tra nếu người dùng đã đăng nhập
@@ -112,7 +122,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
                     userData = {
                         user_id: user._id,
                         user_name: user.name,
-                        user_email: user.email
+                        user_email: user.email,
                     };
                 } catch (e) {
                     console.error('Lỗi khi parse thông tin người dùng:', e);
@@ -121,24 +131,31 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
 
             // Tạo phiên chat mới
             console.log('Đang tạo phiên chat mới với dữ liệu:', userData);
-            const response = await axios.post('http://localhost:3000/api/chat/sessions', userData);
-            
-            if (!response.data || !response.data.session || !response.data.session._id) {
+            const response = await axios.post(
+                'http://localhost:3000/api/chat/sessions',
+                userData,
+            );
+
+            if (
+                !response.data ||
+                !response.data.session ||
+                !response.data.session._id
+            ) {
                 console.error('Phản hồi API không hợp lệ:', response.data);
                 throw new Error('Không thể tạo phiên chat mới');
             }
-            
+
             const newSessionId = response.data.session._id;
-            
+
             // Lưu session_id vào localStorage
             localStorage.setItem('chat_session_id', newSessionId);
-            
+
             // Cập nhật state
             setCurrentSession(response.data.session);
             if (response.data.welcomeMessage) {
                 setMessages([response.data.welcomeMessage]);
             }
-            
+
             setIsLoading(false);
             return newSessionId;
         } catch (error) {
@@ -152,8 +169,12 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     // Lấy thông tin phiên chat
     const fetchSession = async (sessionId: string) => {
         try {
-            const response = await axios.get(`http://localhost:3000/api/chat/sessions`);
-            const session = response.data.find((s: ChatSession) => s._id === sessionId);
+            const response = await axios.get(
+                `http://localhost:3000/api/chat/sessions`,
+            );
+            const session = response.data.find(
+                (s: ChatSession) => s._id === sessionId,
+            );
             if (session && session.status === 'active') {
                 setCurrentSession(session);
             } else {
@@ -169,7 +190,9 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     // Lấy tin nhắn của phiên chat
     const fetchMessages = async (sessionId: string) => {
         try {
-            const response = await axios.get(`http://localhost:3000/api/chat/sessions/${sessionId}/messages`);
+            const response = await axios.get(
+                `http://localhost:3000/api/chat/sessions/${sessionId}/messages`,
+            );
             setMessages(response.data);
         } catch (error) {
             console.error('Lỗi khi lấy tin nhắn chat:', error);
@@ -182,14 +205,14 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
             console.log('Đang tải, không thể gửi tin nhắn');
             return;
         }
-        
+
         setIsLoading(true);
         try {
             console.log('Chuẩn bị gửi tin nhắn:', message);
             // Đảm bảo có session
             const sessionId = await ensureSession();
             console.log('Phiên chat ID:', sessionId);
-            
+
             // Chuẩn bị dữ liệu người dùng
             let userId = null;
             const userJSON = localStorage.getItem('user');
@@ -211,34 +234,37 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
                 message: message,
                 read: false,
                 createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
+                updatedAt: new Date().toISOString(),
             };
-            setMessages(prev => [...prev, tempMessage]);
+            setMessages((prev) => [...prev, tempMessage]);
 
             // Gửi tin nhắn
             console.log('Gửi tin nhắn đến API:', {
                 session_id: sessionId,
                 user_id: userId,
                 sender_type: 'user',
-                message
+                message,
             });
-            
-            const response = await axios.post('http://localhost:3000/api/chat/messages', {
-                session_id: sessionId,
-                user_id: userId,
-                sender_type: 'user',
-                message
-            });
+
+            const response = await axios.post(
+                'http://localhost:3000/api/chat/messages',
+                {
+                    session_id: sessionId,
+                    user_id: userId,
+                    sender_type: 'user',
+                    message,
+                },
+            );
 
             console.log('Phản hồi từ API:', response.data);
 
             // Cập nhật messages với tin nhắn thực từ server
-            setMessages(prev => 
-                prev.map(msg => 
-                    msg._id === tempMessage._id 
-                        ? response.data.chatMessage 
-                        : msg
-                )
+            setMessages((prev) =>
+                prev.map((msg) =>
+                    msg._id === tempMessage._id
+                        ? response.data.chatMessage
+                        : msg,
+                ),
             );
 
             // Đánh dấu tin nhắn của admin là đã đọc
@@ -255,14 +281,17 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     // Đánh dấu tin nhắn đã đọc
     const markMessagesAsRead = async (sessionId: string) => {
         try {
-            await axios.patch(`http://localhost:3000/api/chat/sessions/${sessionId}/read`, {
-                sender_type: 'user'
-            });
+            await axios.patch(
+                `http://localhost:3000/api/chat/sessions/${sessionId}/read`,
+                {
+                    sender_type: 'user',
+                },
+            );
             // Cập nhật trạng thái đã đọc trong messages
-            setMessages(prev =>
-                prev.map(msg => 
-                    msg.sender_type === 'admin' ? { ...msg, read: true } : msg
-                )
+            setMessages((prev) =>
+                prev.map((msg) =>
+                    msg.sender_type === 'admin' ? { ...msg, read: true } : msg,
+                ),
             );
             setUnreadCount(0);
         } catch (error) {
@@ -276,14 +305,19 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
         if (!sessionId) return;
 
         try {
-            const response = await axios.get(`http://localhost:3000/api/chat/sessions/${sessionId}/messages`);
+            const response = await axios.get(
+                `http://localhost:3000/api/chat/sessions/${sessionId}/messages`,
+            );
             const unreadMessages = response.data.filter(
-                (msg: ChatMessage) => msg.sender_type === 'admin' && !msg.read
+                (msg: ChatMessage) => msg.sender_type === 'admin' && !msg.read,
             );
             setUnreadCount(unreadMessages.length);
 
             // Cập nhật messages nếu có tin nhắn mới
-            if (unreadMessages.length > 0 && JSON.stringify(messages) !== JSON.stringify(response.data)) {
+            if (
+                unreadMessages.length > 0 &&
+                JSON.stringify(messages) !== JSON.stringify(response.data)
+            ) {
                 setMessages(response.data);
             }
         } catch (error) {
@@ -296,7 +330,9 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
         if (!currentSession) return;
 
         try {
-            await axios.patch(`http://localhost:3000/api/chat/sessions/${currentSession._id}/close`);
+            await axios.patch(
+                `http://localhost:3000/api/chat/sessions/${currentSession._id}/close`,
+            );
             localStorage.removeItem('chat_session_id');
             setCurrentSession(null);
             setMessages([]);
@@ -310,7 +346,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     const toggleChat = () => {
         const newState = !isChatOpen;
         setIsChatOpen(newState);
-        
+
         // Nếu mở chat, đánh dấu tất cả tin nhắn là đã đọc
         if (newState && currentSession) {
             markMessagesAsRead(currentSession._id);
@@ -338,8 +374,10 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
         loadMessages,
         closeChat,
         unreadCount,
-        isLoading
+        isLoading,
     };
 
-    return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
+    return (
+        <ChatContext.Provider value={value}>{children}</ChatContext.Provider>
+    );
 };

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import ScrollToTop from '../../../component/ScrollToTop';
 
 import { toast } from 'react-toastify';
@@ -31,8 +30,6 @@ interface Order {
 }
 
 export default function OrderApproval() {
-    // eslint-disable-next-line
-    const navigate = useNavigate();
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
