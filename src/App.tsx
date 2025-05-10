@@ -43,11 +43,12 @@ function App() {
                     <Route path="/signin" element={<Signin />} />
                     <Route path="/cart" element={<Cart />} />
                     <Route path="/orders" element={<Orders />} />
-                    <Route path="/productPage" element={<ProductPage />} />
+                    <Route path="/productPage" element={<ProductPage />} />{' '}
                     <Route
                         path="/admin/productPage"
                         element={<ProductPage />}
                     />
+                    <Route path="/admin/products" element={<ProductSearch />} />
                     <Route path="/products" element={<ProductSearch />} />
                     <Route path="/appointment" element={<AppointmentPage />} />
                     <Route path="admin/products/add" element={<AddProduct />} />
