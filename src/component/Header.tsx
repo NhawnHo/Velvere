@@ -1149,7 +1149,7 @@ const Header: React.FC = () => {
                                                                         : 'women-ao',
                                                             )
                                                         }
-                                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100  justify-between items-center"
+                                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex justify-between items-center"
                                                         aria-expanded={
                                                             expandedSubMenu ===
                                                             'women-ao'
@@ -1246,6 +1246,263 @@ const Header: React.FC = () => {
                                                             </li>
                                                         </ul>
                                                     )}
+                                                </li>
+                                                {/* Đầm Sub-Submenu for Women */}
+                                                <li role="none">
+                                                    <button
+                                                        onClick={() =>
+                                                            setExpandedSubMenu(
+                                                                (prev) =>
+                                                                    prev ===
+                                                                    'women-dam' // Unique key for women's 'Đầm' submenu
+                                                                        ? null
+                                                                        : 'women-dam',
+                                                            )
+                                                        }
+                                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex justify-between items-center"
+                                                        aria-expanded={
+                                                            expandedSubMenu ===
+                                                            'women-dam'
+                                                        } // aria-expanded matches the state key
+                                                        aria-controls="women-dam-sub-submenu" // aria-controls matches the sub-submenu id
+                                                    >
+                                                        Đầm
+                                                        <i
+                                                            className={`ml-2 fa-solid ${
+                                                                expandedSubMenu ===
+                                                                'women-dam'
+                                                                    ? 'fa-chevron-up'
+                                                                    : 'fa-chevron-down'
+                                                            }`}
+                                                            aria-hidden="true"
+                                                        />
+                                                    </button>
+                                                    {expandedSubMenu ===
+                                                        'women-dam' && ( // Conditional rendering based on women's 'Đầm' key
+                                                        <ul
+                                                            className="pl-4 text-sm text-gray-700"
+                                                            role="menu"
+                                                            id="women-dam-sub-submenu" // Unique id for the sub-submenu
+                                                        >
+                                                            {/* Women's dress categories - Updated paths */}
+                                                            <li role="none">
+                                                                <Link
+                                                                    to="/productPage?sex=Nữ&category_id=dambody"
+                                                                    onClick={() =>
+                                                                        setShowSideMenu(
+                                                                            false,
+                                                                        )
+                                                                    }
+                                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                                    role="menuitem"
+                                                                >
+                                                                    Đầm body
+                                                                </Link>
+                                                            </li>
+                                                            <li role="none">
+                                                                <Link
+                                                                    to="/productPage?sex=Nữ&category_id=damcongso"
+                                                                    onClick={() =>
+                                                                        setShowSideMenu(
+                                                                            false,
+                                                                        )
+                                                                    }
+                                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                                    role="menuitem"
+                                                                >
+                                                                    Đầm công sở
+                                                                </Link>
+                                                            </li>
+                                                            <li role="none">
+                                                                <Link
+                                                                    to="/productPage?sex=Nữ&category_id=damdahoi"
+                                                                    onClick={() =>
+                                                                        setShowSideMenu(
+                                                                            false,
+                                                                        )
+                                                                    }
+                                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                                    role="menuitem"
+                                                                >
+                                                                    Đầm dạ hội
+                                                                </Link>
+                                                            </li>
+                                                            <li role="none">
+                                                                <Link
+                                                                    to="/productPage?sex=Nữ&category_id=vay" // Assuming 'vay' maps to skirts
+                                                                    onClick={() =>
+                                                                        setShowSideMenu(
+                                                                            false,
+                                                                        )
+                                                                    }
+                                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                                    role="menuitem"
+                                                                >
+                                                                    Váy
+                                                                </Link>
+                                                            </li>
+                                                            {/* Add other women's dress/skirt links here */}
+                                                        </ul>
+                                                    )}
+                                                </li>
+
+                                                {/* Phụ kiện Sub-Submenu for Women */}
+                                                <li role="none">
+                                                    <button
+                                                        onClick={() =>
+                                                            setExpandedSubMenu(
+                                                                (prev) =>
+                                                                    prev ===
+                                                                    'women-phukien' // Unique key for women's 'Phụ kiện' submenu
+                                                                        ? null
+                                                                        : 'women-phukien',
+                                                            )
+                                                        }
+                                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex justify-between items-center"
+                                                        aria-expanded={
+                                                            expandedSubMenu ===
+                                                            'women-phukien'
+                                                        } // aria-expanded matches the state key
+                                                        aria-controls="women-phukien-sub-submenu" // aria-controls matches the sub-submenu id
+                                                    >
+                                                        Phụ kiện
+                                                        <i
+                                                            className={`ml-2 fa-solid ${
+                                                                expandedSubMenu ===
+                                                                'women-phukien'
+                                                                    ? 'fa-chevron-up'
+                                                                    : 'fa-chevron-down'
+                                                            }`}
+                                                            aria-hidden="true"
+                                                        />
+                                                    </button>
+                                                    {expandedSubMenu ===
+                                                        'women-phukien' && ( // Conditional rendering based on women's 'Phụ kiện' key
+                                                        <ul
+                                                            className="pl-4 text-sm text-gray-700"
+                                                            role="menu"
+                                                            id="women-phukien-sub-submenu" // Unique id for the sub-submenu
+                                                        >
+                                                            {/* Women's accessories categories - Updated paths */}
+                                                            <li role="none">
+                                                                <Link
+                                                                    to="/productPage?sex=Nữ&category_id=mu"
+                                                                    onClick={() =>
+                                                                        setShowSideMenu(
+                                                                            false,
+                                                                        )
+                                                                    }
+                                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                                    role="menuitem"
+                                                                >
+                                                                    Mũ
+                                                                </Link>
+                                                            </li>
+                                                            <li role="none">
+                                                                <Link
+                                                                    to="/productPage?sex=Nữ&category_id=thatlung"
+                                                                    onClick={() =>
+                                                                        setShowSideMenu(
+                                                                            false,
+                                                                        )
+                                                                    }
+                                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                                    role="menuitem"
+                                                                >
+                                                                    Thắt lưng
+                                                                </Link>
+                                                            </li>
+                                                            <li role="none">
+                                                                <Link
+                                                                    to="/productPage?sex=Nữ&category_id=khanchoang"
+                                                                    onClick={() =>
+                                                                        setShowSideMenu(
+                                                                            false,
+                                                                        )
+                                                                    }
+                                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                                    role="menuitem"
+                                                                >
+                                                                    Khăn choàng
+                                                                </Link>
+                                                            </li>
+
+                                                            <li role="none">
+                                                                <Link
+                                                                    to="/productPage?sex=Nữ&category_id=tui"
+                                                                    onClick={() =>
+                                                                        setShowSideMenu(
+                                                                            false,
+                                                                        )
+                                                                    }
+                                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                                    role="menuitem"
+                                                                >
+                                                                    Túi
+                                                                </Link>
+                                                            </li>
+                                                            <li role="none">
+                                                                <Link
+                                                                    to="/productPage?sex=Nữ&category_id=trangsuc"
+                                                                    onClick={() =>
+                                                                        setShowSideMenu(
+                                                                            false,
+                                                                        )
+                                                                    }
+                                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                                    role="menuitem"
+                                                                >
+                                                                    Trang sức
+                                                                </Link>
+                                                            </li>
+                                                            <li role="none">
+                                                                <Link
+                                                                    to="/productPage?sex=Nữ&category_id=phukien"
+                                                                    onClick={() =>
+                                                                        setShowSideMenu(
+                                                                            false,
+                                                                        )
+                                                                    }
+                                                                    className="block px-4 py-2 hover:bg-gray-100"
+                                                                    role="menuitem"
+                                                                >
+                                                                    Phụ kiện
+                                                                </Link>
+                                                            </li>
+                                                            {/* Add other women's accessory links here */}
+                                                        </ul>
+                                                    )}
+                                                </li>
+                                                {/* Quần Link for Women */}
+                                                <li role="none">
+                                                    <Link
+                                                        to="/productPage?sex=Nữ&category_id=quan"
+                                                        onClick={() =>
+                                                            setShowSideMenu(
+                                                                false,
+                                                            )
+                                                        }
+                                                        className="block px-4 py-2 hover:bg-gray-100"
+                                                        role="menuitem"
+                                                    >
+                                                        Quần
+                                                    </Link>
+                                                </li>
+
+                                                {/* Giày Link for Women */}
+                                                <li role="none">
+                                                    <Link
+                                                        to="/productPage?sex=Nữ&category_id=giay"
+                                                        onClick={() =>
+                                                            setShowSideMenu(
+                                                                false,
+                                                            )
+                                                        }
+                                                        className="block px-4 py-2 hover:bg-gray-100"
+                                                        role="menuitem"
+                                                    >
+                                                        Giày
+                                                    </Link>
                                                 </li>
                                             </ul>
                                         )}
