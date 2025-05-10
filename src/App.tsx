@@ -24,6 +24,7 @@ import OrderDetail from './pages/admin/orders/OrderDetail';
 import OrderApproval from './pages/admin/orders/OrderApproval';
 import UserList from './pages/admin/users/UserList';
 import EditUser from './pages/admin/users/EditUser';
+import AppointmentPage from './pages/AppointmentPage';
 
 function App() {
     return (
@@ -48,6 +49,7 @@ function App() {
                         element={<ProductPage />}
                     />
                     <Route path="/products" element={<ProductSearch />} />
+                    <Route path="/appointment" element={<AppointmentPage />} />
                     <Route path="admin/products/add" element={<AddProduct />} />
                     <Route
                         path="/admin/products/update/:id"
