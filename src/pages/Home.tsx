@@ -77,7 +77,7 @@ const Home: React.FC = () => {
                     style={commonStyle}
                 >
                     <img
-                        src="https://res.cloudinary.com/dvsg1fr4g/image/upload/v1745318873/Betterimage.ai_1745318839409_e777tj.jpg"
+                        src="https://res.cloudinary.com/dnbc9k0yn/image/upload/v1748876683/Betterimage.ai_1745318839409_peiven.jpg"
                         alt="Left Bag"
                         className="object-cover w-full h-full"
                     />
@@ -102,7 +102,7 @@ const Home: React.FC = () => {
                 >
                     <video
                         ref={videoRef}
-                        src="https://res.cloudinary.com/dvsg1fr4g/video/upload/v1744715417/0415_mpcwmy.mp4"
+                        src="https://res.cloudinary.com/dnbc9k0yn/video/upload/v1748876712/0415_vamwju.mp4"
                         autoPlay
                         muted
                         loop
@@ -132,7 +132,7 @@ const Home: React.FC = () => {
                     style={commonStyle}
                 >
                     <img
-                        src="https://res.cloudinary.com/dvsg1fr4g/image/upload/v1745318874/Betterimage.ai_1745318813398_b0czhb.jpg"
+                        src="https://res.cloudinary.com/dnbc9k0yn/image/upload/v1748876684/Betterimage.ai_1745318813398_kcm7fl.jpg"
                         alt="Right Bag"
                         className="object-cover w-full h-full"
                     />
@@ -168,7 +168,7 @@ const Home: React.FC = () => {
                     }}
                 >
                     <img
-                        src="https://res.cloudinary.com/dvsg1fr4g/image/upload/v1745322207/Betterimage.ai_1745322188608_p3illl.jpg"
+                        src="https://res.cloudinary.com/dnbc9k0yn/image/upload/v1748876329/DIOR-2023-SS-MENS-COLLECTION_26_erorfs.jpg"
                         alt="Men fashion"
                         className="object-cover w-full h-full"
                     />
@@ -204,7 +204,7 @@ const Home: React.FC = () => {
                     }}
                 >
                     <img
-                        src="https://res.cloudinary.com/dvsg1fr4g/image/upload/v1745321978/_ONA0428_b7btez.jpg"
+                        src="https://res.cloudinary.com/dnbc9k0yn/image/upload/v1748876514/_ONA0428_fc2gek.jpg"
                         alt="Women fashion"
                         className="object-cover w-full h-full"
                     />
@@ -247,7 +247,7 @@ const Home: React.FC = () => {
 
             <div className="w-full h-auto flex justify-center items-center mt-[2.5vw]">
                 <img
-                    src="https://res.cloudinary.com/dvsg1fr4g/image/upload/v1744783167/Betterimage.ai_1744782971571_kp9shu.jpg"
+                    src="https://res.cloudinary.com/dnbc9k0yn/image/upload/v1748876563/Betterimage.ai_1744782971571_zkeemo.jpg"
                     alt=""
                 />
             </div>
