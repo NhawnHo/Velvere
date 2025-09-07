@@ -9,7 +9,9 @@ const validateCartItems = (items: any[]): boolean => {
     return items.every(
         (item) =>
             item.product_id &&
-            typeof item.product_id === 'string' &&
+
+            (typeof item.product_id === 'string' || typeof item.product_id === 'number') &&
+
             item.product_name &&
             typeof item.product_name === 'string' &&
             item.image &&

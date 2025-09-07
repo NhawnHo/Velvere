@@ -185,11 +185,11 @@ const Home: React.FC = () => {
                                     textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)',
                                 }}
                             >
-                                Men Fashion
+                                Thời trang nam
                             </span>
                         </div>
                         <div className="mt-4 px-6 py-2 text-white text-2xl tracking-widest group relative hover:text-gray-200 transition-colors duration-300">
-                            Explore
+                            Khám phá
                             <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-[1px] bg-white transition-all duration-500 group-hover:w-full" />
                         </div>
                     </a>
@@ -222,11 +222,11 @@ const Home: React.FC = () => {
                                     textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)',
                                 }}
                             >
-                                Women Fashion
+                                Thời trang nữ
                             </span>
                         </div>
                         <div className="mt-4 px-6 py-2 text-white text-2xl tracking-widest group relative hover:text-gray-200 transition-colors duration-300">
-                            Explore
+                            Khám phá
                             <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-[1px] bg-white transition-all duration-500 group-hover:w-full" />
                         </div>
                     </a>

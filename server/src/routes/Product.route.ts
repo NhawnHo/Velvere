@@ -12,7 +12,13 @@ import {
 
 const router = express.Router();
 
+// Get all products
 router.get('/', getAllProducts);
+
+// Get product by ID
+router.get('/:id', getProductById);
+
+// Add a new product
 router.post('/', addProduct);
 router.get('/best-selling', getBestSellingProduct);
 router.get('/:id', getProductById); // Thêm dòng này để xử lý lấy 1 sản phẩm theo ID

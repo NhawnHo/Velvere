@@ -200,6 +200,7 @@ function Orders() {
 
         try {
             setProcessingAction(true);
+
             const apiBaseUrl =
                 import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
@@ -207,10 +208,13 @@ function Orders() {
             await axios.put(
                 `${apiBaseUrl}/api/orders/${selectedOrder._id}/cancel`,
                 { cancellationReason: cancelReason },
+
                 {
                     withCredentials: true, // Đảm bảo gửi cookie (bao gồm XSRF-TOKEN)
                 },
             );
+
+            console.log('Phản hồi từ server khi hủy đơn hàng:', response.data);
 
             // Làm mới danh sách đơn hàng
             await refreshOrders();
@@ -225,9 +229,10 @@ function Orders() {
             setShowCancelInput(false); // Đóng input lý do hủy
             setCancelReason(''); // Xóa lý do hủy
         } catch (error) {
-            console.error('Lỗi khi hủy đơn hàng:', error);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            console.error('Lỗi chi tiết khi hủy đơn hàng:', error);
             const axiosError = error as any;
+            console.log('Dữ liệu phản hồi lỗi:', axiosError.response?.data);
+
             const errorMessage =
                 axiosError.response?.data?.message ||
                 'Đã xảy ra lỗi khi hủy đơn hàng. Vui lòng thử lại sau.';
