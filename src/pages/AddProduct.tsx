@@ -160,11 +160,9 @@ function AddProduct() {
         setIsMessageDialogOpen(false);
         setMessageDialogTitle('');
         setMessageDialogDescription('');
-        setMessageDialogType('');
-
-        // If it was a success message, navigate after closing
+        setMessageDialogType(''); // If it was a success message, navigate after closing
         if (type === 'success') {
-            navigate('/admin/productPage'); 
+            navigate('/admin/products');
         }
         // For error messages, the dialog just closes, no navigation
     };
@@ -830,6 +828,7 @@ function AddProduct() {
                 </div>
 
                 <div className="flex justify-end space-x-3">
+                    {' '}
                     <button
                         type="button"
                         onClick={() => navigate('/admin/products')} // Navigating to /admin/products

@@ -174,7 +174,7 @@ function ProductDetail() {
 
         try {
             await addToCart({
-                product_id: product.product_id,
+                product_id: String(product.product_id),
                 product_name: product.product_name,
                 image: imageToUse,
                 price: product.price,
@@ -232,7 +232,7 @@ function ProductDetail() {
 
         try {
             await addToCart({
-                product_id: product.product_id,
+                product_id: String(product.product_id),
                 product_name: product.product_name,
                 image: imageToUse,
                 price: product.price,

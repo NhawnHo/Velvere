@@ -242,6 +242,7 @@ export const cancelOrder = async (
 ): Promise<void> => {
     try {
         const { id } = req.params;
+        const { reason } = req.body; // Lấy lý do hủy từ request body
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
             res.status(400).json({ message: 'ID đơn hàng không hợp lệ' });
@@ -282,6 +283,8 @@ export const cancelOrder = async (
 
         // Cập nhật trạng thái đơn hàng thành 'cancelled'
         order.status = 'cancelled';
+        order.cancellationReason = reason || 'Không có lý do được cung cấp';
+        order.cancelledAt = new Date();
         await order.save();
 
         // Nếu đơn hàng đã được giao, không hoàn lại số lượng vào kho
@@ -359,8 +362,10 @@ export const getAllOrders = async (
         // Lấy các tham số query nếu có
         const { status, startDate, endDate } = req.query;
         
+
       // Xây dựng bộ lọc
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         const filter: Record<string, any> = {};
         
         // Lọc theo trạng thái nếu có
@@ -397,19 +402,17 @@ export const getAllOrders = async (
 //Thống kê doanh thu
 export async function getRevenueStats(req: Request, res: Response) {
     try {
-      const fullUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`
-      const { searchParams } = new URL(fullUrl)
-  
-      const period = searchParams.get("period") || "daily"
-      const startDate = searchParams.get("startDate")
-      const endDate = searchParams.get("endDate")
+      // Sử dụng req.query trực tiếp thay vì parse URL
+      const period = req.query.period as string || "daily"
+      const startDate = req.query.startDate as string
+      const endDate = req.query.endDate as string
   
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const dateFilter: any = {}
       if (startDate) dateFilter.orderDate = { $gte: new Date(startDate) }
       if (endDate) dateFilter.orderDate = { ...dateFilter.orderDate, $lte: new Date(endDate) }
   
-      const statusFilter = { status: { $ne: "cancelled" } }
+      const statusFilter = { status: { $ne: "Cancelled" } }
   
       const filter = {
         ...dateFilter,

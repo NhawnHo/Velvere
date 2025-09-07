@@ -16,13 +16,20 @@
     <script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script>
 
     <!-- Define the chatbot -->
-      <df-messenger
-            chat-title="Velvere-chatbot"
-            agent-id="656b9370-76ec-45ce-9132-5336e0444796"
-            language-code="en"
-            chat-icon="/src/assets/logo.png"
-        >
-      </df-messenger>
+    <style>
+      df-messenger {
+        --df-messenger-titlebar-font-family: "Roboto", sans-serif; /* Thay đổi "Tên Font Bạn Muốn" */
+        /* Các tùy chỉnh khác nếu có */
+      }
+    </style>
+    
+    <df-messenger
+        chat-title="Velvere"
+        agent-id="656b9370-76ec-45ce-9132-5336e0444796"
+        language-code="en"
+        chat-icon="/src/assets/logo.png"
+    >
+    </df-messenger>
           <div id="custom-popup" style="position: fixed; bottom: 28px; right: 90px;
             background-color: #f3f4f6; padding: 12px 16px; border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2); max-width: 250px;">
