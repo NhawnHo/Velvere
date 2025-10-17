@@ -96,7 +96,7 @@ export default function RevenuePage() {
             const apiBaseUrl =
                 import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
             const response = await fetch(
-                `${apiBaseUrl}/api/orders?${params.toString()}`,
+                `${apiBaseUrl}/api/orders/revenue?${params.toString()}`,
 
             );
 

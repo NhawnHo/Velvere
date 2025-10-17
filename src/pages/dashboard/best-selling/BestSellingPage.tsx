@@ -70,7 +70,7 @@ export default function BestSellingPage() {
         stock: number;
         image?: string;
     }
-    
+
     const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
     const [categoryData, setCategoryData] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -104,9 +104,10 @@ export default function BestSellingPage() {
             if (searchTerm) {
                 params.append('search', searchTerm);
             }
-
+            const apiBaseUrl =
+                import.meta.env.VITE_API_URL || 'http://localhost:3000';
             const response = await fetch(
-                `http://localhost:3000/api/products/stats/best-selling?${params.toString()}`,
+                `${apiBaseUrl}/api/products/best-selling?${params.toString()}`,
             );
 
             if (!response.ok) {
@@ -137,7 +138,6 @@ export default function BestSellingPage() {
         // Apply search filter
         if (searchTerm) {
             result = result.filter(
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (p: any) =>
                     p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                     p.id
@@ -149,7 +149,6 @@ export default function BestSellingPage() {
 
         // Apply category filter
         if (categoryFilter !== 'all') {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             result = result.filter((p: any) => p.category === categoryFilter);
         }
 
@@ -237,7 +236,10 @@ export default function BestSellingPage() {
         const top10Products = sortedProducts.slice(0, 10);
 
         // Tính phân bố danh mục
-        const categoryDistribution: Record<string, { count: number; revenue: number }> = {};
+        const categoryDistribution: Record<
+            string,
+            { count: number; revenue: number }
+        > = {};
         sortedProducts.forEach((product) => {
             if (!categoryDistribution[product.category]) {
                 categoryDistribution[product.category] = {
@@ -346,7 +348,7 @@ export default function BestSellingPage() {
             },
 
             // Định nghĩa header
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
             header: function (currentPage: any, pageCount: any) {
                 return {
                     stack: [
@@ -487,7 +489,7 @@ export default function BestSellingPage() {
                 };
             },
             // Định nghĩa footer
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
             footer: function (currentPage: any, pageCount: any) {
                 return {
                     stack: [
@@ -1054,7 +1056,7 @@ export default function BestSellingPage() {
                                 },
                                 hLineWidth: function (
                                     i: number,
-                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
                                     node: { table: { body: string | any[] } },
                                 ) {
                                     return i === 0 ||
@@ -1062,27 +1064,27 @@ export default function BestSellingPage() {
                                         ? 1
                                         : 0.5;
                                 },
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
                                 vLineWidth: function (i: any, node: any) {
                                     return 0;
                                 },
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
                                 hLineColor: function (i: any, node: any) {
                                     return colors.border;
                                 },
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
                                 paddingLeft: function (i: any) {
                                     return 8;
                                 },
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
                                 paddingRight: function (i: any) {
                                     return 8;
                                 },
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
                                 paddingTop: function (i: any) {
                                     return 6;
                                 },
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
                                 paddingBottom: function (i: any) {
                                     return 6;
                                 },
@@ -1261,7 +1263,7 @@ export default function BestSellingPage() {
     };
     const exportToExcel = () => {
         // Prepare data for export
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         const exportData = filteredProducts.map((p: any) => ({
             'Mã SP': p.id,
             'Tên sản phẩm': p.name,
@@ -1277,7 +1279,7 @@ export default function BestSellingPage() {
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Sản Phẩm Bán Chạy');
 
         // Add category summary sheet
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         const categorySummary = categoryData.map((c: any) => ({
             'Danh mục': c.name,
             'Số lượng đã bán': c.value,
@@ -1471,7 +1473,6 @@ export default function BestSellingPage() {
                                         }
                                     >
                                         {categoryData.map(
-                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                             (entry: any, index: number) => (
                                                 <Cell
                                                     key={`cell-${index}`}
@@ -1538,7 +1539,6 @@ export default function BestSellingPage() {
                                             Tất cả danh mục
                                         </SelectItem>
                                         {categoryData.map(
-                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                             (category: any, index: number) => (
                                                 <SelectItem
                                                     key={index}
@@ -1619,7 +1619,6 @@ export default function BestSellingPage() {
                                 </thead>
                                 <tbody>
                                     {filteredProducts.map(
-                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                         (product: any, index: number) => (
                                             <tr
                                                 key={index}
