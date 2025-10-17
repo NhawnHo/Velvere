@@ -1,5 +1,4 @@
-'use client';
-
+/* eslint-disable */
 import React, { createContext, useContext, useEffect, useState } from 'react';
 // uuidv4 is no longer needed as we are using the actual product_id from the database
 // import { v4 as uuidv4 } from 'uuid';
@@ -36,7 +35,7 @@ interface CartContextType {
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
-// eslint-disable-next-line 
+// eslint-disable-next-line
 export const useCart = () => {
     const context = useContext(CartContext);
     if (!context) throw new Error('useCart must be used within a CartProvider');
@@ -62,9 +61,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         const checkAuthAndLoadCart = async () => {
             if (!isMounted) return;
 
-          try {
-              const backendUrl =
-                  import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+            try {
+                const backendUrl =
+                    import.meta.env.VITE_API_BASE_URL ||
+                    'http://localhost:3000';
                 const res = await fetch(
                     `${backendUrl}/api/users/check-session`,
                     {
@@ -77,13 +77,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
                     setIsAuthenticated(data.authenticated);
                     if (data.authenticated && data.user) {
                         // When loading cart from backend, ensure product_id is the string ObjectId
-                        const cartRes = await fetch(
-                            `${backendUrl}/api/cart`,
-                            {
-                                method: 'GET',
-                                credentials: 'include',
-                            },
-                        );
+                        const cartRes = await fetch(`${backendUrl}/api/cart`, {
+                            method: 'GET',
+                            credentials: 'include',
+                        });
                         const cartData = await cartRes.json(); // Assuming cartData.items from backend has product_id as string ObjectId
                         setCartItems(cartData.items || []);
                     } else {
@@ -126,17 +123,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
             console.warn('User not authenticated, cannot sync cart');
             return;
         }
- 
+
         // Đảm bảo tất cả product_id là string
         const sanitizedItems = updated.map((item) => ({
             ...item,
             product_id: String(item.product_id), // Chuyển product_id thành string
         }));
- 
+
         setIsLoading(true);
-      try {
-          const backendUrl =
-              import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+        try {
+            const backendUrl =
+                import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
             const res = await fetch(`${backendUrl}/api/cart`, {
                 method: 'PUT',
                 headers: {
@@ -145,7 +142,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
                 credentials: 'include',
                 body: JSON.stringify({ items: sanitizedItems }),
             });
- 
+
             if (!res.ok) {
                 const errorData = await res.json();
                 if (res.status === 401) {
@@ -154,7 +151,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
                 }
                 throw new Error(errorData.message || 'Failed to sync cart');
             }
- 
+
             const data = await res.json();
             setCartItems(data.items);
         } catch (err) {
@@ -163,7 +160,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         } finally {
             setIsLoading(false);
         }
-    };// newItem should already contain the correct product_id (string ObjectId)
+    }; // newItem should already contain the correct product_id (string ObjectId)
 
     const addToCart = async (newItem: Omit<CartItem, '_id'>) => {
         if (!isAuthenticated) {
@@ -220,7 +217,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         // Tìm sản phẩm trong giỏ hàng để lấy số lượng hiện tại
         const currentItem = findCartItem(productId, size, color);
         if (!currentItem) return;
-        
+
         try {
             // Không cập nhật số lượng tồn kho tại đây, chỉ khi thanh toán
             const updated = cartItems.map(
@@ -248,13 +245,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         if (!isAuthenticated) {
             console.warn('User not authenticated, cannot remove item');
             return;
-        } 
-        
+        }
+
         // Tìm sản phẩm trong giỏ hàng để lấy số lượng hiện tại trước khi xóa
         const currentItem = findCartItem(productId, size, color);
         if (!currentItem) return;
 
-        // Khi xóa sản phẩm khỏi giỏ hàng, không cần cập nhật số lượng tồn kho vì 
+        // Khi xóa sản phẩm khỏi giỏ hàng, không cần cập nhật số lượng tồn kho vì
         // số lượng đã được trừ khi thêm vào giỏ hàng
 
         // Filter out the item based on product_id, size, and color
@@ -278,9 +275,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
             console.warn('User not authenticated, cannot clear cart');
             return;
         }
-      try {
-          const backendUrl =
-              import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+        try {
+            const backendUrl =
+                import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
             setIsLoading(true);
             const res = await fetch(`${backendUrl}/api/cart`, {
                 method: 'DELETE',
@@ -306,9 +303,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     };
 
     const logout = async () => {
-      try {
-          const backendUrl =
-              import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+        try {
+            const backendUrl =
+                import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
             await fetch(`${backendUrl}/api/users/logout`, {
                 method: 'POST',
                 credentials: 'include',
@@ -321,18 +318,32 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         }
     };
 
-    const contextValue = React.useMemo(() => ({
-        cartItems,
-        addToCart,
-        updateQuantity,
-        removeFromCart,
-        clearCart,
-        isLoading,
-        totalItems,
-        totalPrice,
-        isAuthenticated,
-        logout,
-    }), [cartItems, addToCart, updateQuantity, removeFromCart, clearCart, isLoading, totalItems, totalPrice, isAuthenticated, logout]);
+    const contextValue = React.useMemo(
+        () => ({
+            cartItems,
+            addToCart,
+            updateQuantity,
+            removeFromCart,
+            clearCart,
+            isLoading,
+            totalItems,
+            totalPrice,
+            isAuthenticated,
+            logout,
+        }),
+        [
+            cartItems,
+            addToCart,
+            updateQuantity,
+            removeFromCart,
+            clearCart,
+            isLoading,
+            totalItems,
+            totalPrice,
+            isAuthenticated,
+            logout,
+        ],
+    );
 
     return (
         <CartContext.Provider value={contextValue}>

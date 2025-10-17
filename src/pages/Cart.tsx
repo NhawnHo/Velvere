@@ -1,5 +1,4 @@
-'use client';
-
+/* eslint-disable */
 import { useCart } from '../context/CartContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
@@ -99,20 +98,20 @@ function Cart() {
             // Cố gắng cập nhật số lượng tồn kho, nhưng không dừng quy trình nếu có lỗi
             try {
                 // Chuẩn bị danh sách các sản phẩm cần cập nhật số lượng tồn kho
-                const stockUpdates = cartItems.map(item => ({
+                const stockUpdates = cartItems.map((item) => ({
                     productId: item.product_id,
                     size: item.size,
                     color: item.color,
-                    quantity: item.quantity
+                    quantity: item.quantity,
                 }));
 
                 // Gọi API cập nhật số lượng tồn kho cho nhiều sản phẩm
                 await axios.post(
                     'http://localhost:3000/api/products/update-multiple-stock',
                     { items: stockUpdates },
-                    { withCredentials: true }
+                    { withCredentials: true },
                 );
-                
+
                 // Ngay cả khi API trả về lỗi 207, vẫn tiếp tục thanh toán
                 console.log('Đã cố gắng cập nhật số lượng tồn kho');
             } catch (stockError) {
@@ -455,7 +454,7 @@ function Cart() {
                                         }
                                         className="mr-2"
                                     />
-                                    Thanh toán khi nhận hàng (COD) 
+                                    Thanh toán khi nhận hàng (COD)
                                 </label>
                                 <label className="flex items-center">
                                     <input
@@ -489,34 +488,27 @@ function Cart() {
                                         }
                                         className="mr-2"
                                     />
-                                   VNPAY 
-                                  
+                                    VNPAY
                                 </label>
-                             
                             </div>
-                         
                         </div>
-                     
+
                         <div className="flex justify-between font-semibold text-lg mb-6">
-                           <span>Tổng cộng:</span>
-                            
+                            <span>Tổng cộng:</span>
+
                             <span>{totalPrice.toLocaleString()}₫</span>
-                            
                         </div>
-                       
+
                         <button
                             onClick={handleCheckout}
                             className="w-full py-3 bg-black text-white rounded-full hover:bg-gray-800 transition"
                         >
-                          Thanh toán 
+                            Thanh toán
                         </button>
-                       
                     </div>
-                    
                 </div>
-              
             </div>
-          
+
             <MessageDialog
                 isOpen={dialog.isOpen}
                 title={dialog.title}
@@ -524,7 +516,6 @@ function Cart() {
                 type={dialog.type}
                 onClose={handleCloseDialog}
             />
-        
         </div>
     );
 }
