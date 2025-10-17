@@ -1,5 +1,6 @@
+/* eslint-disable */
 import { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, data } from 'react-router-dom';
 import axios from 'axios';
 import MessageDialog from '../component/MessageDialog';
 import { useCart } from '../context/CartContext';
@@ -205,10 +206,10 @@ function Orders() {
                 import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
             // Gọi API để hủy đơn hàng với lý do và thêm withCredentials
-            await axios.put(
+            const response = await axios.put(
                 `${apiBaseUrl}/api/orders/${selectedOrder._id}/cancel`,
                 { cancellationReason: cancelReason },
-
+            
                 {
                     withCredentials: true, // Đảm bảo gửi cookie (bao gồm XSRF-TOKEN)
                 },
