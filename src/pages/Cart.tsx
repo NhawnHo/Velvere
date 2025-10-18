@@ -106,8 +106,12 @@ function Cart() {
                 }));
 
                 // Gọi API cập nhật số lượng tồn kho cho nhiều sản phẩm
+                const apiBaseUrl =
+                    import.meta.env.VITE_API_BASE_URL ||
+                    'http://localhost:3000';
+
                 await axios.post(
-                    'http://localhost:3000/api/products/update-multiple-stock',
+                    `${apiBaseUrl}/api/products/update-multiple-stock`,
                     { items: stockUpdates },
                     { withCredentials: true },
                 );
@@ -139,8 +143,10 @@ function Cart() {
                     payment_method: selectedPaymentMethod,
                     estimatedDelivery: parseDateVN(estimatedDelivery),
                 };
-
-                await axios.post('http://localhost:3000/api/orders', orderData);
+                const apiBaseUrl =
+                    import.meta.env.VITE_API_BASE_URL ||
+                    'http://localhost:3000';
+                await axios.post(`${apiBaseUrl}/api/orders`, orderData);
 
                 setOrderInfo({
                     orderId: newOrderId,
