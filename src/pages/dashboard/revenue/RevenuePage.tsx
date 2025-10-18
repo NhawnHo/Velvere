@@ -97,7 +97,10 @@ export default function RevenuePage() {
                 import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
             const response = await fetch(
                 `${apiBaseUrl}/api/orders/revenue?${params.toString()}`,
-
+                {
+                    method: 'GET',
+                    credentials: 'include', // 👈 BẮT BUỘC
+                },
             );
 
             if (!response.ok) {
@@ -125,7 +128,10 @@ export default function RevenuePage() {
         try {
             const apiBaseUrl =
                 import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
-            const res = await fetch(`${apiBaseUrl}/api/orders/min-max-total`);
+            const res = await fetch(`${apiBaseUrl}/api/orders/min-max-total`, {
+                method: 'GET',
+                credentials: 'include', // ✅ Thêm dòng này
+            });
             if (!res.ok) throw new Error('Failed to fetch min/max order');
 
             const data = await res.json();
