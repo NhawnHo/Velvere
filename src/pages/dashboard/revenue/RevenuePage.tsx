@@ -99,7 +99,7 @@ export default function RevenuePage() {
                 `${apiBaseUrl}/api/orders/revenue?${params.toString()}`,
                 {
                     method: 'GET',
-                    credentials: 'include', // 👈 BẮT BUỘC
+                    credentials: 'include',
                 },
             );
 

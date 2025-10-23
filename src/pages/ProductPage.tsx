@@ -29,13 +29,10 @@ export default function ProductPage() {
     useEffect(() => {
         const fetchProducts = async () => {
           try {
-              const apiBaseUrl =
-                    import.meta.env.VITE_API_BASE_URL ||
-                    'http://localhost:3000';
+            const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
-              
-                const res = await fetch(`${apiBaseUrl}/api/products`);
-                const data: Product[] = await res.json();
+            const res = await fetch(`${apiBaseUrl}/api/products`);
+            const data: Product[] = await res.json();
 
                 // Lọc sản phẩm theo giới tính và danh mục nếu có
                 const filtered = data.filter((product) => {

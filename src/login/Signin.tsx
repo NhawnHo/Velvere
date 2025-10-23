@@ -88,7 +88,7 @@ function Signin() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         const backendUrl =
-            import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+            import.meta.env.VITE_API_BASE_URL ;
         e.preventDefault();
 
         if (!validate()) {
