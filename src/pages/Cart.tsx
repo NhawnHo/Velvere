@@ -110,7 +110,7 @@ function Cart() {
                     import.meta.env.VITE_API_BASE_URL ||
                     'http://localhost:3000';
 
-                await axios.post(
+                await axios.put(
                     `${apiBaseUrl}/api/products/update-multiple-stock`,
                     { items: stockUpdates },
                     { withCredentials: true },
@@ -143,8 +143,7 @@ function Cart() {
                     payment_method: selectedPaymentMethod,
                     estimatedDelivery: parseDateVN(estimatedDelivery),
                 };
-              const apiBaseUrl =
-                import.meta.env.VITE_API_BASE_URL;
+                const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
                 await axios.post(`${apiBaseUrl}/api/orders`, orderData);
 
                 setOrderInfo({

@@ -23,11 +23,7 @@ export default function ChatLauncher() {
                 onClick={() => setOpen(!open)}
                 className="w-14 h-14 bg-black hover:bg-blue-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-105"
             >
-                <img
-                    src="https://res.cloudinary.com/duongofji/image/upload/v1761243334/logo_pgibbz.png"
-                    alt="Chatbot"
-                    className="w-7 h-7"
-                />
+                <img src="/logo.png" alt="Chatbot" className="w-7 h-7" />
             </button>
         </div>
     );
