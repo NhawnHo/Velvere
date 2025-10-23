@@ -94,7 +94,10 @@ export default function RevenuePage() {
                 params.append('endDate', formatDateForApi(endDate));
             }
             const apiBaseUrl =
-                import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+                window.location.hostname === 'localhost'
+                    ? 'http://localhost:3000'
+              : import.meta.env.VITE_API_BASE_URL;
+          
             const response = await fetch(
                 `${apiBaseUrl}/api/orders/revenue?${params.toString()}`,
                 {

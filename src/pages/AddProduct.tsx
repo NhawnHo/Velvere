@@ -254,8 +254,8 @@ function AddProduct() {
 
     // Handle form submission
     const handleSubmit = async (e: React.FormEvent) => {
-      e.preventDefault();
-       console.log('Form submitted ✅'); 
+        e.preventDefault();
+        console.log('Form submitted ✅');
         setFormError(''); // Clear previous form errors
 
         // Validation
@@ -295,7 +295,9 @@ function AddProduct() {
         setLoading(true);
         try {
             const apiBaseUrl =
-                import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+                window.location.hostname === 'localhost'
+                    ? 'http://localhost:3000'
+                    : import.meta.env.VITE_API_BASE_URL;
             const url = isEditMode
                 ? `${apiBaseUrl}/api/products/${id}`
                 : `${apiBaseUrl}/api/products`;
@@ -314,12 +316,13 @@ function AddProduct() {
                 // Optionally, you might also not send product_id on create if the server generates it
                 delete dataToSend.product_id;
             }
-console.log('📦 URL gửi đi:', url);
-console.log('📦 Data gửi đi:', dataToSend);
+            console.log('📦 URL gửi đi:', url);
+            console.log('📦 Data gửi đi:', dataToSend);
 
             const response = await fetch(url, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify(dataToSend),
             });
 
