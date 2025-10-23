@@ -294,10 +294,7 @@ function AddProduct() {
 
         setLoading(true);
         try {
-            const apiBaseUrl =
-                window.location.hostname === 'localhost'
-                    ? 'http://localhost:3000'
-                    : import.meta.env.VITE_API_BASE_URL;
+            const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
             const url = isEditMode
                 ? `${apiBaseUrl}/api/products/${id}`
                 : `${apiBaseUrl}/api/products`;
