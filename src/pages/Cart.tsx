@@ -111,7 +111,7 @@ function Cart() {
                     'http://localhost:3000';
 
                 await axios.put(
-                    `${apiBaseUrl}/api/products/update-variant-stock`,
+                    `${apiBaseUrl}/api/products/update-multiple-stock`,
                     { items: stockUpdates },
                     { withCredentials: true },
                 );
